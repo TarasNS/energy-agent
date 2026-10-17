@@ -23,9 +23,13 @@ energy-harness = "energy_harness.cli:main"
 energy-harness-probe = "energy_harness.probe:main"
 energy-harness-sim = "energy_harness.energy.sim.cli:main"
 energy-harness-eval = "energy_harness.evals:main"
+energy-harness-web = "energy_harness.web.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+energy_harness = ["web/static/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

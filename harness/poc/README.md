@@ -40,7 +40,25 @@ cp .env.example .env               # then paste your key from https://openrouter
   `conda create -n energy -c conda-forge --override-channels python=3.12 -y`.
 - Write the key with `Set-Content .env "OPENROUTER_API_KEY=sk-or-v1-..."`.
 
-## Use
+## Test it in the browser (recommended)
+
+```bash
+energy-harness-web            # Windows if .exe is blocked: python -m energy_harness.web
+```
+
+Opens **http://127.0.0.1:8765** with three tabs:
+
+| Tab | What you can do |
+|---|---|
+| **Chat** | Ask questions on simulated or live data, pick a model (or the configured chain), and watch every step: which model answered, fallbacks, each tool call with its arguments and full result. Follow-up questions keep context. |
+| **Evals** | Tick eval cases, run them, see PASS/FAIL per check, the agent's answer and tools used, and the pass rate. Shows the request cost before you run. |
+| **Simulated data** | Pick a park and date (or jump to a scripted incident) to see expected vs metered MW, curtailment and outage windows, and day-ahead prices: the ground truth to check the agent's answers against. Needs no API key. |
+
+The header shows whether the key is loaded and how many of today's 50 free
+requests are used. The server only listens on localhost and the key never
+reaches the browser. Stop it with Ctrl+C.
+
+## Use from the command line
 
 ```bash
 # Check which free models work right now (8 requests), then reorder config.yaml if needed
@@ -163,7 +181,7 @@ modelled.
 ## Develop
 
 ```bash
-pytest            # 71 tests, no network or API key needed (fake LLM + recorded API fixtures)
+pytest            # 77 tests, no network or API key needed (fake LLM + recorded API fixtures)
 ```
 
 ```
@@ -176,6 +194,7 @@ src/energy_harness/
   trace.py         JSONL traces
   factory.py       wiring
   cli.py, probe.py command-line entry points
+  web/             local browser UI (server.py, static/index.html), stdlib only
   builtin_tools.py calculate
   evals.py         eval runner (energy-harness-eval)
   energy/          sources.py (APIs), parks.py, pv.py (model), tools.py (agent tools)

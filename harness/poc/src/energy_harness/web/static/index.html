@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Energy Agent Harness</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f0f2f5; --border: #dde1e7;
+    --text: #1b1f24; --muted: #5c6672; --accent: #1f6feb; --accent-soft: #e3edfd;
+    --ok: #1a7f37; --ok-soft: #dcf5e3; --bad: #c62828; --bad-soft: #fde4e4; --warn: #9a6700; --warn-soft: #fff1c2;
+    --s-expected: #8a94a3; --s-metered: #1f6feb; --s-price: #b35900; --shade-curtail: rgba(198,40,40,.12); --shade-outage: rgba(154,103,0,.14);
+    --radius: 10px; --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1216; --surface: #171b21; --surface-2: #1e232b; --border: #2c333d;
+      --text: #e6e9ee; --muted: #9aa4b2; --accent: #5b9bff; --accent-soft: #1b2a44;
+      --ok: #4ac26b; --ok-soft: #12301c; --bad: #ff6b6b; --bad-soft: #3a1717; --warn: #e3b341; --warn-soft: #3a2e10;
+      --s-expected: #7d8796; --s-metered: #5b9bff; --s-price: #f0883e; --shade-curtail: rgba(255,107,107,.16); --shade-outage: rgba(227,179,65,.16);
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Aptos, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 17px; margin: 0; }
+  header .meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: 13px; }
+  .pill { padding: 2px 9px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); white-space: nowrap; }
+  .pill.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+  nav { display: flex; gap: 4px; padding: 0 20px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  nav button { border: 0; background: none; color: var(--muted); padding: 10px 14px; font: inherit; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+  nav button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  main { max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
+  section[hidden] { display: none; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  label.field { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); min-width: 0; max-width: 100%; }
+  select, input { max-width: 100%; }
+  select, input, textarea { font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; }
+  textarea { flex: 1 1 260px; min-width: 0; resize: vertical; min-height: 44px; }
+  button.btn { font: inherit; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 7px 14px; border-radius: 8px; cursor: pointer; }
+  button.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.btn:disabled { opacity: .55; cursor: default; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-size: 13px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+  .chip:hover { border-color: var(--accent); }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  #conversation { display: flex; flex-direction: column; gap: 12px; margin: 14px 0; }
+  .msg-user { align-self: flex-end; max-width: 85%; background: var(--accent-soft); padding: 9px 13px; border-radius: 12px 12px 2px 12px; white-space: pre-wrap; }
+  .msg-agent { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+  .steps { border-left: 2px solid var(--border); margin: 0 0 10px 4px; padding-left: 12px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+  .step { color: var(--muted); }
+  .step code { font-family: var(--mono); font-size: 12px; color: var(--text); }
+  details.tool summary { cursor: pointer; color: var(--text); }
+  details.tool pre { max-height: 260px; overflow: auto; background: var(--surface-2); padding: 8px; border-radius: 6px; font: 12px/1.45 var(--mono); white-space: pre-wrap; word-break: break-word; }
+  .answer { line-height: 1.6; }
+  .answer p { margin: 0 0 .6em; } .answer ul, .answer ol { margin: 0 0 .6em 1.2em; padding: 0; }
+  .answer code { font-family: var(--mono); background: var(--surface-2); padding: 0 4px; border-radius: 4px; }
+  .answer table { border-collapse: collapse; margin: .4em 0; font-size: 14px; } .answer td, .answer th { border: 1px solid var(--border); padding: 3px 8px; }
+  .footer-line { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .error { color: var(--bad); background: var(--bad-soft); padding: 8px 12px; border-radius: 8px; white-space: pre-wrap; }
+  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  table.grid { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.grid th, table.grid td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.grid th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .table-wrap { overflow-x: auto; }
+  .badge { display: inline-block; min-width: 46px; text-align: center; font-size: 12px; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+  .badge.pass { background: var(--ok-soft); color: var(--ok); } .badge.fail { background: var(--bad-soft); color: var(--bad); } .badge.run { background: var(--accent-soft); color: var(--accent); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .stat .v { font-size: 22px; font-weight: 650; } .stat .k { font-size: 12px; color: var(--muted); }
+  .chart { width: 100%; height: auto; display: block; }
+  .chart text { fill: var(--muted); font-size: 11px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin: 6px 0; }
+  .legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin-right: 5px; border-radius: 2px; }
+  .tooltip { position: fixed; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.15); display: none; z-index: 10; }
+  ul.events { margin: 6px 0 0; padding-left: 18px; } ul.events li { margin: 3px 0; }
+  @media (max-width: 640px) { label.field, label.field select { width: 100%; } header { padding: 12px 16px; } nav { padding: 0 8px; } .msg-user { max-width: 100%; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>⚡ Energy Agent Harness</h1>
+  <div class="meta">
+    <span id="key-status" class="pill">…</span>
+    <span id="budget" class="pill" title="Local count of OpenRouter requests today (free tier)">…</span>
+    <span id="sim-now" class="pill" title="Simulated clock">…</span>
+  </div>
+</header>
+<nav role="tablist">
+  <button role="tab" aria-selected="true" data-tab="chat">Chat</button>
+  <button role="tab" aria-selected="false" data-tab="evals">Evals</button>
+  <button role="tab" aria-selected="false" data-tab="data">Simulated data</button>
+</nav>
+
+<main>
+  <!-- CHAT -->
+  <section id="tab-chat">
+    <div class="card">
+      <div class="row">
+        <label class="field">Data
+          <select id="mode">
+            <option value="simulation">Simulation (synthetic fleet, no data APIs)</option>
+            <option value="live">Live (Open-Meteo, Energy-Charts, parks.yaml)</option>
+          </select>
+        </label>
+        <label class="field">Model
+          <select id="model"></select>
+        </label>
+        <label class="field" id="custom-model-wrap" hidden>Custom model id
+          <input id="custom-model" placeholder="vendor/model:free" size="30">
+        </label>
+        <span style="flex:1"></span>
+        <button class="btn" id="new-chat" title="Forget the conversation history">New conversation</button>
+      </div>
+      <div style="margin-top:10px" class="chips" id="examples"></div>
+    </div>
+
+    <div id="conversation"></div>
+
+    <form id="ask-form" class="card">
+      <div class="row" style="align-items:flex-end">
+        <textarea id="question" rows="2" placeholder="Ask about PV production, prices or irradiance… (Enter to send, Shift+Enter for a new line)"></textarea>
+        <button class="btn primary" id="send" type="submit">Ask</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- EVALS -->
+  <section id="tab-evals" hidden>
+    <div class="card">
+      <div class="row">
+        <label class="field">Model
+          <select id="eval-model"></select>
+        </label>
+        <span style="flex:1"></span>
+        <button class="btn" id="sel-all">Select all</button>
+        <button class="btn" id="sel-none">Select none</button>
+        <button class="btn primary" id="run-evals">Run selected</button>
+      </div>
+      <p class="small muted" id="eval-cost" style="margin:8px 0 0"></p>
+    </div>
+    <div class="stats" id="eval-stats" hidden></div>
+    <div class="card table-wrap" style="margin-top:12px">
+      <table class="grid" id="eval-table">
+        <thead><tr><th></th><th>Case</th><th>Question</th><th>Result</th><th>Details</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SIMULATED DATA -->
+  <section id="tab-data" hidden>
+    <div class="card">
+      <div class="row">
+        <label class="field">Park <select id="sim-park"></select></label>
+        <label class="field">Date (UTC) <input type="date" id="sim-date"></label>
+        <span style="flex:1"></span>
+      </div>
+      <div class="small muted" style="margin-top:10px">Jump to a scripted incident:</div>
+      <div class="chips" id="incident-chips" style="margin-top:6px"></div>
+    </div>
+    <div class="stats" id="sim-stats"></div>
+    <div class="card">
+      <div class="legend">
+        <span><i style="background:var(--s-expected)"></i>Expected (no incidents)</span>
+        <span><i style="background:var(--s-metered)"></i>Metered</span>
+        <span><i style="background:var(--shade-curtail);height:10px"></i>Curtailed</span>
+        <span><i style="background:var(--shade-outage);height:10px"></i>Reduced availability</span>
+      </div>
+      <svg class="chart" id="power-chart" viewBox="0 0 900 260" role="img" aria-label="Power over the day"></svg>
+      <div class="legend" style="margin-top:12px"><span><i style="background:var(--s-price)"></i>Day-ahead price (EUR/MWh)</span></div>
+      <svg class="chart" id="price-chart" viewBox="0 0 900 150" role="img" aria-label="Day-ahead price over the day"></svg>
+      <div id="sim-events" class="small"></div>
+    </div>
+  </section>
+</main>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let INFO = null, history = [], busy = false;
+
+const EXAMPLES = {
+  simulation: [
+    "Which of our parks produced nothing on 2026-10-14?",
+    "Why was Simulated Park Jutland's output so low around midday on 2026-10-11?",
+    "Compare metered and estimated production for Simulated Park Pomerania from 2026-10-10 to 2026-10-16.",
+    "What was the average DK2 day-ahead price on 2026-10-16?",
+    "How much will Simulated Park Zealand produce tomorrow, and what are tomorrow's DK2 prices?",
+  ],
+  live: [
+    "What are today's DK1 day-ahead prices? When is it cheapest?",
+    "Irradiance forecast for the next 3 days at Example Park Jutland.",
+    "Estimate tomorrow's production for all parks.",
+  ],
+};
+
+// ---------- utilities ----------
+async function streamPost(url, body, onEvent) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, i); buf = buf.slice(i + 1);
+      if (line.trim()) onEvent(JSON.parse(line));
+    }
+  }
+}
+
+function renderMarkdown(text) {
+  const lines = esc(text).split("\n"); const out = []; let list = null, table = [];
+  const inline = s => s.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>").replace(/(^|\W)\*([^*\n]+)\*(?=\W|$)/g, "$1<em>$2</em>");
+  const flushList = () => { if (list) { out.push(`<${list.tag}>${list.items.map(i => `<li>${inline(i)}</li>`).join("")}</${list.tag}>`); list = null; } };
+  const flushTable = () => {
+    if (!table.length) return;
+    const rows = table.filter(r => !/^\s*\|?\s*:?-{2,}/.test(r)).map(r => r.replace(/^\s*\||\|\s*$/g, "").split("|").map(c => inline(c.trim())));
+    out.push(`<table>${rows.map((r, i) => `<tr>${r.map(c => i ? `<td>${c}</td>` : `<th>${c}</th>`).join("")}</tr>`).join("")}</table>`);
+    table = [];
+  };
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (/^\s*\|.*\|\s*$/.test(line)) { flushList(); table.push(line); continue; } else flushTable();
+    let m;
+    if ((m = line.match(/^\s*[-*•]\s+(.*)/))) { if (!list || list.tag !== "ul") { flushList(); list = { tag: "ul", items: [] }; } list.items.push(m[1]); }
+    else if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { if (!list || list.tag !== "ol") { flushList(); list = { tag: "ol", items: [] }; } list.items.push(m[1]); }
+    else if ((m = line.match(/^#{1,6}\s+(.*)/))) { flushList(); out.push(`<p><strong>${inline(m[1])}</strong></p>`); }
+    else if (!line.trim()) { flushList(); }
+    else { flushList(); out.push(`<p>${inline(line)}</p>`); }
+  }
+  flushList(); flushTable();
+  return out.join("");
+}
+
+function pretty(s) { try { return JSON.stringify(JSON.parse(s), null, 2); } catch { return s; } }
+function selectedModels(sel, custom) {
+  const v = sel.value;
+  if (v === "__chain__") return null;
+  if (v === "__custom__") return custom && custom.value.trim() ? [custom.value.trim()] : null;
+  return [v];
+}
+function fillModelSelect(sel) {
+  sel.innerHTML = `<option value="__chain__">Configured chain (${esc(INFO.models.join(" → "))})</option>` +
+    INFO.models.map(m => `<option value="${esc(m)}">${esc(m)} only</option>`).join("") +
+    `<option value="__custom__">Custom…</option>`;
+}
+function updateBudget(b) {
+  if (!b) return;
+  const el = $("#budget"), left = b.per_day == null ? null : b.per_day - b.used_today;
+  el.textContent = b.per_day == null ? `${b.used_today} requests today` : `${b.used_today} / ${b.per_day} requests today`;
+  el.className = "pill " + (left == null ? "" : left <= 5 ? "bad" : left <= 15 ? "warn" : "ok");
+}
+
+// ---------- tabs ----------
+document.querySelectorAll("nav button").forEach(btn => btn.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b === btn));
+  document.querySelectorAll("main > section").forEach(s => s.hidden = s.id !== "tab-" + btn.dataset.tab);
+  if (btn.dataset.tab === "data") loadSimDay();
+}));
+
+// ---------- chat ----------
+function renderExamples() {
+  $("#examples").innerHTML = EXAMPLES[$("#mode").value].map(q => `<button type="button" class="chip">${esc(q)}</button>`).join("");
+  $("#examples").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { $("#question").value = c.textContent; $("#question").focus(); }));
+}
+$("#mode").addEventListener("change", () => { history = []; renderExamples(); addNote(`Switched to ${$("#mode").value} data — new conversation.`); });
+$("#model").addEventListener("change", () => $("#custom-model-wrap").hidden = $("#model").value !== "__custom__");
+$("#new-chat").addEventListener("click", () => { history = []; $("#conversation").innerHTML = ""; });
+$("#question").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#ask-form").requestSubmit(); } });
+
+function addNote(text) { const d = document.createElement("div"); d.className = "small muted"; d.textContent = text; $("#conversation").append(d); }
+
+$("#ask-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const question = $("#question").value.trim();
+  if (!question || busy) return;
+  busy = true; $("#send").disabled = true; $("#question").value = "";
+  const conv = $("#conversation");
+  conv.insertAdjacentHTML("beforeend", `<div class="msg-user">${esc(question)}</div>`);
+  const card = document.createElement("div"); card.className = "msg-agent";
+  card.innerHTML = `<div class="steps"></div><div class="answer"><span class="spinner"></span><span class="muted">Thinking…</span></div><div class="footer-line"></div>`;
+  conv.append(card); card.scrollIntoView({ behavior: "smooth", block: "end" });
+  const steps = $(".steps", card), answer = $(".answer", card), footer = $(".footer-line", card);
+
+  try {
+    await streamPost("/api/ask", { question, mode: $("#mode").value, models: selectedModels($("#model"), $("#custom-model")), history }, ev => {
+      if (ev.event === "llm_call") {
+        const fb = ev.failed_models && ev.failed_models.length
+          ? ` <span class="pill warn" title="${esc(ev.failed_models.map(f => f.join(": ")).join("\n"))}">fell back after ${ev.failed_models.length} failed</span>` : "";
+        const tok = ev.usage ? ` · ${ev.usage.prompt_tokens ?? "?"}→${ev.usage.completion_tokens ?? "?"} tokens` : "";
+        steps.insertAdjacentHTML("beforeend", `<div class="step">Step ${ev.step}: <code>${esc(ev.model)}</code> · ${ev.latency_s.toFixed(1)} s${tok}${fb}</div>`);
+      } else if (ev.event === "tool_call") {
+        steps.insertAdjacentHTML("beforeend", `<details class="tool step"><summary>${ev.ok ? "🔧" : "⚠️"} <code>${esc(ev.name)}</code>(<code>${esc(typeof ev.arguments === "string" ? ev.arguments : JSON.stringify(ev.arguments))}</code>)${ev.ok ? "" : ' <span class="pill bad">error</span>'}</summary><pre>${esc(pretty(ev.result))}</pre></details>`);
+      } else if (ev.event === "status") {
+        answer.innerHTML = `<span class="spinner"></span><span class="muted">${esc(ev.message)}</span>`;
+      } else if (ev.event === "answer") {
+        answer.innerHTML = renderMarkdown(ev.answer);
+        history = ev.history;
+        footer.textContent = `${ev.models_used.join(", ")} · ${ev.steps} step${ev.steps === 1 ? "" : "s"}${ev.stopped_reason === "max_steps" ? " (step limit reached)" : ""} · trace: ${ev.trace_file}`;
+        updateBudget(ev.budget);
+      } else if (ev.event === "error") {
+        answer.innerHTML = `<div class="error">${esc(ev.message)}</div>`;
+      }
+      card.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
+  } catch (err) {
+    answer.innerHTML = `<div class="error">Connection to the local server failed: ${esc(err.message)}. Is energy-harness-web still running?</div>`;
+  } finally {
+    busy = false; $("#send").disabled = false; $("#question").focus();
+    refreshInfo();
+  }
+});
+
+// ---------- evals ----------
+function renderEvalTable() {
+  const tbody = $("#eval-table tbody");
+  tbody.innerHTML = INFO.evals.map(c => `
+    <tr data-id="${esc(c.id)}">
+      <td><input type="checkbox" class="case-check" value="${esc(c.id)}" checked aria-label="Select ${esc(c.id)}"></td>
+      <td><code>${esc(c.id)}</code>${c.note ? `<div class="small muted">${esc(c.note)}</div>` : ""}</td>
+      <td>${esc(c.question)}</td>
+      <td class="res"><span class="muted small">—</span></td>
+      <td class="det small"></td>
+    </tr>`).join("");
+  tbody.querySelectorAll(".case-check").forEach(cb => cb.addEventListener("change", updateEvalCost));
+  updateEvalCost();
+}
+function checkedCases() { return [...document.querySelectorAll(".case-check:checked")].map(c => c.value); }
+function updateEvalCost() {
+  const n = checkedCases().length;
+  $("#eval-cost").textContent = `${n} case${n === 1 ? "" : "s"} selected · roughly ${n * 2}–${n * 5} OpenRouter requests (free tier: 50/day, failed requests count too).`;
+}
+$("#sel-all").addEventListener("click", () => { document.querySelectorAll(".case-check").forEach(c => c.checked = true); updateEvalCost(); });
+$("#sel-none").addEventListener("click", () => { document.querySelectorAll(".case-check").forEach(c => c.checked = false); updateEvalCost(); });
+
+$("#run-evals").addEventListener("click", async () => {
+  const cases = checkedCases();
+  if (!cases.length || busy) return;
+  busy = true; $("#run-evals").disabled = true;
+  let passed = 0, done = 0, seconds = 0;
+  const stats = $("#eval-stats"); stats.hidden = false;
+  const drawStats = () => stats.innerHTML = `
+    <div class="stat"><div class="v">${passed} / ${done}</div><div class="k">passed so far (${cases.length} selected)</div></div>
+    <div class="stat"><div class="v">${done ? Math.round(100 * passed / done) : 0}%</div><div class="k">pass rate</div></div>
+    <div class="stat"><div class="v">${done ? (seconds / done).toFixed(1) : "–"} s</div><div class="k">avg time per case</div></div>`;
+  drawStats();
+  for (const id of cases) {
+    const row = document.querySelector(`#eval-table tr[data-id="${CSS.escape(id)}"]`);
+    $(".res", row).innerHTML = `<span class="badge">queued</span>`; $(".det", row).innerHTML = "";
+  }
+  try {
+    await streamPost("/api/eval", { cases, models: selectedModels($("#eval-model"), null) }, ev => {
+      if (ev.event === "case_start") {
+        $(".res", document.querySelector(`#eval-table tr[data-id="${CSS.escape(ev.id)}"]`)).innerHTML = `<span class="badge run"><span class="spinner"></span>running</span>`;
+      } else if (ev.event === "case_result") {
+        const row = document.querySelector(`#eval-table tr[data-id="${CSS.escape(ev.id)}"]`);
+        done++; if (ev.passed) passed++; seconds += ev.seconds || 0; drawStats();
+        $(".res", row).innerHTML = `<span class="badge ${ev.passed ? "pass" : "fail"}">${ev.passed ? "PASS" : "FAIL"}</span><div class="small muted">${ev.steps} steps · ${ev.seconds}s</div>`;
+        const checks = ev.error ? `<div class="error">${esc(ev.error)}</div>` :
+          ev.checks.map(c => `<div>${c.passed ? "✅" : "❌"} ${esc(c.name)}: <span class="muted">${esc(c.detail)}</span></div>`).join("");
+        $(".det", row).innerHTML = `${checks}<div class="muted">model: ${esc(ev.models.join(", ") || "–")} · tools: ${esc(ev.tools.join(", ") || "none")}</div>
+          <details><summary>Answer</summary><div class="answer">${renderMarkdown(ev.answer || "")}</div></details>`;
+      } else if (ev.event === "done") {
+        updateBudget(ev.budget);
+      } else if (ev.event === "error") {
+        $("#eval-cost").innerHTML = `<span class="error">${esc(ev.message)}</span>`;
+      }
+    });
+  } catch (err) {
+    $("#eval-cost").innerHTML = `<span class="error">Connection to the local server failed: ${esc(err.message)}</span>`;
+  } finally {
+    busy = false; $("#run-evals").disabled = false;
+    document.querySelectorAll("#eval-table .badge").forEach(b => { if (/queued|running/.test(b.textContent)) b.outerHTML = `<span class="muted small">not run</span>`; });
+    refreshInfo();
+  }
+});
+
+// ---------- simulated data ----------
+function setupSim() {
+  const parks = INFO.simulation.parks;
+  $("#sim-park").innerHTML = parks.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${esc(p.id)}, ${p.capacity_mwp} MWp, ${esc(p.bidding_zone || "-")})</option>`).join("");
+  $("#sim-date").value = "2026-10-11";
+  const chips = [];
+  for (const e of INFO.simulation.events) {
+    const d = e.start.slice(0, 10);
+    const park = e.park || parks.find(p => p.bidding_zone === e.zone)?.id;
+    if (park) chips.push(`<button class="chip" data-park="${esc(park)}" data-date="${d}">${d} · ${esc(e.type)} · ${esc(e.park || e.zone)}</button>`);
+  }
+  $("#incident-chips").innerHTML = chips.join("");
+  $("#incident-chips").querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => { $("#sim-park").value = c.dataset.park; $("#sim-date").value = c.dataset.date; loadSimDay(); }));
+  $("#sim-park").addEventListener("change", loadSimDay);
+  $("#sim-date").addEventListener("change", loadSimDay);
+}
+
+async function loadSimDay() {
+  const park = $("#sim-park").value, day = $("#sim-date").value;
+  if (!park || !day) return;
+  const res = await fetch(`/api/sim/day?park=${encodeURIComponent(park)}&date=${day}`);
+  const data = await res.json();
+  if (!res.ok) { $("#sim-stats").innerHTML = `<div class="error">${esc(data.error)}</div>`; return; }
+  const s = data.samples, gap = s.filter(x => x.metered_mw === null && new Date(x.t) < new Date(data.now)).length;
+  const curtailed = s.filter(x => x.curtailed).length, minAvail = Math.min(...s.map(x => x.availability));
+  $("#sim-stats").innerHTML = `
+    <div class="stat"><div class="v">${data.metered_mwh} MWh</div><div class="k">metered${new Date(data.now) < new Date(day + "T23:59:59Z") ? " (until simulated now)" : ""}</div></div>
+    <div class="stat"><div class="v">${data.expected_mwh} MWh</div><div class="k">expected without incidents</div></div>
+    <div class="stat"><div class="v">${Math.round(minAvail * 100)}%</div><div class="k">lowest inverter availability</div></div>
+    <div class="stat"><div class="v">${curtailed} · ${gap}</div><div class="k">curtailed · missing 15-min intervals</div></div>`;
+  drawPower(data); drawPrices(data);
+  $("#sim-events").innerHTML = data.events.length
+    ? `<p style="margin:12px 0 0"><strong>Scripted incidents affecting this day</strong></p><ul class="events">${data.events.map(e => `<li><code>${esc(e.type)}</code> ${esc(e.park || e.zone)} · ${esc(e.start.slice(11, 16))}–${esc(e.end.slice(11, 16))} UTC${e.note ? " — " + esc(e.note) : ""}</li>`).join("")}</ul>`
+    : `<p class="muted" style="margin:12px 0 0">No scripted incidents on this day — any dips are weather.</p>`;
+}
+
+const W = 900, PAD = { l: 44, r: 26, t: 12, b: 24 };
+const xOf = (t, day) => PAD.l + ((new Date(t) - new Date(day + "T00:00:00Z")) / 864e5) * (W - PAD.l - PAD.r);
+
+function axes(svg, H, yMax, yMin, unit, day) {
+  const y = v => PAD.t + (1 - (v - yMin) / (yMax - yMin)) * (H - PAD.t - PAD.b);
+  let g = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = yMin + (yMax - yMin) * i / 4;
+    g += `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--border)" stroke-width="1"/><text x="${PAD.l - 6}" y="${y(v) + 4}" text-anchor="end">${Math.round(v)}</text>`;
+  }
+  for (let h = 0; h <= 24; h += 3) {
+    const x = PAD.l + h / 24 * (W - PAD.l - PAD.r);
+    g += `<text x="${x}" y="${H - 6}" text-anchor="middle">${String(h).padStart(2, "0")}:00</text>`;
+  }
+  g += `<text x="${PAD.l}" y="${PAD.t - 2}" text-anchor="start">${unit}</text>`;
+  return { g, y };
+}
+const path = (pts) => pts.reduce((d, p, i) => p == null ? d : d + (d && pts[i - 1] != null ? "L" : "M") + p[0].toFixed(1) + "," + p[1].toFixed(1), "");
+
+function drawPower(data) {
+  const svg = $("#power-chart"), H = 260, s = data.samples, day = data.date;
+  const yMax = Math.max(5, Math.ceil(Math.max(...s.map(x => Math.max(x.expected_mw, x.metered_mw || 0))) / 5) * 5);
+  const { g, y } = axes(svg, H, yMax, 0, "MW", day);
+  const step = (W - PAD.l - PAD.r) / 96;
+  let shade = "";
+  s.forEach(x => {
+    const x0 = xOf(x.t, day);
+    if (x.curtailed) shade += `<rect x="${x0}" y="${PAD.t}" width="${step}" height="${H - PAD.t - PAD.b}" fill="var(--shade-curtail)"/>`;
+    else if (x.availability < 1) shade += `<rect x="${x0}" y="${PAD.t}" width="${step}" height="${H - PAD.t - PAD.b}" fill="var(--shade-outage)"/>`;
+  });
+  const exp = path(s.map(x => [xOf(x.t, day) + step / 2, y(x.expected_mw)]));
+  const met = path(s.map(x => x.metered_mw == null ? null : [xOf(x.t, day) + step / 2, y(x.metered_mw)]));
+  svg.innerHTML = g + shade +
+    `<path d="${exp}" fill="none" stroke="var(--s-expected)" stroke-width="1.5" stroke-dasharray="4 3"/>` +
+    `<path d="${met}" fill="none" stroke="var(--s-metered)" stroke-width="2"/>` +
+    `<line id="pc-cursor" y1="${PAD.t}" y2="${H - PAD.b}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>`;
+  hover(svg, s.length, i => { const x = s[i]; return [xOf(x.t, day) + step / 2,
+    `<strong>${x.t.slice(11, 16)} UTC</strong><br>Metered: ${x.metered_mw == null ? "— (no data)" : x.metered_mw.toFixed(2) + " MW"}<br>Expected: ${x.expected_mw.toFixed(2)} MW<br>Availability: ${Math.round(x.availability * 100)}%${x.curtailed ? "<br><span style='color:var(--bad)'>Curtailed</span>" : ""}`]; }, "pc-cursor", day);
+}
+
+function drawPrices(data) {
+  const svg = $("#price-chart"), H = 150, p = data.prices, day = data.date;
+  if (!p.length) { svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" text-anchor="middle">No price data for this day</text>`; return; }
+  const vals = p.map(x => x.eur_per_mwh);
+  const yMin = Math.min(0, Math.floor(Math.min(...vals) / 20) * 20), yMax = Math.ceil(Math.max(...vals) / 20) * 20 || 20;
+  const { g, y } = axes(svg, H, yMax, yMin, "EUR/MWh", day);
+  const step = (W - PAD.l - PAD.r) / 96;
+  const bars = p.map(x => { const v = x.eur_per_mwh, x0 = xOf(x.t, day), top = y(Math.max(v, 0)), bot = y(Math.min(v, 0));
+    return `<rect x="${x0 + .5}" y="${top}" width="${Math.max(step - 1, 1)}" height="${Math.max(bot - top, .5)}" fill="${v < 0 ? "var(--bad)" : "var(--s-price)"}" opacity=".85"/>`; }).join("");
+  svg.innerHTML = g + `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)"/>` + bars +
+    `<line id="pr-cursor" y1="${PAD.t}" y2="${H - PAD.b}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>`;
+  hover(svg, p.length, i => [xOf(p[i].t, day) + step / 2, `<strong>${p[i].t.slice(11, 16)} UTC</strong><br>${p[i].eur_per_mwh.toFixed(2)} EUR/MWh`], "pr-cursor", day, p);
+}
+
+function hover(svg, n, describe, cursorId, day, series) {
+  const tip = $("#tooltip");
+  svg.onmousemove = e => {
+    const r = svg.getBoundingClientRect(), xv = (e.clientX - r.left) / r.width * W;
+    const frac = (xv - PAD.l) / (W - PAD.l - PAD.r);
+    if (frac < 0 || frac > 1) { tip.style.display = "none"; return; }
+    let i = Math.min(n - 1, Math.max(0, Math.floor(frac * 96)));
+    if (series) { const t = new Date(day + "T00:00:00Z").getTime() + frac * 864e5; i = series.reduce((b, x, k) => Math.abs(new Date(x.t) - t) < Math.abs(new Date(series[b].t) - t) ? k : b, 0); }
+    const [cx, html] = describe(i);
+    const c = svg.querySelector("#" + cursorId); c.setAttribute("x1", cx); c.setAttribute("x2", cx); c.setAttribute("visibility", "visible");
+    tip.innerHTML = html; tip.style.display = "block";
+    tip.style.left = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px";
+  };
+  svg.onmouseleave = () => { tip.style.display = "none"; const c = svg.querySelector("#" + cursorId); if (c) c.setAttribute("visibility", "hidden"); };
+}
+
+// ---------- boot ----------
+async function refreshInfo() {
+  const res = await fetch("/api/info"); INFO = await res.json();
+  $("#key-status").textContent = INFO.has_key ? "OpenRouter key set" : "No OpenRouter key";
+  $("#key-status").className = "pill " + (INFO.has_key ? "ok" : "bad");
+  $("#sim-now").textContent = "Simulated now: " + INFO.simulation.now.slice(0, 16).replace("T", " ") + " UTC";
+  updateBudget(INFO.budget);
+}
+(async () => {
+  await refreshInfo();
+  fillModelSelect($("#model")); fillModelSelect($("#eval-model"));
+  $("#eval-model").querySelector('option[value="__custom__"]').remove();
+  $("#mode").value = "simulation";  // the UI is for testing: start on the simulated fleet
+  renderExamples(); renderEvalTable(); setupSim();
+  if (!INFO.has_key) addNote("No OpenRouter key found. Add OPENROUTER_API_KEY to harness/poc/.env and restart the server. The Simulated data tab works without it.");
+})();
+</script>
+</body>
+</html>

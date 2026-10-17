@@ -57,11 +57,19 @@ def build_registry(settings: Settings, http: httpx.Client | None = None, simulat
     return ToolRegistry([*builtin_tools(), *energy])
 
 
-def build_agent(settings: Settings, *, models: list[str] | None = None, tracer=None, simulator: Simulator | None = None) -> Agent:
+def build_agent(
+    settings: Settings,
+    *,
+    models: list[str] | None = None,
+    tracer=None,
+    simulator: Simulator | None = None,
+    budget: RequestBudget | None = None,
+) -> Agent:
     simulator = simulator or build_simulator(settings)
     kwargs = {"today": lambda: simulator.today().isoformat()} if simulator else {}
+    client_kwargs = {"budget": budget} if budget else {}
     return Agent(
-        build_client(settings, models),
+        build_client(settings, models, **client_kwargs),
         build_registry(settings, simulator=simulator),
         max_steps=settings.max_steps,
         tracer=tracer,

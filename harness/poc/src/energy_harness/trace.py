@@ -7,7 +7,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 
 class NullTracer:
@@ -16,10 +16,11 @@ class NullTracer:
 
 
 class Tracer:
-    def __init__(self, runs_dir: Path, echo: bool = False) -> None:
+    def __init__(self, runs_dir: Path, echo: bool = False, listener: Callable[[dict], None] | None = None) -> None:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         self.path = Path(runs_dir) / f"{stamp}-{uuid.uuid4().hex[:6]}.jsonl"
         self.echo = echo
+        self.listener = listener  # e.g. the web UI streaming events to the browser
 
     def event(self, kind: str, **data: Any) -> None:
         record = {"ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds"), "event": kind, **data}
@@ -28,6 +29,8 @@ class Tracer:
             f.write(json.dumps(record, default=str, ensure_ascii=False) + "\n")
         if self.echo:
             _echo(kind, data)
+        if self.listener:
+            self.listener(record)
 
 
 def _echo(kind: str, data: dict) -> None:
