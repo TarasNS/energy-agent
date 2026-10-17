@@ -19,5 +19,11 @@ budget:
   requests_per_minute: 20
   requests_per_day: 50
 
+# live: Open-Meteo + Energy-Charts + parks.yaml (no metered data yet)
+# simulation: everything from simulation.yaml, incl. metered production; no data APIs needed.
+# Override per run with --simulate or ENERGY_HARNESS_DATA_SOURCE=simulation.
+data_source: live
+simulation_file: simulation.yaml
+
 parks_file: parks.yaml
 runs_dir: runs

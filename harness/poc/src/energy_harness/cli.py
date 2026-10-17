@@ -7,7 +7,7 @@ import sys
 
 from .budget import BudgetExceeded
 from .config import load_settings
-from .factory import build_agent
+from .factory import build_agent, build_simulator
 from .llm import LLMError
 from .trace import Tracer
 
@@ -21,14 +21,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--config", help="path to config.yaml")
     parser.add_argument("--model", action="append", help="model to use (repeat for a fallback chain); overrides config")
     parser.add_argument("--max-steps", type=int, help="max LLM calls per question")
+    parser.add_argument("--simulate", action="store_true", help="use simulated power, price and weather data (simulation.yaml)")
     parser.add_argument("-q", "--quiet", action="store_true", help="don't print model/tool activity to stderr")
     args = parser.parse_args(argv)
 
     settings = load_settings(args.config)
     if args.max_steps:
         settings.max_steps = args.max_steps
+    if args.simulate:
+        settings.data_source = "simulation"
     tracer = Tracer(settings.runs_dir, echo=not args.quiet)
-    agent = build_agent(settings, models=args.model, tracer=tracer)
+    simulator = build_simulator(settings)
+    if simulator:
+        print(f"[simulation mode: synthetic data, simulated now = {simulator.now():%Y-%m-%d %H:%M} UTC]", file=sys.stderr)
+    agent = build_agent(settings, models=args.model, tracer=tracer, simulator=simulator)
 
     if args.question:
         return 0 if _ask(agent, args.question, None) is not None else 1

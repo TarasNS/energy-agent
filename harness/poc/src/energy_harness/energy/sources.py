@@ -45,6 +45,8 @@ def utc_today() -> date:
 
 
 class OpenMeteo:
+    name = "Open-Meteo"
+
     def __init__(self, http: httpx.Client, today=utc_today) -> None:
         self.http = http
         self._today = today
@@ -108,6 +110,8 @@ class OpenMeteo:
 
 
 class EnergyCharts:
+    name = "Energy-Charts"
+
     def __init__(self, http: httpx.Client) -> None:
         self.http = http
 

@@ -12,6 +12,11 @@ models** and three data tools:
 
 All data sources are free and need no API key. Only OpenRouter needs a key.
 
+There is also a **simulation mode** (`--simulate`): a fictional fleet with
+metered 15-minute production, prices and weather, plus scripted incidents with
+known answers. It needs no data APIs and comes with an eval suite that scores
+how well each free model answers. See [Simulation and evals](#simulation-and-evals).
+
 See [`../PLAN.md`](../PLAN.md) for the design and model-selection reasoning.
 
 ## Setup
@@ -44,12 +49,56 @@ Model and tool activity is printed to stderr (`-q` to hide it). Every session
 writes a trace to `runs/<timestamp>.jsonl`: which model answered, fallbacks,
 latency, tokens, tool calls and results.
 
+## Simulation and evals
+
+`simulation.yaml` defines a **fictional** fleet (4 parks in DK1, DK2, SE3 and PL),
+a seed, a simulated clock (`now: 2026-10-17T12:00Z`) and scripted incidents:
+
+| Date (2026) | Incident | How the agent can see it |
+|---|---|---|
+| 10-09 | 40 % of inverters trip at sim-dk-west | `availability_pct` ≈ 69 % |
+| 10-11 | DK1 price −18.5 EUR/MWh 12:00–15:00 CEST → sim-dk-west curtails to 0 | negative prices + `curtailed_intervals` |
+| 10-12 | Datalogger gap at sim-pl | `data_completeness_pct` ≈ 83 % |
+| 10-13 | Grid operator caps sim-se at 8 MW | `curtailed_intervals`, flat peak |
+| 10-14 | Substation fault: sim-dk-east offline all day | 0 MWh, availability 0 % |
+| 10-05 → | 15 % soiling at sim-pl | only metered vs estimate shows it |
+
+The simulator models sun position, clear-sky irradiance, seeded cloud regimes,
+tilted-plane irradiance, temperature, inverter clipping, 15-min day-ahead
+prices (demand peaks, solar dip) and automatic curtailment at negative prices.
+Same seed ⇒ same numbers on every machine. Weather "forecasts" equal the
+simulated actuals.
+
+```bash
+energy-harness --simulate "Which park produced nothing on 2026-10-14?"
+energy-harness --simulate          # interactive, on the simulated fleet
+
+energy-harness-sim events                                   # parks + incidents
+energy-harness-sim production sim-pl 2026-10-10 --end 2026-10-16   # expected vs metered MWh
+energy-harness-sim prices DK1 2026-10-11 --csv dk1.csv      # export 15-min data
+
+energy-harness-eval --list
+energy-harness-eval                                         # all 8 cases (~25 requests!)
+energy-harness-eval --case outage-full --case mean-price --model qwen/qwen3-coder:free
+```
+
+The eval prints PASS/FAIL per case and a score, and writes details to
+`runs/eval-*.json`. Checks are keyword matches, required tool calls, and
+numbers within tolerance of what the tools return. Add cases in `evals.yaml`.
+With the 50/day free cap, run subsets per model.
+
+`get_metered_production` exists only in simulation mode for now. When real
+monitoring data is available, implement the same `production(park, start, end)`
+interface (see `energy/sim/adapters.py`) and pass it to `build_energy_tools`.
+
 ## Configure
 
 - **`config.yaml`**: model fallback chain, temperature, `max_steps`, request budget.
 - **`parks.yaml`**: your PV parks. **The shipped parks are placeholders**;
   replace them with real coordinates, DC/AC capacity, tilt/azimuth and bidding zone.
-- **`.env`**: `OPENROUTER_API_KEY`, optional `ENERGY_HARNESS_MODELS` override.
+- **`simulation.yaml`**: simulated fleet, clock and incidents; **`evals.yaml`**: eval cases.
+- **`.env`**: `OPENROUTER_API_KEY`, optional `ENERGY_HARNESS_MODELS` and
+  `ENERGY_HARNESS_DATA_SOURCE=simulation` overrides.
 
 ### Model chain
 
@@ -96,7 +145,7 @@ modelled.
 ## Develop
 
 ```bash
-pytest            # 56 tests, no network or API key needed (fake LLM + recorded API fixtures)
+pytest            # 71 tests, no network or API key needed (fake LLM + recorded API fixtures)
 ```
 
 ```
@@ -110,7 +159,9 @@ src/energy_harness/
   factory.py       wiring
   cli.py, probe.py command-line entry points
   builtin_tools.py calculate
+  evals.py         eval runner (energy-harness-eval)
   energy/          sources.py (APIs), parks.py, pv.py (model), tools.py (agent tools)
+  energy/sim/      scenario.py, solar.py, simulator.py, adapters.py, cli.py (energy-harness-sim)
 ```
 
 Adding a tool: write a typed function with a docstring, decorate it with

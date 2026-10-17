@@ -21,6 +21,8 @@ dev = ["pytest>=8", "respx>=0.21"]
 [project.scripts]
 energy-harness = "energy_harness.cli:main"
 energy-harness-probe = "energy_harness.probe:main"
+energy-harness-sim = "energy_harness.energy.sim.cli:main"
+energy-harness-eval = "energy_harness.evals:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

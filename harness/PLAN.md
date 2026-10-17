@@ -1,6 +1,6 @@
 # Energy Agent Harness — Implementation Plan
 
-> Status: **Tasks 1–8 implemented in `harness/poc/` (56 offline tests passing). Task 9, the live smoke test, needs an OpenRouter key and network access.**
+> Status: **Tasks 1–8 implemented in `harness/poc/` (71 offline tests passing, incl. simulation). Task 9, the live smoke test, needs an OpenRouter key and network access.**
 > Date: 2026-10-17 · Branch: `claude/awesome-planck-bt3ymf`
 
 ## 0. Decisions
@@ -143,3 +143,21 @@ harness/
 | Prompts may be logged by free providers | Only public/non-confidential data; README note |
 | API response formats drift | Parsing isolated in `energy/sources.py`; fixture tests; live smoke test |
 | Cloud container can't reach OpenRouter / data APIs | Live steps run locally, or allow the hosts in the environment's network policy |
+
+## 7. Addendum: power-data simulation (test bed)
+
+**Goal:** test the harness end to end without real SCADA data or data APIs,
+against data whose correct answers are known.
+
+| Piece | What it does |
+|---|---|
+| `simulation.yaml` | Fictional park fleet, seed, simulated clock (`now`) and a script of incidents: full/partial outage, grid curtailment, negative-price hours, data gaps, soiling |
+| `energy/sim/` | Deterministic simulator at 15-min resolution: solar geometry + clear-sky model, seeded cloud regimes, POA transposition, temperature, PV output; day-ahead prices shaped by demand peaks and solar depression; automatic curtailment when prices go negative |
+| `get_metered_production` tool | Measured output (energy, peak, inverter availability, curtailed intervals, data completeness). Simulation-backed for now; a real SCADA source plugs in behind the same interface |
+| `--simulate` | Every tool (weather, prices, metered, estimates) reads the simulator, so no network except OpenRouter |
+| `energy-harness-sim` | Inspect/export simulated data (CSV) to see the ground truth |
+| `energy-harness-eval` + `evals.yaml` | Questions with checkable answers (numbers within tolerance, required keywords, required tools); scores pass rate per model; results to `runs/eval-*.json` |
+
+Same seed ⇒ same numbers on every machine, so eval results are comparable
+across models and over time. Weather forecasts in simulation are "perfect"
+(forecast = what happens), which keeps the ground truth unambiguous.

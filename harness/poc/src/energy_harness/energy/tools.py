@@ -32,11 +32,18 @@ def build_energy_tools(
     parks: ParkRegistry,
     http: httpx.Client | None = None,
     today: Callable[[], date] | None = None,
+    *,
+    weather=None,
+    prices=None,
+    metered=None,
 ) -> list[Tool]:
+    """Build the energy tools. Live sources (Open-Meteo, Energy-Charts) are used unless `weather`/`prices`
+    are given; `get_metered_production` is only offered when a `metered` source is given."""
     today = today or utc_today
-    http = http or httpx.Client(headers={"User-Agent": "energy-agent-harness/0.1"})
-    weather = OpenMeteo(http, today=today)
-    prices = EnergyCharts(http)
+    if weather is None or prices is None:
+        http = http or httpx.Client(headers={"User-Agent": "energy-agent-harness/0.1"})
+    weather = weather or OpenMeteo(http, today=today)
+    prices = prices or EnergyCharts(http)
 
     def date_range(start: date | None, end: date | None) -> tuple[date, date]:
         start = start or today()
@@ -86,7 +93,7 @@ def build_energy_tools(
                     "mean_temp_c": _mean(r.temp_c for r in rows),
                 }
             )
-        result: dict = {"location": label, "source": "Open-Meteo forecast", "daily": daily}
+        result: dict = {"location": label, "source": weather.name, "daily": daily}
         if days <= DETAIL_MAX_DAYS:
             result["hourly_utc"] = [
                 {"time": r.time.strftime("%Y-%m-%d %H:%M"), "ghi_w_m2": r.ghi_w_m2, "cloud_pct": r.cloud_pct, "temp_c": r.temp_c}
@@ -128,7 +135,7 @@ def build_energy_tools(
             "park": site.id,
             "capacity_mwp": site.capacity_mwp,
             "ac_capacity_mw": site.ac_capacity_mw,
-            "method": f"estimate from Open-Meteo {'tilted' if use_poa else 'horizontal'} irradiance, PR {pv.PERFORMANCE_RATIO}, temperature-derated",
+            "method": f"estimate from {weather.name} {'tilted' if use_poa else 'horizontal'} irradiance, PR {pv.PERFORMANCE_RATIO}, temperature-derated",
             "daily": daily,
             "total_energy_mwh": round(sum(d["energy_mwh"] for d in daily), 1),
         }
@@ -174,12 +181,59 @@ def build_energy_tools(
                     "resolution_min": resolution,
                 }
             )
-        result: dict = {"bidding_zone": bidding_zone.upper(), "unit": unit, "timezone": "CET/CEST", "daily": daily}
+        result: dict = {"bidding_zone": bidding_zone.upper(), "unit": unit, "timezone": "CET/CEST", "source": prices.name, "daily": daily}
         if start == end:
             result["prices"] = [[t.strftime("%H:%M"), round(p, 2)] for t, p in by_day[start]] if start in by_day else []
         return result
 
-    return [list_parks, get_irradiance_forecast, estimate_pv_production, get_day_ahead_prices]
+    @tool
+    def get_metered_production(park: ParkArg, start_date: DateArg = None, end_date: DateArg = None) -> dict:
+        """Measured production of a park from the monitoring system (15-minute meter data): per day the energy
+        (MWh), peak MW, inverter availability (% of daylight), number of curtailed 15-min intervals and data
+        completeness (%); hourly MWh for a single day. Today's data runs up to the current time. Compare with
+        estimate_pv_production to spot underperformance that availability alone doesn't explain."""
+        site = parks.get(park)
+        start, end = date_range(start_date, end_date)
+        samples = metered.production(site, start, end)
+        if not samples:
+            raise ToolError(f"no metered data for {site.id} between {start} and {end}")
+
+        by_day: dict[date, list] = defaultdict(list)
+        for s in samples:
+            by_day[s.time.date()].append(s)
+        daily, hourly = [], defaultdict(float)
+        for day in sorted(by_day):
+            rows = by_day[day]
+            present = [s for s in rows if s.metered_mw is not None]
+            daylight = [s for s in rows if s.expected_mw > 0]
+            daily.append(
+                {
+                    "date": day.isoformat(),
+                    "energy_mwh": round(sum(s.metered_mw for s in present) * 0.25, 1),
+                    "peak_mw": round(max((s.metered_mw for s in present), default=0.0), 2),
+                    "availability_pct": round(100 * fmean(s.availability for s in daylight), 1) if daylight else 100.0,
+                    "curtailed_intervals": sum(s.curtailed for s in rows),
+                    "data_completeness_pct": round(100 * len(present) / len(rows), 1),
+                    "intervals": len(rows),
+                }
+            )
+            for s in present:
+                hourly[s.time.strftime("%Y-%m-%d %H:00")] += s.metered_mw * 0.25
+
+        result: dict = {
+            "park": site.id,
+            "capacity_mwp": site.capacity_mwp,
+            "source": metered.name,
+            "data_until_utc": (samples[-1].time + timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M"),
+            "daily": daily,
+            "total_energy_mwh": round(sum(d["energy_mwh"] for d in daily), 1),
+        }
+        if start == end:
+            result["hourly_mwh_utc"] = {hour: round(mwh, 2) for hour, mwh in hourly.items() if mwh > 0}
+        return result
+
+    tools = [list_parks, get_irradiance_forecast, estimate_pv_production, get_day_ahead_prices]
+    return tools + [get_metered_production] if metered is not None else tools
 
 
 def _group_by_day(hours: list[WeatherHour]) -> list[tuple[date, list[WeatherHour]]]:

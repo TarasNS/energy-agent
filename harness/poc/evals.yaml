@@ -1,0 +1,62 @@
+# Eval cases for the simulated fleet in simulation.yaml (simulated now: 2026-10-17 12:00 UTC).
+# Each case is one fresh question to the agent; typically 2–5 OpenRouter requests.
+# Mind the free tier: 50 requests/day. Run a subset with --case <id>.
+#
+# Checks (all must pass):
+#   contains_any / contains_all / not_contains  case-insensitive text checks on the answer
+#   tools_called                                 the agent must have used these tools
+#   number                                       a number in the answer within tolerance of the tool's own value
+
+cases:
+  - id: metered-energy
+    question: How much did Simulated Park Jutland produce on 2026-10-10 according to the meter, in MWh?
+    expect:
+      tools_called: [get_metered_production]
+      number: {metric: metered_mwh, park: sim-dk-west, date: 2026-10-10, tolerance_pct: 2}
+
+  - id: outage-full
+    question: Which of our parks produced nothing on 2026-10-14?
+    expect:
+      tools_called: [get_metered_production]
+      contains_any: [sim-dk-east, Zealand]
+      not_contains: [sim-dk-west, sim-pl, sim-se]
+    note: whole-park outage; availability 0 %
+
+  - id: outage-partial
+    question: Simulated Park Jutland looked weak on 2026-10-09. What was the likely cause?
+    expect:
+      tools_called: [get_metered_production]
+      contains_any: [availability, inverter, outage, trip]
+    note: 40 % of inverters down 07–15 UTC
+
+  - id: negative-prices
+    question: Were there negative day-ahead prices in DK1 on 2026-10-11? If so, when and how low?
+    expect:
+      tools_called: [get_day_ahead_prices]
+      contains_any: ["-18.5", "−18.5", "18.5"]
+      contains_all: ["12:00"]
+
+  - id: curtailment-cause
+    question: Why was Simulated Park Jutland's output so low around midday on 2026-10-11?
+    expect:
+      tools_called: [get_metered_production]
+      contains_any: [curtail, negative price]
+    note: auto-curtailment to 0 MW during negative DK1 prices
+
+  - id: data-gap
+    question: Is the metered data for Simulated Park Pomerania on 2026-10-12 complete and reliable?
+    expect:
+      contains_any: [gap, missing, incomplete, "83"]
+
+  - id: mean-price
+    question: What was the average DK2 day-ahead price on 2026-10-16?
+    expect:
+      tools_called: [get_day_ahead_prices]
+      number: {metric: mean_price, zone: DK2, date: 2026-10-16, tolerance_pct: 1}
+
+  - id: soiling
+    question: Compare metered and estimated production for Simulated Park Pomerania from 2026-10-10 to 2026-10-16. Is it underperforming, and by roughly how much?
+    expect:
+      tools_called: [get_metered_production, estimate_pv_production]
+      contains_any: [underperform, below, lower, less than]
+    note: 15 % soiling loss, invisible in availability

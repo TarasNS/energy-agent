@@ -1,0 +1,97 @@
+# Simulated fleet for testing the harness (`energy-harness --simulate`, `energy-harness-eval`).
+#
+# Everything here is FICTIONAL. The data is deterministic: the same seed gives
+# the same numbers on every machine, so eval results are comparable.
+# Inspect the ground truth with `energy-harness-sim`.
+
+seed: 42
+now: 2026-10-17T12:00:00Z    # simulated clock; delete to follow real time
+history_days: 90             # how far back metered data, weather and prices go
+curtail_on_negative_prices: true   # parks drop to 0 MW while their zone's price is below 0
+
+# azimuth: Open-Meteo convention, 0 = south, -90 = east, 90 = west. No tilt = tracker/unknown (uses GHI).
+parks:
+  - id: sim-dk-west
+    name: Simulated Park Jutland
+    country: DK
+    latitude: 56.10
+    longitude: 9.10
+    capacity_mwp: 60.0
+    ac_capacity_mw: 50.0
+    tilt: 25
+    azimuth: 0
+    bidding_zone: DK1
+
+  - id: sim-dk-east
+    name: Simulated Park Zealand
+    country: DK
+    latitude: 55.45
+    longitude: 11.80
+    capacity_mwp: 35.0
+    ac_capacity_mw: 30.0
+    tilt: 20
+    azimuth: 0
+    bidding_zone: DK2
+
+  - id: sim-se
+    name: Simulated Park Ostergotland
+    country: SE
+    latitude: 58.40
+    longitude: 15.60
+    capacity_mwp: 25.0
+    ac_capacity_mw: 21.0
+    tilt: 30
+    azimuth: -10
+    bidding_zone: SE3
+
+  - id: sim-pl
+    name: Simulated Park Pomerania
+    country: PL
+    latitude: 54.20
+    longitude: 17.00
+    capacity_mwp: 40.0
+    ac_capacity_mw: 34.0
+    bidding_zone: PL
+
+# Scripted incidents (times in UTC unless an offset is given). Events are active on [start, end).
+events:
+  - type: outage
+    park: sim-dk-east
+    start: 2026-10-14T00:00:00Z
+    end: 2026-10-15T00:00:00Z
+    fraction: 1.0
+    note: Substation fault, whole park offline for the day
+
+  - type: outage
+    park: sim-dk-west
+    start: 2026-10-09T07:00:00Z
+    end: 2026-10-09T15:00:00Z
+    fraction: 0.4
+    note: 40 % of inverters tripped
+
+  - type: price
+    zone: DK1
+    start: 2026-10-11T12:00:00+02:00
+    end: 2026-10-11T15:00:00+02:00
+    price: -18.5
+    note: Negative DK1 prices (windy, sunny Sunday) -> sim-dk-west curtails to 0
+
+  - type: curtailment
+    park: sim-se
+    start: 2026-10-13T09:00:00Z
+    end: 2026-10-13T13:00:00Z
+    limit_mw: 8.0
+    note: Grid operator limited export to 8 MW
+
+  - type: data_gap
+    park: sim-pl
+    start: 2026-10-12T09:00:00Z
+    end: 2026-10-12T13:00:00Z
+    note: Datalogger lost connection
+
+  - type: degradation
+    park: sim-pl
+    start: 2026-10-05T00:00:00Z
+    end: 2026-10-20T00:00:00Z
+    fraction: 0.15
+    note: Heavy soiling; not visible in availability, only against the estimate

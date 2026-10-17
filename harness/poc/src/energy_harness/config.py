@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Mapping
+from typing import Literal, Mapping
 
 import yaml
 from dotenv import load_dotenv
@@ -28,6 +28,8 @@ class Settings(BaseModel):
     budget: BudgetConfig = BudgetConfig()
     parks_file: Path
     runs_dir: Path
+    data_source: Literal["live", "simulation"] = "live"
+    simulation_file: Path
 
 
 def find_config(explicit: str | Path | None = None, env: Mapping[str, str] = os.environ) -> Path:
@@ -46,11 +48,14 @@ def load_settings(config_path: str | Path | None = None, env: Mapping[str, str] 
     path = find_config(config_path, env)
     data = yaml.safe_load(path.read_text()) or {}
 
-    for key in ("parks_file", "runs_dir"):
-        value = Path(data.get(key, "parks.yaml" if key == "parks_file" else "runs"))
+    defaults = {"parks_file": "parks.yaml", "runs_dir": "runs", "simulation_file": "simulation.yaml"}
+    for key, default in defaults.items():
+        value = Path(data.get(key, default))
         data[key] = value if value.is_absolute() else path.parent / value
 
     data["api_key"] = env.get("OPENROUTER_API_KEY") or None
+    if env.get("ENERGY_HARNESS_DATA_SOURCE"):
+        data["data_source"] = env["ENERGY_HARNESS_DATA_SOURCE"]
     if env.get("ENERGY_HARNESS_MODELS"):
         data["models"] = [m.strip() for m in env["ENERGY_HARNESS_MODELS"].split(",") if m.strip()]
     return Settings.model_validate(data)
