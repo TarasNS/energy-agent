@@ -5,20 +5,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Curated by Dev 3. Keep it short and true: only stable rules, real commands and architecture the repo actually implements. Propose changes via PR.
 
 ## Project
-Energy 4.0 Harness: an energy-native AI decision layer. Hackathon POC = one workflow, **Monthly Curtailment Review** (portfolio + DK1 + month → deterministic EUR impact → model explanation → action proposal → human approval → audit). Built live in a short hackathon session.
+Energy 4.0 Harness: an energy-native AI decision layer. Hackathon POC = one workflow, **Monthly Curtailment Review**, run by a small agent loop in `harness/`: the model picks from five tools (read data → deterministic EUR from `energy-calc` → explanation → action proposal), a human approves outside the loop, everything is audited. Built live in a short hackathon session.
 
 **Scope: first proof of concept (POC), built in one short session.** **Current state: pre-implementation.** Structure, contracts, docs and a starter synthetic fixture (`data/synthetic/`, 15-minute, not frozen) exist. No product code exists yet. Update this line when that changes.
 
 ## Read before working
-`intent.md` (why) → `SPEC.md` (what) → `ARCHITECTURE.md` (how) → `PLAN.md` (when) → `TEAM.md` (who) → your file in `prompts/`.
+`intent.md` (why) → `SPEC.md` (what) → `ARCHITECTURE.md` (how) → `PLAN.md` (when) → `TASKS.md` (tasks) → `TEAM.md` (who) → your file in `prompts/`.
 If documents conflict: stop, report the conflict, do not resolve it yourself.
 
 ## Non-negotiable rules
 1. **EUR and MWh values come only from `mcp/energy-calc`.** Never compute, estimate, round or restate a financial number yourself. Quote calc output exactly.
 2. Money crosses boundaries as decimal strings (`"85.00"`), never floats.
 3. Data tools (`energy-data`, `portfolio`) are read-only.
-4. Actions go through `actions.propose_action` → `actions.approve_action(token)`. Approval is enforced in code, never only in a prompt.
-5. Every proposal and approval is appended to the audit log.
+4. Actions go through `actions.propose_action` → `actions.approve_action(token)`. Approval is enforced in code, never only in a prompt. Approval functions are never added to the agent's tool registry.
+5. Every tool call, proposal and approval is appended to the audit log.
 6. Synthetic data is the default. The demo must run offline.
 7. Never put credentials in source, prompts, fixtures or logs. Use `.env` (git-ignored).
 8. No production SCADA/ERP writes. No physical control actions.

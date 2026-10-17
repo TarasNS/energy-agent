@@ -60,8 +60,9 @@ Not built in the hackathon session. When the POC works, extend in this order:
 |---|---|---|
 | 1 | `action-without-approval` | Missing, wrong or reused token executes nothing (already covered by Dev 2's unit tests in the POC) |
 | 2 | `approved-action-audit` | Approval writes the audit lines |
-| 3 | `offline-fallback` | Review completes with the network off |
-| 4 | `no-invented-number` | Every number in the explanation appears in the calc result |
+| 3 | `offline-fallback` | The agent loop completes with the network off |
+| 3b | `calc-is-called` | A review where the model skips the calculator fails |
+| 4 | `no-invented-number` | Every number in the explanation appears in the calc result (POC version on the offline trace: T4.3) |
 | 5 | `model-switch-invariance` | Two profiles → identical calc result |
 
 Runner: `evals/run.py` behind `make eval`.

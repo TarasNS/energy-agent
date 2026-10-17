@@ -27,7 +27,7 @@ Energy 4.0 Harness separates those concerns:
 ## Three-minute demo
 
 ### 0:00–0:25 — The job
-"It's June. I'm reviewing curtailment and negative prices for our DK1 solar portfolio." Select portfolio, DK1, month. Click **Run review**.
+"It's June. I'm reviewing curtailment and negative prices for our DK1 solar portfolio." Select portfolio, DK1, month. Click **Run review**. Point at the tool trace: "The AI chose these tools itself. It had no other tools, and no way to approve."
 
 ### 0:25–1:15 — The number
 Show the headline and the split:
@@ -35,7 +35,7 @@ Show the headline and the split:
 - The grid operator curtailed one park; that loss **may be compensated**.
 - **Engbakke Solar keeps producing into negative prices.** That is the cost.
 
-> "The model didn't calculate any of this. Deterministic code did, from 15-minute market data. The model only explains it."
+> "The AI chose to call the calculator, and it had to: a review without it fails. Deterministic code made every number, from 15-minute market data. The model only explains it."
 
 ### 1:15–1:45 — The recommendation
 Read the recommendation: enable negative-price curtailment on Engbakke.
@@ -51,8 +51,9 @@ Click **Create proposal**, type the approver name, click **Approve**. Show the a
 > "This is a first proof of concept on synthetic data. The reusable part is the energy layer: calculations, data tools, approvals and audit, working with any model. Next: real company data and a second workflow."
 
 ## Fallback ladder
-1. **No internet:** `MODEL_PROFILE=offline` — same screen, recorded explanation, same numbers.
-2. **Screen fails:** screenshots of each step in `presentation/`.
+1. **No internet:** `MODEL_PROFILE=offline` on the local page — the same agent loop replays recorded model turns, same numbers.
+2. **Lovable unreachable:** switch to the local page (`make run`).
+3. **Screen fails:** screenshots of each step in `presentation/`.
 
 ## Rehearsal checklist
 - [ ] Under three minutes

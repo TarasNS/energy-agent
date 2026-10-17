@@ -18,16 +18,18 @@ Then stop and wait for my go-ahead.
 
 If the documents conflict, identify the conflict and stop.
 
-You own: mcp/energy-data/, .claude/skills/
+You own: mcp/energy-data/, .claude/skills/, harness/prompts/system.txt (with Dev 2)
 
 Tasks, in order:
 1. Price reader: get_day_ahead_prices(zone, month) in mcp/energy-data, reading
    data/synthetic/demo-solar-dk/prices-DK1-2026-06.jsonl (contract in its README).
    Read interval_minutes from each row; never assume 60. No network, no writes.
-2. curtailment-advisor skill: .claude/skills/curtailment-advisor/SKILL.md per
-   .claude/skills/README.md. Dev 2 uses it as the system prompt. It must tell the
-   model to quote calc output exactly, show assumptions, never invent numbers, and
-   recommend actions only as proposals. Add a test that checks the six points.
+2. curtailment-advisor skill + harness/prompts/system.txt (T1.2), per
+   .claude/skills/README.md. The agent loop sends both to the model with five
+   tools. The skill must name the tools, make calculate_curtailment_value
+   mandatory, quote calc output exactly, show assumptions, never invent numbers,
+   and recommend actions only through propose_action. Add a test that checks
+   the six points.
 
 Rules:
 - all EUR values come from mcp/energy-calc; the skill never computes or re-rounds;

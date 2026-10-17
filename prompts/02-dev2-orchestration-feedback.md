@@ -1,4 +1,4 @@
-# Prompt 2 — Dev 2: workflow, approval and audit
+# Prompt 2 — Dev 2: agent loop, approval and audit
 
 **Owner:** Dev 2 · **Use:** run `claude` from the repo root, then say "Read prompts/02-dev2-orchestration-feedback.md and follow it."
 
@@ -24,16 +24,22 @@ Tasks, in order:
 1. Actions (mcp/actions/README.md): propose_action, issue_approval_token,
    approve_action, JSON-lines audit. Write the refusal tests first: missing,
    wrong, reused and other-proposal tokens are refused and execute nothing.
-2. Workflow (harness/README.md): harness/agent.py, one function plus a CLI,
-   with stubs for portfolio, energy-data and energy-calc. Load the skill as the
-   system prompt and call the model only through model_gateway.get_client().
-   On ModelUnavailable use the offline profile. Output validates against
+2. Tool registry (T2.1): harness/config.py and harness/tools/registry.py with
+   stubs for the five tools. Test: exactly five tools, no approval tool, an
+   unknown tool name returns an error result.
+3. Agent loop (T2.2, harness/README.md): harness/agent.py run_review() plus a
+   CLI. Loop model_gateway.get_client().run_turn() → dispatch tool calls →
+   repeat, until final text or STEP_BUDGET. Test with a scripted fake client:
+   stops on text, stops at the budget, fails if calc was never called, copies
+   result numbers from the last calc output. Output validates against
    schemas/review-result.schema.json.
-3. Wire the real tools as they merge, then make scripts/demo-smoke.sh real
-   (the five checks listed at its top), with MODEL_PROFILE=offline.
+4. Offloader and audit (T2.4): large tool outputs go to artifacts/ with a
+   summary to the model; every dispatch appends an audit line.
+5. Wire the real tools as they merge, then make scripts/demo-smoke.sh real
+   (T2.5, the checks listed at its top), with MODEL_PROFILE=offline.
 
 Rules:
-- a plain sequence, not a multi-agent runtime; the model gets no tools;
+- one agent loop, not a multi-agent runtime; the model gets exactly the five registered tools;
 - numbers shown to the user come from the calc result, never from model text;
 - never import anthropic or any provider SDK in harness/.
 

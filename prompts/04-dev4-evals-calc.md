@@ -31,8 +31,13 @@ Tasks, in order:
    asset, decimal strings out, assumptions, input_hash, calculation_version.
    Work test-first until every golden case passes with exact equality.
 
+3. No-invented-EUR check (T4.3): a test that every EUR value in the offline
+   agent trace's final text appears in the calc output.
+
 Rules:
 - pure functions: no I/O, clock, network or model calls;
+- the agent calls your function as the tool calculate_curtailment_value; its
+  output goes to the screen unchanged, so the contract must be exact;
 - read interval_minutes from each row;
 - the eval runner (evals/run.py) is after the POC — do not build it.
 

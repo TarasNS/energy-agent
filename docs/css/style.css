@@ -4,19 +4,19 @@
    Text is only Almost Black or White. Font: Aptos (brand), system fallbacks. No external requests. */
 
 :root {
-  --paper: #f4f2eb;   /* Off White */
-  --panel: #ffffff;   /* White */
-  --ink: #1c1c1c;     /* Almost Black */
-  --muted: #1c1c1c;
-  --line: #d9d6cc;
-  --white: #ffffff;
-  --green: #1a5c00;   /* Nordic Green */
+  --paper: var(--ns-off-white);
+  --panel: var(--ns-white);
+  --ink: var(--ns-almost-black);
+  --muted: var(--ns-almost-black);
+  --line: color-mix(in srgb, var(--ns-almost-black) 15%, var(--ns-off-white));
+  --white: var(--ns-white);
+  --green: var(--ns-green);
   --d1: var(--green); --d2: var(--green); --d3: var(--green); --d4: var(--green); --d5: var(--green);
-  --lead: #1c1c1c;
+  --lead: var(--ns-almost-black);
   --accent: var(--green);
 
   --font: "Aptos", "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  --mono: "Cascadia Code", "JetBrains Mono", "SF Mono", Consolas, monospace;
+  --mono: "Aptos Mono", "Cascadia Code", "JetBrains Mono", "SF Mono", Consolas, monospace;
   --pad: clamp(1.25rem, 3vw, 2.5rem);
 }
 
@@ -43,7 +43,7 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; marg
 .menu[open] summary span { background: transparent; }
 .menu[open] summary span::before { transform: translateY(6px) rotate(45deg); }
 .menu[open] summary span::after { transform: translateY(-6px) rotate(-45deg); }
-.menu nav { position: absolute; right: 0; top: 3.5rem; background: var(--white); width: min(22rem, 86vw); padding: 1rem 1.25rem 1.25rem; box-shadow: 0 18px 50px rgba(28,28,28,.14); }
+.menu nav { position: absolute; right: 0; top: 3.5rem; background: var(--white); width: min(22rem, 86vw); padding: 1rem 1.25rem 1.25rem; box-shadow: 0 18px 50px rgb(28 28 28 / .14); }
 .menu nav a { display: flex; align-items: center; gap: .8rem; padding: .55rem 0; text-decoration: none; font-size: 1.3rem; font-weight: 500; letter-spacing: -0.03em; border-bottom: 1px solid var(--panel); }
 .menu nav a:last-child { border-bottom: 0; }
 .menu nav a i { width: .8rem; height: .8rem; border-radius: 50%; flex: none; }
@@ -118,7 +118,7 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; marg
 .dark { background: var(--ink); color: var(--paper); padding: clamp(4rem, 8vw, 6rem) var(--pad) 2.5rem; }
 .dark h2 { font-size: clamp(2.2rem, 4.5vw, 3.8rem); margin-bottom: 1.5rem; }
 .dark .refs { display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; font-size: 1.15rem; margin: 0 0 3rem; padding: 0; list-style: none; }
-.dark .fine { color: var(--white); font-size: .92rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-top: 1px solid #4c4945; padding-top: 1.25rem; }
+.dark .fine { color: var(--white); font-size: .92rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; border-top: 1px solid color-mix(in srgb, var(--ns-white) 30%, var(--ns-almost-black)); padding-top: 1.25rem; }
 .dark a { color: var(--paper); }
 
 /* ── Role pages ── */
@@ -126,10 +126,10 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; marg
 .rolehead .big { font-size: clamp(6rem, 16vw, 14rem); font-weight: 600; letter-spacing: -0.06em; line-height: .78; }
 .rolehead h1 { font-size: clamp(2.4rem, 5.4vw, 5rem); max-width: 14ch; }
 .rolehead p { margin: 1.25rem 0 0; font-size: 1rem; }
-.rolehead p code { background: rgba(255,255,255,.16); color: var(--white); }
+.rolehead p code { background: rgb(255 255 255 / .16); color: var(--white); }
 .rolehead a { color: var(--white); }
 .rolehead.lead { color: var(--paper); }
-.rolehead.lead code { background: rgba(255,255,255,.12); color: var(--paper); }
+.rolehead.lead code { background: rgb(255 255 255 / .12); color: var(--paper); }
 .rolehead.lead a { color: var(--paper); }
 
 .wrap { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 46rem); gap: clamp(1.5rem, 5vw, 5rem); padding: clamp(3rem, 6vw, 5rem) var(--pad); }
@@ -153,7 +153,7 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; marg
 .busbar .files a { font-family: var(--mono); font-size: .86rem; }
 .busbar .say { font-size: .85rem; font-weight: 600; color: var(--muted); margin: .8rem 0 .25rem; }
 .busbar .see { font-size: .95rem; color: var(--muted); }
-.busbar .see::before { content: "✓ "; color: var(--ink); font-weight: 600; }
+.busbar .see { font-weight: 600; }
 pre { position: relative; font-family: var(--mono); font-size: .88rem; line-height: 1.55; background: var(--white); border: 1px solid var(--line); padding: 1rem 5.5rem 1rem 1.1rem; margin: .5rem 0; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
 pre code { background: none; padding: 0; font-size: inherit; }
 .copy { position: absolute; top: .6rem; right: .6rem; font: 500 .82rem var(--font); padding: .3rem .8rem; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
@@ -233,3 +233,17 @@ pre code { background: none; padding: 0; font-size: inherit; }
 .scope .card.muted { background: transparent; border: 1px solid var(--line); }
 .scope ul { margin: 0; padding-left: 1.1rem; font-size: 1.1rem; line-height: 1.8; }
 @media (max-width: 560px) { .scope { grid-template-columns: 1fr; } }
+
+/* ── Tables (harness page) ── */
+.tbl { overflow-x: auto; }
+.tbl table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: 1rem; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: .7rem .9rem; border-bottom: 1px solid var(--line); }
+.tbl th { font-weight: 600; }
+.tbl p { margin: 0; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+.two .box { background: var(--panel); padding: 1.25rem 1.4rem; border: 1px solid var(--line); }
+.two .box.no { border: 3px double var(--ink); }
+.two h3 { font-size: 1.35rem; margin-bottom: .75rem; }
+.two ul { margin: 0; padding-left: 1.2rem; }
+.two li { margin-bottom: .35rem; }
+.oneliner { font-size: clamp(1.4rem, 2.6vw, 2rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; max-width: 40ch; margin: 0; }

@@ -7,7 +7,7 @@ The product must help an energy portfolio team make one decision better:
 **understand monthly curtailment impact in EUR and safely propose the next action.**
 
 ## Read order
-**People:** open `docs/index.html` and follow your page. You do not need to read the list below.
+**People:** open `docs/index.html`, read `docs/harness.html`, then follow your page. You do not need to read the list below.
 
 **Claude Code sessions** must read these before implementation:
 
@@ -15,7 +15,7 @@ The product must help an energy portfolio team make one decision better:
 2. [`SPEC.md`](SPEC.md) — what
 3. [`ARCHITECTURE.md`](ARCHITECTURE.md) — how (layers, contracts)
 4. [`PLAN.md`](PLAN.md) — when
-5. [`TEAM.md`](TEAM.md) — who owns what
+5. [`TEAM.md`](TEAM.md) — who owns what, and [`TASKS.md`](TASKS.md) — the tasks
 6. [`CLAUDE.md`](CLAUDE.md) — repo rules and commands
 7. the task-specific prompt in [`prompts/`](prompts/)
 
@@ -27,8 +27,8 @@ If they conflict, stop and report the conflict. Do not invent a resolution. The 
 3. Read-only by default.
 4. Human approval before side effects.
 5. Synthetic/anonymised data first.
-6. One excellent workflow before three partial workflows.
-7. Harness-neutral core; runtime-specific code stays at the edge.
+6. One workflow in one small agent loop before three partial workflows.
+7. Pure tools at the core; the agent loop and model SDK stay at the edge.
 8. Evidence before "done".
 9. Prefer deletion and simplification over abstraction.
 10. Presentation stability beats stretch functionality.
@@ -59,7 +59,8 @@ Copy `.env.example` to `.env`. Never commit credentials.
 
 ```bash
 ENERGY_DATA_MODE=synthetic
-MODEL_PROFILE=frontier
+MODEL_PROFILE=default
+STEP_BUDGET=10
 ACTION_MODE=proposal_only
 AUDIT_LOG_PATH=./artifacts/audit.jsonl
 ```

@@ -5,7 +5,8 @@
 # FAILS, because the real smoke test has not been written yet.
 #
 # Dev 2 replaces run_smoke() with the real path (MODEL_PROFILE=offline, synthetic data):
-#   1. run review: demo-solar-dk / DK1 / 2026-06
+#   1. run review through the agent loop: demo-solar-dk / DK1 / 2026-06
+#      assert the trace called calculate_curtailment_value and no approval tool
 #   2. assert calculation.economic_value_eur == golden G-07 (exact string)
 #   3. propose enable_negative_price_curtailment for dk1-solar-03 -> proposal_id, audit "proposed"
 #   4. approve WITHOUT a valid token -> refused, nothing executed, audit "approval_denied"
@@ -26,9 +27,10 @@ stage "energy-data tool"         mcp/energy-data/energy_data            "Dev 1"
 stage "energy-calc"              mcp/energy-calc/energy_calc            "Dev 4"
 stage "model gateway"            model/model_gateway                    "Dev 3"
 stage "curtailment-advisor skill" .claude/skills/curtailment-advisor/SKILL.md "Dev 1"
-stage "workflow entry point"     harness/agent.py                     "Dev 2"
+stage "agent loop"               harness/agent.py                       "Dev 2"
+stage "tool registry"            harness/tools/registry.py              "Dev 2"
 stage "actions tool"             mcp/actions/actions                    "Dev 2"
-stage "offline model reply"      model/recorded/G-07.json               "Dev 3"
+stage "offline model turns"      model/recorded/G-07.json               "Dev 3"
 stage "demo page + API"          apps/web/run.sh                        "Dev 5"
 
 run_smoke() {

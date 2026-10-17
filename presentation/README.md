@@ -9,6 +9,6 @@ presentation/
 └── video/         90-second recorded demo (fallback 3)
 ```
 
-Team briefing page: [team-briefing.html](team-briefing.html). Slide plan: [slides/OUTLINE.md](slides/OUTLINE.md).
+Team briefing: [docs/harness.html](../docs/harness.html) (`team-briefing.html` forwards there). Lovable brief: [lovable-brief.md](lovable-brief.md). Slide plan: [slides/OUTLINE.md](slides/OUTLINE.md).
 
 Fallback ladder and rehearsal checklist: [DEMO.md](../DEMO.md). Large binaries (video) may live in a shared drive; put the link here instead.

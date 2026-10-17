@@ -24,13 +24,18 @@ You own: mcp/portfolio/, model/, schemas/, CLAUDE.md, Makefile, scripts/
 Tasks, in order:
 1. Portfolio reader (mcp/portfolio/README.md): list_assets, get_production over
    data/synthetic/demo-solar-dk; validate rows; reject malformed ones clearly.
-2. Model gateway (model/README.md): get_client(), an Anthropic SDK client and a
-   recorded offline client; profiles in model/profiles.json. Only
+2. Model gateway (T3.2, model/README.md): get_client() with
+   run_turn(system, messages, tools) -> ModelTurn, an Anthropic SDK client with
+   tool use, and a recorded offline client that replays turns; profiles in
+   model/profiles.json. Only
    model/model_gateway/ may import anthropic (make check enforces it). Mock the
    SDK in tests.
-3. Offline reply: once Dev 2's workflow runs, run the demo review with
-   MODEL_PROFILE=default, save the reply as model/recorded/G-07.json, and check
-   every number in it appears in the calc result.
+3. Offline replay (T3.3): once Dev 2's agent loop runs, run the demo review
+   with MODEL_PROFILE=default, save the model turns as
+   model/recorded/G-07.json, and check every number in the final text appears
+   in the calc result.
+4. Result schema (T3.5, with Dev 2): add an optional tool_trace array to
+   schemas/review-result.schema.json (name, order, ok) for the screen.
 
 Also, after each merge into dev: git pull && make verify, and post the result.
 CLAUDE.md changes only when a command or rule actually changes.

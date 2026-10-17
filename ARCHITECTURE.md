@@ -45,7 +45,7 @@
 
 | # | Layer | Contents | Lives in | Owner |
 |---|---|---|---|---|
-| 1 | Experience | One HTML page + small local FastAPI server; Lovable polish after the POC | `apps/web/` | Dev 5 |
+| 1 | Experience | Lovable screen calling a small local FastAPI server; one plain HTML page as the offline fallback | `apps/web/` | Dev 5 |
 | 2 | Orchestration | Agent loop (template-style): the model picks tools from a fixed registry; the harness enforces step budget, calc-of-record and audit | `harness/` (replaces `workflow/`) | Dev 2 |
 | 3 | Energy intelligence | Skill, context, rules | `.claude/skills/curtailment-advisor/` | Dev 1 |
 | 4 | Energy tools | `energy-data`, `portfolio`, `energy-calc`, `actions` | `mcp/*/` | Dev 1, 3, 4, 2 |
@@ -96,11 +96,11 @@ Contracts are JSON Schemas in [`schemas/`](schemas/). They are **draft** until t
 
 | Schema | Describes | Producer → consumer |
 |---|---|---|
-| [`asset.schema.json`](schemas/asset.schema.json) | One asset in a portfolio | portfolio → workflow, calc |
+| [`asset.schema.json`](schemas/asset.schema.json) | One asset in a portfolio | portfolio → harness, calc |
 | [`production.schema.json`](schemas/production.schema.json) | One interval of available/actual/curtailed energy | portfolio → calc |
 | [`market-price.schema.json`](schemas/market-price.schema.json) | One interval of day-ahead price | energy-data → calc |
-| [`review-result.schema.json`](schemas/review-result.schema.json) | Output of one review (calc + explanation) | workflow → UI, evals |
-| [`action-proposal.schema.json`](schemas/action-proposal.schema.json) | Proposal, approval and audit record | actions → workflow, UI, audit log |
+| [`review-result.schema.json`](schemas/review-result.schema.json) | Output of one review (calc + explanation; `tool_trace` added in T3.5) | harness → UI, evals |
+| [`action-proposal.schema.json`](schemas/action-proposal.schema.json) | Proposal, approval and audit record | actions → harness, UI, audit log |
 
 ### UI ↔ server API (POC)
 
@@ -116,7 +116,7 @@ Money rule: EUR values cross boundaries as **decimal strings with two decimals**
 
 ## 5. Code conventions (proposed — Dev 3 confirms at Milestone A)
 
-- **Language:** Python 3.11+ for tools, calc, workflow, evals. UI stack is Dev 5's choice.
+- **Language:** Python 3.11+ for tools, calc, harness, evals. UI stack is Dev 5's choice.
 - **Tool layout:** each `mcp/<tool>/` contains a pure Python package (hyphen → underscore), its tests, and optionally a thin MCP server wrapper:
   ```text
   mcp/energy-calc/
@@ -126,7 +126,7 @@ Money rule: EUR values cross boundaries as **decimal strings with two decimals**
   ```
 - **Do not create `mcp/__init__.py`.** The folder is not a package; making it one would shadow the official `mcp` Python SDK.
 - **Import paths** are configured once in [`pytest.ini`](pytest.ini) (Dev 3).
-- **Harness neutrality:** pure functions first; MCP/Goose/Claude Code specifics stay in wrappers and config at the edge.
+- **Tool neutrality:** pure functions first; the agent loop, MCP and Claude Code specifics stay in wrappers at the edge (`harness/tools/registry.py`, optional `server.py`).
 - **Model neutrality:** business code calls `model_gateway.get_client()` only. The Anthropic SDK lives in `model/model_gateway/anthropic_client.py`; a new vendor is one new class plus a profile in `model/profiles.json`.
 - **No distributed services.** Everything runs in one local process for the demo unless the UI requires a small HTTP API.
 
@@ -157,7 +157,7 @@ From `.env` (template: [`.env.example`](.env.example)):
 
 ## 8. Not in this POC
 
-Production SCADA control, enterprise identity/RBAC, ERP/data-platform adapters, branded desktop fork, production deployment, battery optimisation, multi-agent runtime, broad model/harness matrix, Claude Code hooks, the EnergyBench-Lite runner, CI test gating, live market data, Lovable polish. These are roadmap items; the architecture leaves room for them as adapters at the data layer and wrappers at the edge.
+Production SCADA control, enterprise identity/RBAC, ERP/data-platform adapters, branded desktop fork, production deployment, battery optimisation, multi-agent runtime, broad model/harness matrix, Claude Code hooks, the EnergyBench-Lite runner, CI test gating, live market data. These are roadmap items; the architecture leaves room for them as adapters at the data layer and wrappers at the edge.
 
 ## 9. Decision log
 
@@ -169,6 +169,7 @@ Record decisions here as one line each. Do not rewrite history; add a new line w
 | No custom harness; energy layer is harness-neutral (superseded below) | Lead |
 | Formula v1 split by cause (EVALS.md §2), after a domain check | Dev 4 + Lead |
 | Demo runtime: local HTML page + FastAPI (`apps/web`) | Lead + Dev 5 |
+| Screen built in Lovable during the event; local page stays as offline fallback | Lead + Dev 5 |
 | Anthropic SDK behind a model-agnostic gateway; profiles `default`, `fast`, `offline` | Lead |
 | GitHub repo ready and cloned by everyone before the hackathon starts | Lead |
 | Approved action: `enable_negative_price_curtailment` on one asset, simulated | Lead + Dev 2 |

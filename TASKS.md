@@ -34,12 +34,13 @@ Each task is one branch (`devN/<task>`) and one PR into `dev`. Write the test fi
 | T3.1 | Dev 3 | `list_assets`, `get_production` in `mcp/portfolio` | — | Demo portfolio loads; bad rows rejected |
 | T3.2 | Dev 3 | Gateway `run_turn(messages, tools) → ModelTurn` (Anthropic tool use); update `model/README.md` | — | Only `model/model_gateway/` imports `anthropic`; `make check` green |
 | T3.3 | Dev 3 | `offline` profile replays recorded turns from `model/recorded/` | T3.2, T2.2 | Same loop, no network, same EUR as `default` |
-| T3.4 | Dev 3 | Rename `workflow/` → `harness/` in `pytest.ini`, `Makefile`, `scripts/`, `docs/` generator, `CLAUDE.md`, `TEAM.md` paths | Lead approval | `make check` and `make docs` green; no `workflow/` references left |
+| T3.4 | Dev 3 | Rename `workflow/` → `harness/` everywhere | — | Done in PR 1 |
+| T3.5 | Dev 3 + Dev 2 | Add optional `tool_trace` (name, order, ok) to `review-result.schema.json` | Before schema freeze | Schema validates; T5.2 can render it |
 | T4.1 | Dev 4 | Golden cases G-01 to G-03, G-07 as files | — | Values worked by hand, frozen |
 | T4.2 | Dev 4 | `calculate_curtailment_value(...)` | T4.1 | Golden cases pass exactly in `make test` |
 | T4.3 | Dev 4 | Eval: agent trace never states a EUR value not in the calc output | T2.2, T3.3 | Runs on the offline trace in `make test` |
-| T5.1 | Dev 5 | Screen + local API on a recorded result | — | Full story renders from `recorded.json` |
-| T5.2 | Dev 5 | Show the tool trace (which tools the model chose, in order) on the result card | T2.2 | Trace visible; numbers rendered from calc fields only |
+| T5.1 | Dev 5 | Lovable screen + local API and fallback page on a recorded result | — | Full story renders from `recorded.json` in Lovable and on the local page |
+| T5.2 | Dev 5 | Show the tool trace (which tools the model chose, in order) on the result card | T2.2, T3.5 | Trace visible; numbers rendered from calc fields only |
 | T5.3 | Dev 5 | Connect `POST /api/review` to `harness.agent.run_review` | T2.2 | `make run` shows a live review; approve works |
 
 ## Critical path
@@ -50,4 +51,4 @@ T3.2 → T2.2 ┼→ T3.3 → T2.5 → T5.3 → rehearsal
 T2.1 ───────┘
 ```
 
-Start T1.1, T2.1, T2.3, T3.1, T3.2, T4.1 and T5.1 at once. They need only the frozen schemas and stubs.
+Start T1.1, T2.1, T2.3, T3.1, T3.2, T3.5, T4.1 and T5.1 at once. They need only the frozen schemas and stubs.

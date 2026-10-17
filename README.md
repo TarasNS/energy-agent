@@ -16,13 +16,15 @@ One workflow, end to end: **Monthly Curtailment Review** on synthetic DK1 data (
 
 A portfolio manager picks a portfolio, DK1 and a month. The system:
 
-1. loads synthetic portfolio and market data,
-2. calculates the EUR impact **in deterministic code**, split by cause: self-curtailment savings, grid-operator curtailment, and production into negative prices,
-3. asks the model (Anthropic SDK, swappable) to explain it and recommend a step: *enable negative-price curtailment on Engbakke Solar*,
-4. turns that into a **proposal** that needs **human approval**,
-5. writes an **audit record**.
+1. hands the request to a small **agent loop** (`harness/`), which lets the model (Anthropic SDK, swappable) pick from five fixed tools,
+2. the model reads synthetic portfolio and market data through read-only tools,
+3. the model must call the calculator: the EUR impact comes **from deterministic code**, split by cause (self-curtailment savings, grid-operator curtailment, production into negative prices),
+4. the model explains it and recommends a step: *enable negative-price curtailment on Engbakke Solar*, as a **proposal**,
+5. a person **approves** on screen, outside the loop, and every step is written to the **audit log**.
 
-Not in the POC: hooks, eval runner, CI test gating, live prices, Lovable polish, company data. See [PLAN.md §6](PLAN.md#6-after-the-poc).
+How it works, in one page: [docs/harness.html](docs/harness.html).
+
+Not in the POC: hooks, eval runner, CI test gating, live prices, company data. The screen is built in Lovable, with a local page as the offline fallback. See [PLAN.md §6](PLAN.md#6-after-the-poc).
 
 Four rules hold everywhere:
 
@@ -45,12 +47,12 @@ Four rules hold everywhere:
 |---|---|
 | Lead | [docs/lead.html](docs/lead.html) |
 | Dev 1 · Price Data & AI Skill | [docs/developer-1.html](docs/developer-1.html) |
-| Dev 2 · Workflow, Approval & Audit | [docs/developer-2.html](docs/developer-2.html) |
+| Dev 2 · Harness, Approval & Audit | [docs/developer-2.html](docs/developer-2.html) |
 | Dev 3 · Portfolio, Model Gateway & Merges | [docs/developer-3.html](docs/developer-3.html) |
 | Dev 4 · Calculator & Golden Tests | [docs/developer-4.html](docs/developer-4.html) |
 | Dev 5 · Demo Screen & Story | [docs/developer-5.html](docs/developer-5.html) |
 
-Reference documents (open them only when a step links to them): [intent.md](intent.md), [SPEC.md](SPEC.md), [ARCHITECTURE.md](ARCHITECTURE.md), [PLAN.md](PLAN.md), [TEAM.md](TEAM.md), [EVALS.md](EVALS.md), [DEMO.md](DEMO.md), [CLAUDE.md](CLAUDE.md), [WORKFLOW.md](WORKFLOW.md).
+Reference documents (open them only when a step links to them): [intent.md](intent.md), [SPEC.md](SPEC.md), [ARCHITECTURE.md](ARCHITECTURE.md), [PLAN.md](PLAN.md), [TASKS.md](TASKS.md), [TEAM.md](TEAM.md), [EVALS.md](EVALS.md), [DEMO.md](DEMO.md), [CLAUDE.md](CLAUDE.md), [WORKFLOW.md](WORKFLOW.md).
 
 ---
 
@@ -79,17 +81,17 @@ To view the portal: open `docs/index.html` directly, or run `python3 -m http.ser
 ```text
 energy-agent/
 ├── *.md                 project artifacts (see "Start here")
-├── docs/                static HTML control center
+├── docs/                static HTML control center (published on GitHub Pages)
 ├── prompts/             Claude Code session prompts, one per workstream
 ├── .claude/             agents (researcher, verifier, simplifier), skills, hooks
 ├── schemas/             shared JSON contracts (draft until Milestone A freeze)
 ├── data/synthetic/      demo fixtures and golden inputs
 ├── mcp/                 energy tools: energy-data, portfolio, energy-calc, actions
 ├── model/               model gateway: Anthropic SDK behind one interface
-├── harness/            agent loop for the one business workflow
-├── apps/web/            demo UI
+├── harness/             agent loop: model picks tools, code enforces the rules
+├── apps/web/            local API + fallback page (Lovable screen calls the API)
 ├── evals/               EnergyBench-Lite cases and runner
-├── presentation/        slides, screenshots, fallback video
+├── presentation/        slides, Lovable brief, screenshots
 ├── artifacts/           runtime output (audit log), git-ignored
 └── scripts/             setup, verify, demo-smoke
 ```
@@ -98,4 +100,4 @@ energy-agent/
 
 > **If a feature does not strengthen the three-minute story, it is not POC.**
 
-Long-term, the reusable energy layer (skills, calculations, adapters, guardrails, evals) is the product. For the hackathon, we prove it with one excellent workflow. Roadmap items are listed in [PLAN.md](PLAN.md#7-optional-stretch-order).
+Long-term, the reusable energy layer (skills, calculations, adapters, guardrails, evals) is the product. For the hackathon, we prove it with one workflow run by one small agent loop. Roadmap items are listed in [PLAN.md](PLAN.md#7-optional-stretch-order).

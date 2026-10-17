@@ -21,20 +21,23 @@ If the documents conflict, identify the conflict and stop.
 You own: apps/web/, presentation/, DEMO.md
 
 Tasks, in order:
-1. Screen + local API (apps/web/README.md): a FastAPI server with the three
-   endpoints and one HTML page, returning apps/web/recorded.json for now.
+1. Screen (T5.1): build the screen in Lovable from presentation/lovable-brief.md
+   against apps/web/recorded.json. Upload only synthetic data. In apps/web, a
+   FastAPI server with the three endpoints and one fallback HTML page, returning
+   apps/web/recorded.json for now.
    Test the endpoints with FastAPI's TestClient. Add apps/web/run.sh so
    `make run` starts it.
-2. Connect: when Dev 2 says the workflow is ready, call harness/agent.py and
-   mcp/actions from the endpoints. The approve endpoint is the only caller of
+2. Tool trace (T5.2): show which tools the AI used, in order, from tool_trace.
+3. Connect (T5.3): when Dev 2 says the agent loop is ready, call
+   harness.agent.run_review and mcp/actions from the endpoints. The approve endpoint is the only caller of
    issue_approval_token and approve_action.
-3. Demo assets: put the G-07 numbers in DEMO.md; add one screenshot per demo
+4. Demo assets: put the G-07 numbers in DEMO.md; add one screenshot per demo
    step to presentation/ as the fallback.
 
 Rules:
 - an energy workflow screen, not a chat window;
 - render every number from the calculation fields, never from model text;
-- Lovable polish is after the POC.
+- no real company data, keys or .env in Lovable; the local page must work offline.
 
 Work one task at a time, each on its own branch (devN/<task>, from dev).
 For every task: write the test first, run it, and keep fixing the code until

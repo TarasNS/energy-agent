@@ -110,9 +110,9 @@ Dropped for the POC: Docker sandbox, bash/git/filesystem/web-search tools, compa
 Step budget hit, unknown tool, or no `energy-calc` call → the review fails with a presenter-readable message.
 
 ### 2.9 UI
-Primary objective: make the business flow legible to a non-developer. POC runtime: one HTML page served by a small local FastAPI server (`apps/web`), API in [ARCHITECTURE.md §4](ARCHITECTURE.md#4-shared-contracts).
+Primary objective: make the business flow legible to a non-developer. POC runtime: a screen built in Lovable that calls a small local FastAPI server (`apps/web`), API in [ARCHITECTURE.md §4](ARCHITECTURE.md#4-shared-contracts). One plain HTML page in `apps/web` is the offline fallback. Only synthetic data goes into Lovable ([brief](presentation/lovable-brief.md)).
 
-Minimum screen: inputs, "Run review", result card with EUR value, assumptions, recommendation, proposal/approval control, audit confirmation.
+Minimum screen: inputs, "Run review", result card with EUR value, assumptions, recommendation, the tools the AI used (in order), proposal/approval control, audit confirmation.
 
 Do not build a general-purpose agent desktop or a generic chat UI.
 

@@ -30,9 +30,9 @@ branch → build → test ──green──→ verify → pull request → CI + 
 ## Phases
 | Phase | Gate | Owner |
 |---|---|---|
-| Before the hackathon | Repo on GitHub, everyone cloned, `make setup` passes, API key works, contracts frozen | Lead, Dev 3 |
+| Before the hackathon | Repo on GitHub, everyone cloned, `make setup` passes, API key works, contracts frozen, Lovable workspace ready | Lead, Dev 3, Dev 5 |
 | Build | Each slice passes its focused test and is merged | Each dev |
-| First end-to-end run | `make demo-smoke` passes | Dev 2 |
+| First end-to-end run | `make demo-smoke` passes offline through the agent loop | Dev 2 |
 | Stabilise | Tag `v0.1-hackathon`; no refactors after this | Lead |
 | Rehearse and present | One timed run, one offline; merge `dev` into `main` | Dev 5 + all |
 

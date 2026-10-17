@@ -13,6 +13,7 @@ Run:
 - make test (unit, golden and approval tests)
 - offline demo (network disabled, MODEL_PROFILE=offline)
 - make demo-smoke
+- check: the agent's tool registry has exactly five tools and no approval tool
 
 Then report only:
 1. blockers to the three-minute demo,
