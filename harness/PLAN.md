@@ -42,21 +42,24 @@ day-ahead prices and irradiance.
 good primary plus an ordered fallback chain, and a probe that re-checks the
 chain.
 
-### Chain (pending live verification with `energy-harness-probe`)
+### Chain (verified live with `energy-harness-probe` on 2026-10-17)
 
 | Priority | Model ID | Why |
 |---|---|---|
-| 1 (primary) | `openai/gpt-oss-120b:free` | Most consistently recommended free model for tool calling and structured output; open weights from a major lab. |
-| 2 | `qwen/qwen3-coder:free` | Explicitly built for function calling / tool use, long context. |
-| 3 | `nvidia/nemotron-3-super-120b-a12b:free` | Good output discipline / structured output. |
-| 4 (last resort) | `openrouter/free` | OpenRouter's router; picks any free model that supports the request's features (e.g. tools). Always available, non-deterministic. |
+| 1 (primary) | `nvidia/nemotron-3-super-120b-a12b:free` | **Probe: answers ✔, valid tool call ✔, 0.9 s.** Fastest working free model. |
+| 2 (last resort) | `openrouter/free` | **Probe: answers ✔, valid tool call ✔, 2.1 s** (routed to `dots-studio/dots-3-note-preview:free`). Always available, but which model answers varies. |
+| ✘ dropped | `openai/gpt-oss-120b:free` | HTTP 404 "unavailable for free"; only the paid `openai/gpt-oss-120b` exists now. |
+| ✘ dropped | `qwen/qwen3-coder:free` | HTTP 404 "unavailable for free"; only the paid `qwen/qwen3-coder` exists now. |
+
+The two most-recommended free models had already lost their free tier when
+probed, which is exactly why the chain and the probe exist. Re-run the probe
+whenever fallbacks start showing up in traces.
 
 Fallback is done client-side so the trace always shows which model answered,
 and so a daily-cap 429 fails fast instead of being retried on every model.
 
-> ⚠️ The cloud container that wrote this cannot reach OpenRouter (network
-> policy) and has no API key. Model IDs come from current public listings. Run
-> `energy-harness-probe` once with your key to confirm and reorder the chain.
+> Probed from a local Windows machine; the cloud container's network policy
+> blocks openrouter.ai.
 
 ## 3. Data sources (free, no API key)
 

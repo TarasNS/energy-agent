@@ -49,7 +49,7 @@ def test_probe_ranks_working_tool_callers_first():
 def test_probe_dry_run_makes_no_requests(capsys, monkeypatch):
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     assert probe.main(["--config", str(POC_ROOT / "config.yaml"), "--dry-run"]) == 0
-    assert "openai/gpt-oss-120b:free" in capsys.readouterr().err
+    assert "nvidia/nemotron-3-super-120b-a12b:free" in capsys.readouterr().err
 
 
 def test_cli_requires_api_key(monkeypatch, tmp_path):
@@ -76,8 +76,8 @@ def test_end_to_end_price_question(monkeypatch, tmp_path, capsys):
 
     def openrouter(request):
         body = json.loads(request.content)
-        if body["model"] == "openai/gpt-oss-120b:free":
-            return httpx.Response(404, json={"error": {"message": "No endpoints found"}})
+        if body["model"] == "nvidia/nemotron-3-super-120b-a12b:free":
+            return httpx.Response(404, json={"error": {"message": "This model is unavailable for free."}})
         if body["messages"][-1]["role"] == "tool":
             prices = json.loads(body["messages"][-1]["content"])
             text = f"DK1 averages {prices['daily'][0]['mean']} EUR/MWh today."
@@ -90,7 +90,7 @@ def test_end_to_end_price_question(monkeypatch, tmp_path, capsys):
 
     out, err = capsys.readouterr()
     assert out.startswith("DK1 averages") and "EUR/MWh" in out
-    assert "qwen/qwen3-coder:free" in err and "get_day_ahead_prices" in err
+    assert "openrouter/free" in err and "get_day_ahead_prices" in err
     events = [json.loads(line) for f in (tmp_path / "runs").glob("*.jsonl") for line in f.read_text().splitlines()]
-    assert events[1]["failed_models"][0][0] == "openai/gpt-oss-120b:free"
+    assert events[1]["failed_models"][0][0] == "nvidia/nemotron-3-super-120b-a12b:free"
     assert json.loads((tmp_path / "runs" / "budget.json").read_text())["count"] == 4  # 404 + fallback, twice

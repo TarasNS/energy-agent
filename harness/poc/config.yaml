@@ -2,9 +2,9 @@
 
 # Tried in order. Re-rank with `energy-harness-probe` (needs OPENROUTER_API_KEY).
 # Override for one run with ENERGY_HARNESS_MODELS=model-a,model-b or --model.
+# Probed 2026-10-17: nemotron answered + valid tool call in 0.9 s; openrouter/free ok in 2.1 s.
+# openai/gpt-oss-120b and qwen/qwen3-coder are no longer free (HTTP 404 "unavailable for free").
 models:
-  - openai/gpt-oss-120b:free
-  - qwen/qwen3-coder:free
   - nvidia/nemotron-3-super-120b-a12b:free
   - openrouter/free   # OpenRouter's router over all free models; last resort
 

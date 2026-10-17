@@ -17,7 +17,7 @@ def test_loads_shipped_config_with_env_overrides():
 def test_shipped_chain_starts_with_primary_and_ends_with_router():
     settings = load_settings(POC_ROOT / "config.yaml", env={})
     assert settings.api_key is None
-    assert settings.models[0] == "openai/gpt-oss-120b:free"
+    assert settings.models[0] == "nvidia/nemotron-3-super-120b-a12b:free"
     assert settings.models[-1] == "openrouter/free"
     assert all(m.endswith(":free") or m == "openrouter/free" for m in settings.models)
 

@@ -29,6 +29,17 @@ pip install -e ".[dev]"
 cp .env.example .env               # then paste your key from https://openrouter.ai/keys
 ```
 
+### Windows / Miniconda notes
+
+- If `pip.exe` or `energy-harness.exe` gives "Access is denied" (security policy),
+  use the module form instead: `python -m pip …`, `python -m energy_harness.cli`,
+  `python -m energy_harness.probe`, `python -m energy_harness.evals`,
+  `python -m energy_harness.energy.sim.cli`.
+- With Miniconda, create the environment from conda-forge to avoid Anaconda's
+  default-channel terms of service:
+  `conda create -n energy -c conda-forge --override-channels python=3.12 -y`.
+- Write the key with `Set-Content .env "OPENROUTER_API_KEY=sk-or-v1-..."`.
+
 ## Use
 
 ```bash
@@ -42,7 +53,7 @@ energy-harness "What will Example Park Jutland produce tomorrow, and what's the 
 energy-harness
 
 # Try a specific model / chain for one run
-energy-harness --model qwen/qwen3-coder:free --model openrouter/free "Irradiance forecast for SE3 parks?"
+energy-harness --model nvidia/nemotron-3-super-120b-a12b:free --model openrouter/free "Irradiance forecast for SE3 parks?"
 ```
 
 Model and tool activity is printed to stderr (`-q` to hide it). Every session
@@ -79,7 +90,7 @@ energy-harness-sim prices DK1 2026-10-11 --csv dk1.csv      # export 15-min data
 
 energy-harness-eval --list
 energy-harness-eval                                         # all 8 cases (~25 requests!)
-energy-harness-eval --case outage-full --case mean-price --model qwen/qwen3-coder:free
+energy-harness-eval --case outage-full --case mean-price --model openrouter/free
 ```
 
 The eval prints PASS/FAIL per case and a score, and writes details to
@@ -104,11 +115,18 @@ interface (see `energy/sim/adapters.py`) and pass it to `build_energy_tools`.
 
 ```yaml
 models:
-  - openai/gpt-oss-120b:free               # primary: strongest free tool-caller
-  - qwen/qwen3-coder:free                  # built for function calling
-  - nvidia/nemotron-3-super-120b-a12b:free
-  - openrouter/free                        # OpenRouter's router: any free model with tool support
+  - nvidia/nemotron-3-super-120b-a12b:free   # primary
+  - openrouter/free                          # OpenRouter's router: any free model with tool support
 ```
+
+Probe results, 2026-10-17:
+
+| Model | Answers | Tool call | Latency | Note |
+|---|---|---|---|---|
+| `nvidia/nemotron-3-super-120b-a12b:free` | yes | yes | 0.9 s | primary |
+| `openrouter/free` | yes | yes | 2.1 s | served by `dots-studio/dots-3-note-preview:free` |
+| `openai/gpt-oss-120b:free` | — | — | — | no longer free (404) |
+| `qwen/qwen3-coder:free` | — | — | — | no longer free (404) |
 
 Free models come and go without notice. If a model disappears, the harness
 falls back to the next one automatically; re-run `energy-harness-probe` to

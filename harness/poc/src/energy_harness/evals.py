@@ -1,7 +1,7 @@
 """Score the agent on questions about the simulated fleet, whose answers are known.
 
     energy-harness-eval                      # all cases in evals.yaml, configured model chain
-    energy-harness-eval --model qwen/qwen3-coder:free --case outage-full
+    energy-harness-eval --model openrouter/free --case outage-full
     energy-harness-eval --list
 
 Expected numbers are computed by running the same tools on the simulator, so
