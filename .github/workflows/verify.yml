@@ -1,0 +1,34 @@
+name: verify
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+jobs:
+  check:
+    # Real and required from day one: structure, schemas, links, secrets.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: make check
+
+  test-and-eval:
+    # These fail honestly until Dev 4 lands tests and evals/run.py.
+    # Remove `continue-on-error` as soon as `make test` and `make eval` pass on dev
+    # (owner: Dev 3). Then make this job a required status check on main.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: make test
+      - run: make eval
