@@ -14,7 +14,7 @@ User selects:
 - month
 - optional decision threshold (EUR)
 
-System (an agent loop in `harness/`, modelled on the template harness):
+System (an agent loop in `harness/`, built from the team's POC harness):
 1. the model receives the request, the `curtailment-advisor` skill and a fixed tool registry;
 2. the model chooses and calls read-only tools to load the portfolio and market fixtures;
 3. the model must call `energy-calc` for curtailed energy and economic impact;
@@ -95,17 +95,17 @@ Provider: Anthropic Python SDK, behind a model-agnostic gateway (`model/`). POC 
 Model switching is complete only when the same fixture yields the same deterministic EUR result and the workflow remains functional.
 
 ### 2.8 Harness — `harness/`
-A small agent loop on the layout of the template [coderonfleek/harness-course-build](https://github.com/coderonfleek/harness-course-build), cut to what the POC needs.
+A small agent loop built from the team's working POC harness (branch `claude/awesome-planck-bt3ymf`, `harness/poc/`). The loop, tool registry and trace are reused; the safety layer is added. File-by-file mapping: [TASKS.md](TASKS.md#what-we-reuse-from-the-poc).
 
-| Kept from the template | Energy version |
-|---|---|
-| `agent.py` ReAct loop | Model → tool calls → results, until a final answer or the step budget |
-| `config.py` | `STEP_BUDGET` (default 10), `MODEL_PROFILE` |
-| `tools/registry.py` | Exactly five tools: `list_assets`, `get_production`, `get_day_ahead_prices`, `calculate_curtailment_value`, `propose_action` |
-| `prompts/system.txt` | Short system prompt; the skill is appended at load time |
-| `context/offloader.py` | Large tool outputs (15-minute rows) go to `artifacts/`; the model sees a summary |
+| Piece | From the POC | Energy version |
+|---|---|---|
+| `agent.py` | The ReAct loop with `max_steps` and one forced "answer now" call | `run_review()`: same loop, `STEP_BUDGET` (default 10), model via `model_gateway`, calc-of-record check, returns a review result |
+| `tools/registry.py` | `@tool` decorator, pydantic argument validation, errors returned to the model, never raises | Exactly five tools: `list_assets`, `get_production`, `get_day_ahead_prices`, `calculate_curtailment_value`, `propose_action`. No `calculate` tool |
+| `trace.py` | One JSONL line per model call and tool call | Same, plus every tool call appended to the audit log |
+| `prompts/system.txt` | The POC system prompt ("never invent numbers") | Short system prompt; the `curtailment-advisor` skill is appended at load time |
+| `tests/` | `ScriptedLLM` fake model, no network | Same pattern for the loop tests |
 
-Dropped for the POC: Docker sandbox, bash/git/filesystem/web-search tools, compaction, RAG, AGENTS.md memory, Ralph loop, subagents. The model is called only through `model_gateway`, never the OpenAI SDK the template uses.
+Not taken from the POC: the OpenRouter client and fallback chain, request budget, probe, live weather and price APIs, PV estimate, simulator and chat UI. The POC also has no calculator of record, proposal, approval or audit; those are the additions above.
 
 Step budget hit, unknown tool, or no `energy-calc` call → the review fails with a presenter-readable message.
 
