@@ -1,23 +1,31 @@
 # Energy Agent Harness — Implementation Plan
 
-> Status: **DRAFT, awaiting approval.** No code has been written yet.
-> Date: 2026-10-17 · Branch: `claude/awesome-planck-bt3ymf` · Folder: `harness/`
+> Status: **Tasks 1–8 implemented in `harness/poc/` (56 offline tests passing). Task 9, the live smoke test, needs an OpenRouter key and network access.**
+> Date: 2026-10-17 · Branch: `claude/awesome-planck-bt3ymf`
+
+## 0. Decisions
+
+| Question | Decision |
+|---|---|
+| Language | **Python** (3.11+) |
+| First energy tools | **PV production**, **day-ahead prices**, **irradiance forecasts** |
+| $10 OpenRouter top-up (50 → 1,000 free requests/day) | **Not now.** Development runs against a fake LLM and recorded fixtures, so 50/day is enough. Revisit if the cap is hit in real use. |
+| Location | Code lives in `harness/poc/` (proof of concept); this plan stays in `harness/`. |
 
 ## 1. Goal
 
-Build a small, self-contained **agent harness** in `harness/`: the loop that sends
-messages to an LLM, executes the tools it asks for, feeds results back, and stops
-when the model gives a final answer. It runs on **OpenRouter free (`:free`) models
-only**, at zero cost, and degrades gracefully when a free model is rate-limited or
-removed.
+Build a small, self-contained **agent harness**: the loop that sends messages
+to an LLM, executes the tools it asks for, feeds results back, and stops when
+the model gives a final answer. It runs on **OpenRouter free (`:free`) models
+only**, at zero cost, and degrades gracefully when a free model is rate-limited
+or removed. The first tools answer energy questions about PV production,
+day-ahead prices and irradiance.
 
-The harness is the foundation that the energy-domain tools (production data,
-prices, forecasts, etc.) plug into later. This plan covers the harness itself
-plus a couple of trivial demo tools to prove the loop works.
-
-### Non-goals (for this iteration)
-- Real energy-data integrations (SCADA, market APIs) — later, as tools.
-- Web UI, multi-user serving, persistence beyond local JSONL logs.
+### Non-goals (for the PoC)
+- Metered production data from SCADA / the asset-management system. The PV
+  tool *estimates* production from irradiance and park specs; a metered source
+  can replace it later behind the same tool.
+- Web UI, multi-user serving, persistence beyond local JSONL traces.
 - Paid models. (The config makes switching to a paid model a one-line change.)
 
 ## 2. Model selection
@@ -27,111 +35,111 @@ plus a couple of trivial demo tools to prove the loop works.
   once the account has bought ≥ $10 of credits, lifetime). Failed requests count.
 - Each `:free` variant is usually served by **a single provider**, so outages and
   429s are common, and models are rotated out of the free list without notice.
-- Free endpoints may log prompts for training — **do not send confidential
+- Free endpoints may log prompts for training: **do not send confidential
   Nordic Solar data** through free models.
 
 **Consequence:** "most reliable" can't mean one hard-coded model. It means a
 good primary plus an ordered fallback chain, and a probe that re-checks the
 chain.
 
-### Recommended chain (pending live verification, see Task 2)
+### Chain (pending live verification with `energy-harness-probe`)
 
 | Priority | Model ID | Why |
 |---|---|---|
-| 1 (primary) | `openai/gpt-oss-120b:free` | Most consistently recommended free model for tool calling and structured output; open weights from a major lab; configurable reasoning effort. |
+| 1 (primary) | `openai/gpt-oss-120b:free` | Most consistently recommended free model for tool calling and structured output; open weights from a major lab. |
 | 2 | `qwen/qwen3-coder:free` | Explicitly built for function calling / tool use, long context. |
 | 3 | `nvidia/nemotron-3-super-120b-a12b:free` | Good output discipline / structured output. |
-| 4 (last resort) | `openrouter/free` | OpenRouter's router; picks any free model that supports the features the request needs (e.g. tools). Always available, but non-deterministic. |
+| 4 (last resort) | `openrouter/free` | OpenRouter's router; picks any free model that supports the request's features (e.g. tools). Always available, non-deterministic. |
 
-OpenRouter also supports server-side fallback via the `models: [...]` array on a
-request; the harness will use that **and** keep its own retry/fallback logic,
-because a 429 caused by the daily cap won't be fixed by switching models.
+Fallback is done client-side so the trace always shows which model answered,
+and so a daily-cap 429 fails fast instead of being retried on every model.
 
-> ⚠️ I could not verify these against the live API from this environment
-> (OpenRouter is blocked by the cloud container's network policy, and no API key
-> is configured). The model IDs come from current public listings and guides.
-> Task 2 adds a probe script that you run once with your key to confirm the chain
-> and reorder it based on real results.
+> ⚠️ The cloud container that wrote this cannot reach OpenRouter (network
+> policy) and has no API key. Model IDs come from current public listings. Run
+> `energy-harness-probe` once with your key to confirm and reorder the chain.
 
-## 3. Architecture
+## 3. Data sources (free, no API key)
 
-**Language:** Python 3.11+. **Dependencies:** `openai` SDK (OpenRouter is
-OpenAI-compatible, so we just set `base_url`), `pydantic` for tool schemas,
-`python-dotenv`, `pytest` for tests. No agent framework, so the loop stays
-small enough to read in one sitting.
+| Tool | Source | Notes |
+|---|---|---|
+| Irradiance forecast | [Open-Meteo](https://open-meteo.com/) forecast API | GHI (`shortwave_radiation`), tilted irradiance, temperature, cloud cover; up to 16 days ahead, 92 days back |
+| PV production (estimate) | Open-Meteo (forecast + archive) + `parks.yaml` | Simple model: plane-of-array irradiance × capacity × performance ratio, temperature-derated, clipped at AC capacity |
+| Day-ahead prices | [Energy-Charts API](https://api.energy-charts.info/) (Fraunhofer ISE) | All Nordic + European bidding zones (DK1, DK2, SE3, NO1, DE-LU, …), EUR/MWh |
+
+`parks.yaml` ships with **placeholder example parks**. Replace them with real
+park coordinates and capacities.
+
+## 4. Architecture
+
+**Dependencies:** `httpx` (direct calls to OpenRouter's OpenAI-compatible
+`/chat/completions`, so we can read rate-limit headers and mock HTTP in tests),
+`pydantic` (tool schemas + validation), `pyyaml`, `python-dotenv`, `pytest` +
+`respx`. No agent framework, so the loop stays readable in one sitting.
 
 ```
 harness/
-├── PLAN.md                 # this file
-├── README.md               # setup + usage
-├── pyproject.toml
-├── .env.example            # OPENROUTER_API_KEY=...
-├── config.yaml             # model chain, limits, temperature, max_steps
-├── src/energy_harness/
-│   ├── __init__.py
-│   ├── config.py           # load .env + config.yaml → typed Settings
-│   ├── llm.py              # OpenRouter client: fallback chain, retry/backoff, 429 handling
-│   ├── tools.py            # @tool decorator → JSON schema registry; safe execution
-│   ├── agent.py            # the loop: messages → model → tool calls → results → … → answer
-│   ├── budget.py           # local request counter (RPM + daily cap) to avoid burning quota
-│   ├── logging.py          # JSONL trace per run (messages, tool calls, model used, latency)
-│   ├── cli.py              # `energy-harness "question"` / interactive REPL
-│   └── demo_tools.py       # get_time, calculator, (stub) get_solar_production
-├── scripts/
-│   └── probe_models.py     # live check of each free model: reachability, tool-call correctness, latency
-└── tests/
-    ├── test_tools.py
-    ├── test_agent_loop.py  # uses a fake LLM, no network
-    └── test_llm_fallback.py
+├── PLAN.md
+└── poc/
+    ├── README.md
+    ├── pyproject.toml
+    ├── .env.example            # OPENROUTER_API_KEY=...
+    ├── config.yaml             # model chain, limits, temperature, max_steps
+    ├── parks.yaml              # PV parks (placeholders)
+    ├── src/energy_harness/
+    │   ├── config.py           # .env + config.yaml → typed Settings
+    │   ├── budget.py           # local request guard (per-minute + daily cap)
+    │   ├── llm.py              # OpenRouter client: fallback chain, retry, 429 handling
+    │   ├── tools.py            # @tool decorator → JSON schema; safe execution
+    │   ├── agent.py            # the loop
+    │   ├── trace.py            # JSONL trace per session
+    │   ├── factory.py          # wires settings → client + tools → Agent
+    │   ├── cli.py              # `energy-harness "question"` / REPL
+    │   ├── probe.py            # `energy-harness-probe`: live check of each free model
+    │   ├── builtin_tools.py    # calculate
+    │   └── energy/
+    │       ├── sources.py      # Open-Meteo + Energy-Charts clients
+    │       ├── parks.py        # park registry
+    │       ├── pv.py           # PV estimation math
+    │       └── tools.py        # list_parks, get_irradiance_forecast,
+    │                           # estimate_pv_production, get_day_ahead_prices
+    └── tests/                  # no network: fake LLM + respx fixtures
 ```
 
 ### Key design decisions
-1. **Provider-agnostic client interface** (`LLMClient.chat(messages, tools) -> Response`),
-   so tests use a fake and a paid or local model can be swapped in later.
-2. **Fallback policy:** on 5xx, timeout, or "model not found" → next model in the
-   chain. On a 429 → read `Retry-After`/`X-RateLimit-*` headers; if it's the
-   per-minute limit, back off and retry; if it's the daily cap, fail fast with a
-   clear message (switching models won't help).
-3. **Tool-call robustness:** free models sometimes emit malformed JSON
-   arguments. The harness validates arguments with pydantic and, on failure,
-   returns the validation error to the model as the tool result (one repair
-   attempt) rather than crashing.
-4. **Hard limits:** `max_steps` (default 8) per run and a local request budget,
-   so a looping model can't eat the 50/day quota.
-5. **Tracing:** every run writes `runs/<timestamp>.jsonl` (git-ignored) with
-   the model actually used, which matters when the fallback chain kicks in.
+1. **Fallback policy:** 5xx / timeout → retry once, then next model.
+   404 / 400 / upstream-provider 429 / error-in-body → next model. Per-minute
+   429 → wait for reset, retry same model (the limit is account-wide, so
+   switching doesn't help). Daily-cap 429, 401, 402 → fail fast, clear message.
+2. **Tool-call robustness:** arguments are validated with pydantic; JSON
+   wrapped in code fences or passed as an object is accepted; invalid
+   arguments come back to the model as a tool error it can correct.
+3. **Hard limits:** `max_steps` per question (default 8, then one final
+   "answer now" call) and a local request budget persisted per UTC day.
+4. **Token thrift:** tools return daily summaries; hourly detail only for
+   short ranges.
+5. **Tracing:** `runs/<timestamp>.jsonl` (git-ignored) records every LLM call
+   (model actually used, fallbacks, latency, tokens) and tool call.
 
-## 4. Tasks (TDD, each one a small commit)
+## 5. Tasks
 
 | # | Task | Done when |
 |---|---|---|
-| 1 | Scaffold `harness/` (pyproject, config, `.env.example`, `.gitignore`, README stub) | `pip install -e harness` works; `pytest` runs (0 tests) |
-| 2 | `scripts/probe_models.py` — for each model in the chain: one plain call + one forced tool call; report ok/latency/valid-tool-call | Script runs offline with `--dry-run`; with a key prints a ranked table and suggests a `config.yaml` order |
-| 3 | `config.py` + `budget.py` with tests | Settings load from env/yaml; budget blocks the 21st request in a minute (fake clock) |
-| 4 | `tools.py` registry with tests | `@tool` turns a typed function into a valid OpenAI tool schema; bad args → structured error |
-| 5 | `llm.py` with fallback/retry, tested against a fake HTTP layer | Tests cover 5xx→fallback, 404→fallback, RPM-429→backoff, daily-429→fail fast |
-| 6 | `agent.py` loop, tested with a scripted fake LLM | Multi-step tool use, malformed-args repair, `max_steps` stop, final answer returned |
-| 7 | `logging.py` JSONL traces + `cli.py` (one-shot + REPL) | `energy-harness "What is 17% of 2.4 MWh?"` runs end to end |
-| 8 | Demo tools + live smoke test (manual, needs key) | Real free model completes a 2-tool question; trace shows model used |
-| 9 | README: setup, choosing models, free-tier limits, privacy note | A teammate can run it from the README alone |
+| 1 | Scaffold `poc/` (pyproject, config, parks, `.env.example`, `.gitignore`) | `pip install -e .` works |
+| 2 | `budget.py`, `config.py` + tests | Budget waits at 21st request/min and blocks at daily cap (fake clock) |
+| 3 | `tools.py` registry + tests | Typed function → valid tool schema; bad args → structured error |
+| 4 | `llm.py` + tests (respx) | 5xx→retry→fallback, 404→fallback, per-min 429→wait, daily 429→fail fast |
+| 5 | `agent.py` + `trace.py` + tests (fake LLM) | Multi-step tool use, arg repair, max-steps stop |
+| 6 | Energy tools + tests (recorded fixtures) | Irradiance, PV estimate, prices return correct summaries |
+| 7 | `cli.py`, `factory.py`, `probe.py` | `energy-harness --help` and `energy-harness-probe --dry-run` work offline |
+| 8 | README | A teammate can run it from the README alone |
+| 9 | **Live smoke test (you, with key)** | Probe ranks models; a real question uses ≥ 2 tools |
 
-Estimated effort: about 1 day of focused work. Tasks 1–7 need no API key or
-network; 2 and 8 need your OpenRouter key on your machine.
-
-## 5. Risks
+## 6. Risks
 
 | Risk | Mitigation |
 |---|---|
-| Free model removed / renamed | Fallback chain + `openrouter/free` last resort; probe script to re-rank |
-| 50 requests/day is tight for development | Fake-LLM tests for everything; local budget guard; consider a one-off $10 credit purchase to unlock 1,000/day (still using free models) |
-| Prompts may be logged by free providers | Only non-confidential data; note in README; config switch to a paid/zero-retention model later |
-| Inconsistent tool-call formats across models | pydantic validation + repair round-trip; probe script measures tool-call validity per model |
-| Cloud container can't reach OpenRouter | Live steps run on your machine, or allow `openrouter.ai` in the environment's network policy |
-
-## 6. Open questions for you
-
-1. **Python OK?** (Alternative: TypeScript/Node.) The plan assumes Python.
-2. **What should the first real energy tools be?** e.g. PV production by park,
-   day-ahead prices, weather/irradiance forecast. Not needed for the harness,
-   but it shapes the demo.
-3. **$10 credit top-up** to lift the daily cap from 50 to 1,000? Optional.
+| Free model removed / renamed | Fallback chain + `openrouter/free`; probe to re-rank |
+| 50 requests/day is tight | Fake-LLM tests; local budget guard; optional $10 top-up later |
+| Prompts may be logged by free providers | Only public/non-confidential data; README note |
+| API response formats drift | Parsing isolated in `energy/sources.py`; fixture tests; live smoke test |
+| Cloud container can't reach OpenRouter / data APIs | Live steps run locally, or allow the hosts in the environment's network policy |

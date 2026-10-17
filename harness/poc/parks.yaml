@@ -1,0 +1,39 @@
+# PV parks known to the agent.
+#
+# !! PLACEHOLDERS !! These are made-up example parks, not real Nordic Solar
+# assets. Replace them with real coordinates and capacities.
+#
+# azimuth uses the Open-Meteo convention: 0 = south, -90 = east, 90 = west.
+# Leave tilt empty for single-axis trackers or unknown layouts; the estimate
+# then falls back to horizontal irradiance (GHI).
+parks:
+  - id: example-dk-west
+    name: Example Park Jutland
+    country: DK
+    latitude: 56.10
+    longitude: 9.10
+    capacity_mwp: 60.0
+    ac_capacity_mw: 50.0
+    tilt: 25
+    azimuth: 0
+    bidding_zone: DK1
+
+  - id: example-dk-east
+    name: Example Park Zealand
+    country: DK
+    latitude: 55.45
+    longitude: 11.80
+    capacity_mwp: 35.0
+    ac_capacity_mw: 30.0
+    tilt: 20
+    azimuth: 0
+    bidding_zone: DK2
+
+  - id: example-pl
+    name: Example Park Pomerania
+    country: PL
+    latitude: 54.20
+    longitude: 17.00
+    capacity_mwp: 40.0
+    ac_capacity_mw: 34.0
+    bidding_zone: PL

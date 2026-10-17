@@ -1,0 +1,23 @@
+# Energy harness configuration. Paths are relative to this file.
+
+# Tried in order. Re-rank with `energy-harness-probe` (needs OPENROUTER_API_KEY).
+# Override for one run with ENERGY_HARNESS_MODELS=model-a,model-b or --model.
+models:
+  - openai/gpt-oss-120b:free
+  - qwen/qwen3-coder:free
+  - nvidia/nemotron-3-super-120b-a12b:free
+  - openrouter/free   # OpenRouter's router over all free models; last resort
+
+base_url: https://openrouter.ai/api/v1
+temperature: 0.2
+max_steps: 8          # LLM calls per question before forcing an answer
+timeout_s: 90
+
+# Local guard mirroring OpenRouter's free-tier limits (account-wide).
+# Raise requests_per_day to 1000 if the account has bought >= $10 of credits.
+budget:
+  requests_per_minute: 20
+  requests_per_day: 50
+
+parks_file: parks.yaml
+runs_dir: runs
