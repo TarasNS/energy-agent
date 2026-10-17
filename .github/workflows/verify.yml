@@ -1,0 +1,46 @@
+name: verify
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+
+jobs:
+  check:
+    # Real and required from day one: structure, schemas, links, secrets.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - run: make check
+
+  test-and-eval:
+    # Skips with a visible notice until the first test file exists; then runs for real
+    # and fails on any red test. `make eval` runs only once evals/run.py exists (after the POC).
+    # Owner: Dev 3. Make this job a required status check on main once tests exist.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: found
+        run: |
+          if find . -name 'test_*.py' -not -path './.git/*' | grep -q .; then
+            echo "tests=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "tests=no" >> "$GITHUB_OUTPUT"
+            echo "::notice title=No tests yet::make test skipped: no test_*.py files exist. It runs as soon as the first test is merged."
+          fi
+          if [ -f evals/run.py ]; then echo "evals=yes" >> "$GITHUB_OUTPUT"; else echo "evals=no" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.found.outputs.tests == 'yes' || steps.found.outputs.evals == 'yes'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - if: steps.found.outputs.tests == 'yes' || steps.found.outputs.evals == 'yes'
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+      - if: steps.found.outputs.tests == 'yes'
+        run: make test
+      - if: steps.found.outputs.evals == 'yes'
+        run: make eval

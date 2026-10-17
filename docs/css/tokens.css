@@ -1,0 +1,8 @@
+/* Nordic Solar brand palette. The only file with hex colours; style.css uses these tokens. */
+:root {
+  --ns-green: #1A5C00;
+  --ns-almost-black: #1C1C1C;
+  --ns-off-white: #F4F2EB;
+  --ns-white: #FFFFFF;
+  --ns-black: #000000;
+}
