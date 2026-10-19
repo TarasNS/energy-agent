@@ -116,3 +116,54 @@ def test_cors_allows_only_listed_origins(monkeypatch):
     monkeypatch.setattr(server, "ALLOWED_ORIGINS", {"https://example.azurestaticapps.net"})
     assert "https://example.azurestaticapps.net" in server.ALLOWED_ORIGINS
     assert "https://evil.example" not in server.ALLOWED_ORIGINS
+
+
+# ── Tool use in the gateway ───────────────────────────────────────────────
+
+import httpx  # noqa: E402
+
+GET_KPI_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "get_kpi",
+        "description": "Get one KPI by id.",
+        "parameters": {"type": "object", "properties": {"kpi": {"type": "string"}}, "required": ["kpi"]},
+    },
+}
+
+
+def test_run_turn_parses_tool_use(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-real")
+    seen = {}
+
+    def handler(request):
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={
+            "model": "claude-haiku-5-5",
+            "stop_reason": "tool_use",
+            "content": [
+                {"type": "text", "text": "Checking."},
+                {"type": "tool_use", "id": "t1", "name": "get_kpi", "input": {"kpi": "availability"}},
+            ],
+        })
+
+    turn = anthropic_client.run_turn(
+        "sys", [{"role": "user", "content": "q"}], [GET_KPI_TOOL],
+        transport=httpx.MockTransport(handler),
+    )
+    assert turn.tool_calls == [anthropic_client.ToolCall("t1", "get_kpi", {"kpi": "availability"})]
+    assert turn.stop_reason == "tool_use"
+    assert turn.text == "Checking."
+    assert seen["body"]["tools"][0]["input_schema"] == GET_KPI_TOOL["function"]["parameters"]
+
+
+def test_run_turn_error_does_not_leak_the_key(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-real")
+
+    def handler(request):
+        return httpx.Response(401, json={"error": "invalid"})
+
+    with pytest.raises(anthropic_client.ModelUnavailable, match="HTTP 401") as info:
+        anthropic_client.run_turn("s", [{"role": "user", "content": "u"}], [GET_KPI_TOOL],
+                                  transport=httpx.MockTransport(handler))
+    assert "test-not-real" not in str(info.value)
