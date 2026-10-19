@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KPI lab — Energy harness</title>
+<style>
+:root {
+  --ns-green: #1A5C00; --ns-almost-black: #1C1C1C; --ns-off-white: #F4F2EB; --ns-white: #FFFFFF;
+  --font-ui: Aptos, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bg: var(--ns-off-white); --surface: var(--ns-white); --text: var(--ns-almost-black);
+  --border: color-mix(in srgb, var(--ns-almost-black) 25%, var(--ns-off-white));
+  --focus: var(--ns-almost-black);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--ns-almost-black); --surface: color-mix(in srgb, var(--ns-white) 6%, var(--ns-almost-black));
+    --text: var(--ns-white); --border: color-mix(in srgb, var(--ns-white) 35%, var(--ns-almost-black));
+    --focus: var(--ns-white);
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 1rem; line-height: 1.5; }
+main { max-width: 1040px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+h1 { font-size: 2.25rem; font-weight: 700; margin: 0 0 .25rem; }
+h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 .75rem; }
+p { max-width: 70ch; }
+.note { border: 1px solid var(--border); background: var(--surface); padding: .9rem 1.1rem; border-radius: 8px; }
+.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; }
+.card h3 { font-size: 1.05rem; margin: 0 0 .15rem; }
+.card .formula { font-size: .85rem; margin: 0 0 .75rem; opacity: .85; }
+label { display: grid; grid-template-columns: 1fr 9rem; align-items: center; gap: .5rem; margin-bottom: .4rem; font-size: .95rem; }
+input { font: inherit; padding: .35rem .5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); width: 100%; }
+input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+.result { margin-top: .75rem; padding: .6rem .75rem; border: 2px solid var(--text); border-radius: 6px; font-weight: 600; }
+.result.unavailable { border-style: dashed; font-weight: 500; }
+.result small { display: block; font-weight: 400; margin-top: .25rem; }
+.legend span { display: inline-block; margin-right: 1.25rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>KPI lab</h1>
+<p>Type a value and the KPI updates. If an input is blank, the KPI shows <strong>unavailable</strong> with the reason. It never shows a made-up number.</p>
+<div class="note">
+  <strong>Example values only.</strong> The fields start with round, made-up numbers from the formula tests. They are not Nordic Solar data. Nothing on this page is sent anywhere; the calculation runs in your browser.
+</div>
+<p class="legend" style="margin-top:1rem">
+  <span>Solid border = calculated</span><span>Dashed border = unavailable (input missing)</span>
+</p>
+
+<h2>Solar generation</h2>
+<div class="grid" id="solar"></div>
+
+<h2>Energy commercial</h2>
+<div class="grid" id="commercial"></div>
+
+<h2>Asset operations</h2>
+<div class="grid" id="asset"></div>
+
+<h2>Battery energy storage (BESS)</h2>
+<div class="grid" id="bess"></div>
+
+<p style="margin-top:2.5rem; font-size:.9rem">
+  Formulas mirror <code>mcp/kpi-solar/kpi_solar/metrics.py</code>. The JavaScript copy is checked against the same hand-worked values by <code>node --test tools/kpi-lab/kpi.test.js</code>.
+</p>
+</main>
+
+<script src="kpi.js"></script>
+<script>
+const K = window.KPI;
+
+// Each KPI: id, group, title, formula text, inputs [{key,label,value}], compute(values) -> result
+const KPIS = [
+  { g: "solar", title: "Actual vs expected generation", formula: "actual ÷ expected × 100 (%)",
+    inputs: [["actual", "Actual MWh", "90"], ["expected", "Expected MWh (baseline)", "100"]],
+    run: v => K.actualVsExpectedPct(v.actual, v.expected) },
+  { g: "solar", title: "Performance ratio", formula: "actual kWh ÷ (POA irradiation × nameplate kWp) × 100 (%)",
+    inputs: [["actual", "Actual kWh", "800"], ["poa", "POA irradiation kWh/m²", "200"], ["kwp", "Nameplate kWp", "5"]],
+    run: v => K.performanceRatioPct(v.actual, v.poa, v.kwp) },
+  { g: "solar", title: "Availability", formula: "available hours ÷ period hours × 100 (%)",
+    inputs: [["avail", "Available hours", "690"], ["period", "Period hours", "720"]],
+    run: v => K.availabilityPct(v.avail, v.period) },
+  { g: "solar", title: "Capacity factor", formula: "MWh ÷ (capacity MW × hours) × 100 (%)",
+    inputs: [["mwh", "Metered MWh", "30"], ["mw", "Capacity MW", "10"], ["hours", "Period hours", "100"]],
+    run: v => K.capacityFactorPct(v.mwh, v.mw, v.hours) },
+
+  { g: "commercial", title: "PPA delivery vs contract", formula: "delivered MWh ÷ contracted MWh × 100 (%)",
+    inputs: [["del", "Delivered MWh", "95"], ["con", "Contracted MWh", "100"]],
+    run: v => K.ppaDeliveryPct(v.del, v.con) },
+  { g: "commercial", title: "Realised (capture) price", formula: "Σ(MWh × price) ÷ Σ MWh (EUR/MWh). Two intervals:",
+    inputs: [["m1", "Interval 1 MWh", "10"], ["p1", "Interval 1 price EUR/MWh", "40"], ["m2", "Interval 2 MWh", "30"], ["p2", "Interval 2 price EUR/MWh", "20"]],
+    run: v => K.realisedPriceEurMwh([[v.m1, v.p1], [v.m2, v.p2]]) },
+  { g: "commercial", title: "Merchant price exposure", formula: "merchant MWh × price move (EUR), a sensitivity",
+    inputs: [["mwh", "Merchant MWh", "200"], ["move", "Price move EUR/MWh", "5"]],
+    run: v => K.merchantExposureEur(v.mwh, v.move) },
+
+  { g: "asset", title: "Downtime", formula: "OUTAGE intervals × interval length (h). Enter statuses separated by commas.",
+    inputs: [["st", "Statuses", "OK,OUTAGE,OK,OUTAGE,CURTAILED"], ["ih", "Interval hours", "0.25"]],
+    run: v => K.downtimeHours(v.st.split(",").map(s => s.trim()).filter(Boolean), v.ih) },
+  { g: "asset", title: "Energy losses", formula: "expected MWh − actual MWh",
+    inputs: [["exp", "Expected MWh", "120"], ["act", "Actual MWh", "100"]],
+    run: v => K.energyLossMwh(v.exp, v.act) },
+  { g: "asset", title: "Incident resolution (median)", formula: "median hours open → close. Enter hours separated by commas.",
+    inputs: [["hrs", "Hours per incident", "2,4,9"]],
+    run: v => K.incidentResolutionHours(v.hrs.split(",").map(s => s.trim()).filter(Boolean)) },
+  { g: "asset", title: "Asset performance", formula: "removed as a separate KPI. Use performance ratio and availability.",
+    inputs: [], run: () => ({ unavailable: "removed: see KPI_REVIEW.md" }) },
+
+  { g: "bess", title: "BESS availability", formula: "available hours ÷ period hours × 100 (%)",
+    inputs: [["avail", "Available hours", "90"], ["period", "Period hours", "100"]],
+    run: v => K.bessAvailabilityPct(v.avail, v.period) },
+  { g: "bess", title: "Round-trip efficiency", formula: "discharged MWh ÷ charged MWh × 100 (%)",
+    inputs: [["dis", "Discharged MWh", "88"], ["chg", "Charged MWh", "100"]],
+    run: v => K.bessRoundTripPct(v.dis, v.chg) },
+  { g: "bess", title: "Cycle utilisation", formula: "throughput MWh ÷ (2 × usable MWh) × 100 (one full cycle = 100)",
+    inputs: [["thr", "Throughput MWh", "400"], ["use", "Usable MWh", "200"]],
+    run: v => K.bessCycleUtilisationPct(v.thr, v.use) },
+];
+
+const UNITS = { "Actual vs expected": "%", "Performance ratio": "%", "Availability": "%", "Capacity factor": "%",
+  "PPA delivery vs contract": "%", "Realised (capture) price": "EUR/MWh", "Merchant price exposure": "EUR",
+  "Downtime": "h", "Energy losses": "MWh", "Incident resolution (median)": "h",
+  "BESS availability": "%", "Round-trip efficiency": "%", "Cycle utilisation": "%" };
+
+function render(kpi, idx) {
+  const card = document.createElement("section");
+  card.className = "card";
+  const id = `kpi-${idx}`;
+  card.innerHTML = `<h3>${kpi.title}</h3><p class="formula">${kpi.formula}</p>` +
+    kpi.inputs.map(([key, label, val]) =>
+      `<label for="${id}-${key}">${label}<input id="${id}-${key}" data-key="${key}" value="${val}" autocomplete="off"></label>`).join("") +
+    `<div class="result" id="${id}-out" role="status" aria-live="polite"></div>`;
+  card.dataset.idx = idx;
+  return card;
+}
+
+function values(card) {
+  const out = {};
+  card.querySelectorAll("input").forEach(el => { out[el.dataset.key] = el.value.trim() === "" ? null : el.value.trim(); });
+  return out;
+}
+
+function update(card) {
+  const kpi = KPIS[card.dataset.idx];
+  const out = card.querySelector(".result");
+  const unit = UNITS[kpi.title] || "";
+  let r;
+  try {
+    r = kpi.run(values(card));
+  } catch (e) {
+    out.className = "result";
+    out.innerHTML = `Error: ${e.message}<small>Fix the input. The page does not guess.</small>`;
+    return;
+  }
+  if (K.isUnavailable(r)) {
+    out.className = "result unavailable";
+    out.innerHTML = `Unavailable<small>${r.unavailable}</small>`;
+  } else {
+    out.className = "result";
+    out.innerHTML = `${r.toFixed(unit === "EUR/MWh" || unit === "EUR" ? 2 : (unit === "MWh" ? 3 : 1))} ${unit}`;
+  }
+}
+
+const groups = { solar: "solar", commercial: "commercial", asset: "asset", bess: "bess" };
+KPIS.forEach((kpi, idx) => {
+  const host = document.getElementById(groups[kpi.g]);
+  const card = render(kpi, idx);
+  host.appendChild(card);
+  card.addEventListener("input", () => update(card));
+  update(card);
+});
+</script>
+</body>
+</html>
