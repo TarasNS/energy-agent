@@ -1,0 +1,34 @@
+# Sanitized template for the Nordic Solar reference configuration.
+# Copy to private/nordic-solar.yaml (git-ignored) and fill in values there.
+# Every value below is a placeholder. Missing sources stay "unavailable"; the harness never invents a value.
+
+organisation: "Nordic Solar (reference)"
+currency: EUR
+timezone: Europe/Copenhagen
+
+sources:
+  market_prices:
+    type: day_ahead_prices
+    adapter: synthetic            # switch to "live" only after a read-only feed is approved
+    zones: [DK1, DK2]
+  production:
+    type: metered_production
+    adapter: synthetic            # replace with the SCADA or monitoring read-only adapter
+  assets:
+    type: asset_register
+    adapter: synthetic            # replace with an approved read-only extract
+  erp_finance:
+    type: erp
+    adapter: unavailable          # needs an access request; read-only role only
+  analytics_platform:
+    type: lakehouse
+    adapter: unavailable          # needs an access request; read-only, no write path
+  documents:
+    type: document_store
+    adapter: unavailable          # no document ingestion in the POC
+
+kpis_file: config/kpi_catalog.yaml
+
+audit:
+  log_path: ./artifacts/audit.jsonl
+  append_only: true

@@ -30,3 +30,6 @@ Thumbs.db
 # Large presentation media (link from presentation/README.md instead)
 presentation/video/*.mp4
 presentation/video/*.mov
+
+# Private enterprise data and Nordic Solar configuration (never commit)
+private/
