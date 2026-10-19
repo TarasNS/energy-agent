@@ -24,7 +24,8 @@ You own: mcp/portfolio/, model/, schemas/, CLAUDE.md, Makefile, scripts/
 Tasks, in order:
 1. Portfolio reader (mcp/portfolio/README.md): list_assets, get_production over
    data/synthetic/demo-solar-dk; validate rows; reject malformed ones clearly.
-2. Model gateway (T3.2, model/README.md): get_client() with
+2. Model gateway (T3.2, model/README.md), shaped like the POC ChatClient
+   protocol (branch claude/awesome-planck-bt3ymf, harness/poc/src/energy_harness/llm.py): get_client() with
    run_turn(system, messages, tools) -> ModelTurn, an Anthropic SDK client with
    tool use, and a recorded offline client that replays turns; profiles in
    model/profiles.json. Only

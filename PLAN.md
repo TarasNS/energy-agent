@@ -31,7 +31,7 @@ Gate: nobody builds before these are done.
 | Dev | Tasks in the session ([TASKS.md](TASKS.md)) |
 |---|---|
 | 1 | T1.1 price reader · T1.2 skill + system prompt |
-| 2 | T2.1 tool registry · T2.2 agent loop · T2.3 approve + audit · T2.4 offloader · T2.5 smoke test |
+| 2 | T2.1 tool registry · T2.2 agent loop · T2.3 approve + audit · T2.4 trace + audit · T2.5 smoke test |
 | 3 | T3.1 portfolio reader · T3.2 gateway `run_turn` · T3.3 offline replay · T3.5 `tool_trace` in the result schema |
 | 4 | T4.1 golden cases · T4.2 calculator · T4.3 no-invented-EUR eval |
 | 5 | T5.1 Lovable screen on a recorded result · T5.2 tool trace · T5.3 connect to the harness |

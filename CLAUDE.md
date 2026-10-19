@@ -50,7 +50,7 @@ Edit only paths your workstream owns (`TEAM.md`). Shared contracts in `schemas/`
 Single test: `.venv/bin/python -m pytest mcp/energy-calc/tests/test_x.py::test_name` (Makefile and scripts are bash; on Windows use Git Bash/WSL).
 
 ## Architecture (big picture)
-Request flow: `apps/web` (UI + small local FastAPI) → `harness/` (data → calc → explain → propose → approve → audit) → skill `.claude/skills/curtailment-advisor/` + model via `model_gateway` → tools `mcp/{energy-data,portfolio,energy-calc,actions}` → synthetic data in `data/synthetic/`. Models explain; they are never the calculator of record or the permission system. Contracts live in `schemas/*.schema.json` (validated by `make check`); model profiles (`default`, `fast`, `offline`) in `model/profiles.json`. Full detail: `ARCHITECTURE.md` §2–§6.
+Request flow: `apps/web` (UI + small local FastAPI) → `harness/` (data → calc → explain → propose → approve → audit) → skill `.claude/skills/curtailment-advisor/` + model via `model_gateway` → tools `mcp/{energy-data,portfolio,energy-calc,actions}` → synthetic data in `data/synthetic/`. Models explain; they are never the calculator of record or the permission system. Contracts live in `schemas/*.schema.json` (validated by `make check`); model profiles (`default`, `fast`, `offline`) in `model/profiles.json`. Full detail: `ARCHITECTURE.md` §2–§6. `harness/` starts from the POC on branch `claude/awesome-planck-bt3ymf` (copy `agent.py`, `tools.py`, `trace.py`; never its `llm.py`); see `harness/README.md`.
 
 Note: `energy-agent/` at the repo root is a nested copy of the project tree; work in the top-level files unless told otherwise.
 

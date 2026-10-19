@@ -24,24 +24,32 @@ Tasks, in order:
 1. Actions (mcp/actions/README.md): propose_action, issue_approval_token,
    approve_action, JSON-lines audit. Write the refusal tests first: missing,
    wrong, reused and other-proposal tokens are refused and execute nothing.
-2. Tool registry (T2.1): harness/config.py and harness/tools/registry.py with
-   stubs for the five tools. Test: exactly five tools, no approval tool, an
-   unknown tool name returns an error result.
-3. Agent loop (T2.2, harness/README.md): harness/agent.py run_review() plus a
-   CLI. Loop model_gateway.get_client().run_turn() → dispatch tool calls →
-   repeat, until final text or STEP_BUDGET. Test with a scripted fake client:
+Start from the team's POC harness (branch claude/awesome-planck-bt3ymf, folder
+harness/poc/src/energy_harness/). Copy and adapt; do not rewrite from scratch.
+Mapping: TASKS.md, "What we reuse from the POC".
+
+2. Tool registry (T2.1): copy the POC tools.py to harness/tools/registry.py;
+   add harness/config.py; register stubs for exactly the five tools. Test:
+   exactly five tools, no calculate and no approval tool, unknown tool and bad
+   arguments return an error result.
+3. Agent loop (T2.2, harness/README.md): copy the POC agent.py and
+   tests/conftest.py; turn Agent.run() into run_review() plus a CLI. Same loop
+   and forced final answer, model_gateway.get_client().run_turn() instead of
+   the OpenRouter client, until final text or STEP_BUDGET. Test with a scripted fake client:
    stops on text, stops at the budget, fails if calc was never called, copies
    result numbers from the last calc output. Output validates against
    schemas/review-result.schema.json.
-4. Offloader and audit (T2.4): large tool outputs go to artifacts/ with a
-   summary to the model; every dispatch appends an audit line.
+4. Trace and audit (T2.4): copy the POC trace.py to harness/trace.py; every
+   tool call also appends an audit line; large outputs are saved in full to
+   artifacts/ and the model gets the truncated result with the path.
 5. Wire the real tools as they merge, then make scripts/demo-smoke.sh real
    (T2.5, the checks listed at its top), with MODEL_PROFILE=offline.
 
 Rules:
 - one agent loop, not a multi-agent runtime; the model gets exactly the five registered tools;
 - numbers shown to the user come from the calc result, never from model text;
-- never import anthropic or any provider SDK in harness/.
+- never import anthropic or any provider SDK in harness/; do not copy the POC
+  llm.py, budget.py, probe.py, builtin_tools.py, energy/ or web/.
 
 Work one task at a time, each on its own branch (devN/<task>, from dev).
 For every task: write the test first, run it, and keep fixing the code until

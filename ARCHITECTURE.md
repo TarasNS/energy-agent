@@ -46,7 +46,7 @@
 | # | Layer | Contents | Lives in | Owner |
 |---|---|---|---|---|
 | 1 | Experience | Lovable screen calling a small local FastAPI server; one plain HTML page as the offline fallback | `apps/web/` | Dev 5 |
-| 2 | Orchestration | Agent loop (template-style): the model picks tools from a fixed registry; the harness enforces step budget, calc-of-record and audit | `harness/` (replaces `workflow/`) | Dev 2 |
+| 2 | Orchestration | Agent loop (from the team's POC): the model picks tools from a fixed registry; the harness enforces step budget, calc-of-record and audit | `harness/` (replaces `workflow/`) | Dev 2 |
 | 3 | Energy intelligence | Skill, context, rules | `.claude/skills/curtailment-advisor/` | Dev 1 |
 | 4 | Energy tools | `energy-data`, `portfolio`, `energy-calc`, `actions` | `mcp/*/` | Dev 1, 3, 4, 2 |
 | 5 | Data | Synthetic portfolio, market fixtures; later ERP / data platform / SCADA adapters | `data/synthetic/` | Dev 4 |
@@ -76,17 +76,19 @@ UI ── [human approves] POST /api/proposals/{id}/approve
 
 The model sequences the tools; the controls live in the tools and the harness, not in the prompt. It is still **one** loop, not a multi-agent runtime. `issue_approval_token` and `approve_action` are not in the registry.
 
-### Harness layout (template structure, trimmed)
+### Harness layout (from the POC harness)
 
 ```text
 harness/
-├── agent.py              run_review(): ReAct loop, step budget, calc-of-record check
+├── agent.py              run_review(): POC loop + step budget + calc-of-record check
 ├── config.py             STEP_BUDGET, MODEL_PROFILE
 ├── prompts/system.txt    short system prompt; skill appended at load
-├── tools/registry.py     the five tools: JSON schema + dispatch over mcp/* pure functions
-├── context/offloader.py  large outputs → artifacts/, summary to the model
-└── tests/
+├── tools/registry.py     POC tools.py: @tool + validation; exactly five tools
+├── trace.py              POC trace.py: JSONL events; tool calls also to the audit log
+└── tests/                POC conftest.py: ScriptedLLM fake model
 ```
+
+Source: branch `claude/awesome-planck-bt3ymf`, `harness/poc/src/energy_harness/` (commit `165bbfd`). Mapping and the safety pieces the POC lacks: [TASKS.md](TASKS.md#what-we-reuse-from-the-poc).
 
 The model gateway contract grows from `explain(...)` to `run_turn(messages, tools) → ModelTurn{text, tool_calls}`. The `offline` profile replays recorded turns, so the same loop runs without network.
 
@@ -174,5 +176,6 @@ Record decisions here as one line each. Do not rewrite history; add a new line w
 | GitHub repo ready and cloned by everyone before the hackathon starts | Lead |
 | Approved action: `enable_negative_price_curtailment` on one asset, simulated | Lead + Dev 2 |
 | Scope is a first POC built in one short session; everything else is after the POC | Lead |
-| Orchestration is a trimmed agent loop based on coderonfleek/harness-course-build; the model picks tools; replaces the fixed workflow | Lead |
+| Orchestration is a trimmed agent loop based on coderonfleek/harness-course-build; the model picks tools; replaces the fixed workflow (base superseded below) | Lead |
+| The harness is built from the team's POC (`claude/awesome-planck-bt3ymf`): reuse `agent.py`, `tools.py`, `trace.py`; add calc of record, approval and audit | Lead |
 | _pending:_ Schemas frozen | Dev 3 + Dev 4 + Dev 2 |

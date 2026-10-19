@@ -22,7 +22,7 @@ A portfolio manager picks a portfolio, DK1 and a month. The system:
 4. the model explains it and recommends a step: *enable negative-price curtailment on Engbakke Solar*, as a **proposal**,
 5. a person **approves** on screen, outside the loop, and every step is written to the **audit log**.
 
-How it works, in one page: [docs/harness.html](docs/harness.html).
+How it works, in one page: [docs/harness.html](docs/harness.html). The loop is built from the team's working POC harness (branch `claude/awesome-planck-bt3ymf`, `harness/poc/`); [TASKS.md](TASKS.md) says which files to copy.
 
 Not in the POC: hooks, eval runner, CI test gating, live prices, company data. The screen is built in Lovable, with a local page as the offline fallback. See [PLAN.md §6](PLAN.md#6-after-the-poc).
 
