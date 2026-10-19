@@ -13,7 +13,7 @@ help:
 	@echo "make check       structure, schemas, doc links, secret scan"
 	@echo "make test        unit + golden tests (pytest)"
 	@echo "make eval        EnergyBench-Lite (evals/run.py)"
-	@echo "make run         start the demo UI"
+	@echo "make run         start the chat page and server"
 	@echo "make demo-smoke  end-to-end smoke test"
 	@echo "make verify      check + test + demo-smoke"
 	@echo "make docs        rebuild the docs/ portal"
@@ -44,12 +44,7 @@ eval:
 	fi
 
 run:
-	@if [ -f apps/web/run.sh ]; then bash apps/web/run.sh; \
-	else \
-	  echo "NOT IMPLEMENTED: apps/web/run.sh does not exist."; \
-	  echo "  Needed: one start command for the demo UI (owner: Dev 5; wiring: Dev 3)."; \
-	  exit 1; \
-	fi
+	@$(PY) tools/kpi-lab/server.py
 
 demo-smoke:
 	@bash scripts/demo-smoke.sh

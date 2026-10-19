@@ -8,7 +8,7 @@
 - Discovery report used: No
 - Overall confidence: Medium (one authoritative source — the lead — with clear, explicit direction)
 
-Applies to: everything a team member reads to get work done — `docs/` pages, `prompts/`, READMEs, PR descriptions, CLAUDE.md. Reference documents (SPEC, ARCHITECTURE, EVALS) may be denser, but nobody should need to read them to know what to do next.
+Applies to: everything a team member reads to get work done — `docs/` pages, READMEs, PR descriptions, CLAUDE.md. Reference documents (intent, ARCHITECTURE, EVALS) may be denser, but nobody should need to read them to know what to do next.
 
 ---
 
@@ -34,14 +34,14 @@ The reader is a busy engineer building live during a short hackathon session. Ev
 
 #### Sequential
 - **What it means**: The page reads as "do this, then this". Numbering is continuous across a page.
-- **How it shows up**: Groups by moment (set up → build tasks → finish each task). Hand-offs to other people are steps too ("Send Dev 5 the G-07 number").
+- **How it shows up**: Groups by moment (set up → build tasks → finish each task). Hand-offs to other people are steps too ("Send Dev 4 the golden number").
 - **What to avoid**: Unordered section lists (mission, why, inputs, handoff) that the reader must assemble into a plan.
 - **Evidence**: Lead: "very straightforward 1 by 1 steps, do this after this".
 - **Confidence**: High
 
 #### Concrete
 - **What it means**: Each step links the files the person will open or create.
-- **How it shows up**: "Open `mcp/energy-calc/README.md`. Tell Claude: …". Copyable commands and copyable Claude instructions.
+- **How it shows up**: "Open `mcp/energy-data/README.md`. Paste this into Claude Code: …". Copyable prompts, not shell commands.
 - **What to avoid**: Pointing to whole documents when one section is needed.
 - **Evidence**: Lead: "links to files that they will use".
 - **Confidence**: High
@@ -65,7 +65,7 @@ The reader is a busy engineer building live during a short hackathon session. Ev
 | Context | Formality | Energy | Technical Depth | Key Principle |
 |---------|-----------|--------|-----------------|---------------|
 | Developer / lead step pages (`docs/`) | Low | Medium | Low–Medium | One action per step, link the file |
-| Claude prompts (`prompts/`) | Medium | Low | High | Complete and precise — Claude reads it, not the human |
+| Prompts on the pages | Medium | Low | High | Complete and precise: Claude reads it, not the human |
 | Component READMEs | Low | Low | Medium | Contract first: interface, rules, owner |
 | Reference docs (SPEC, ARCHITECTURE, EVALS) | Medium | Low | High | Single source of truth; linked, not repeated |
 | PR descriptions | Low | Low | Medium | Task, files, evidence |
@@ -77,8 +77,8 @@ The reader is a busy engineer building live during a short hackathon session. Ev
 1. Start each step with a verb: Open, Run, Tell Claude, Send, Check.
 2. One step = one action. If a step has "and then", split it.
 3. Link every file the step touches. Use the repo path as the link text.
-4. Put commands and Claude instructions in copyable blocks.
-5. Long instructions for Claude go in `prompts/`; the page says "Tell Claude: read prompts/0N… and follow it."
+4. Put Claude prompts in copyable blocks. Developers do not type shell commands; the prompt tells Claude to run them.
+5. Each task has one prompt to start and one to finish. The prompt carries the rules, so nobody has to remember them.
 6. No "why" on working pages. Link the reference doc if someone needs it.
 7. End each page with "Done when" — five items or fewer.
 8. Never repeat a rule that lives in another document; link it.
@@ -88,14 +88,14 @@ The reader is a busy engineer building live during a short hackathon session. Ev
 | Before | After |
 |---|---|
 | "Inputs you depend on: schemas/market-price.schema.json (Dev 3 + Dev 4, draft now; build against it)" | "4. Open `schemas/market-price.schema.json`. Tell Claude: 'Build get_day_ahead_prices against this schema, tests first.'" |
-| "Why your part matters: the skill turns a generic model into an energy assistant that quotes numbers…" | *(removed from the working page — lives in SPEC.md)* |
+| "Why your part matters: the skill turns a generic model into an energy assistant that quotes numbers…" | *(removed from the working page: lives in INTENT.md)* |
 
 ---
 
 ## Open Questions for Team Discussion
 
 ### Medium priority
-1. **Should reference docs (SPEC, ARCHITECTURE) also be shortened?**
+1. **Should reference docs (intent, ARCHITECTURE) also be shortened?**
    - What was found: Feedback targeted the working flow; reference docs are long but only linked when needed.
    - Agent recommendation: Leave them as reference for now; revisit at Milestone D if people still get lost.
    - Need from you: Confirm or override.

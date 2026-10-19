@@ -1,7 +1,5 @@
-# evals/ — after the POC
+# evals/
 
-**Owner:** Dev 4 · **Status:** not part of the hackathon session
+**Owner:** Dev 4 · **Task:** [Dev 4 page](../docs/developer-4.html)
 
-In the POC, golden cases run as pytest tests in `mcp/energy-calc/tests/` (`make test`), and approval rules are tested in `mcp/actions/tests/`. EnergyBench-Lite (`evals/run.py`, `make eval`) is the first thing to add after the POC: see [EVALS.md §4](../EVALS.md#4-after-the-poc-energybench-lite).
-
-`cases/README.md` describes the case format for later.
+Golden cases live in `cases/golden.json` and run as pytest tests in `tests/test_golden.py` (`make test`). The case format and rules are in [EVALS.md](../EVALS.md). A full runner (`evals/run.py`, `make eval`) comes after the POC.

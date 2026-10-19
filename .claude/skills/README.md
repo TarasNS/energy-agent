@@ -1,24 +1,20 @@
 # .claude/skills/
 
-**Owner:** Dev 1
+**Owner:** Dev 1 · **Task:** [Dev 1 page](../../docs/developer-1.html)
 
-POC contains **one** skill: `curtailment-advisor/SKILL.md`. The harness appends it to `harness/prompts/system.txt` as the agent's instructions. Build it well before considering a second one (stretch order in PLAN.md §7).
+The POC has **one** skill: `kpi-advisor/SKILL.md`. It is the model's instruction file. Today the same text is a string in `harness/agent.py`; Dev 2 makes the agent read the file when it exists.
 
-## `curtailment-advisor` — required contract (from SPEC.md §2.6)
+## The skill must
+1. **Say the data is synthetic** and every answer must say so.
+2. **Name the nine tools** and when to use each: `list_assets`, `list_kpis`, `get_kpi`, `compare_kpi`, `get_series`, `get_prices`, `get_events`, `make_chart`, `propose_action`.
+3. **Forbid model arithmetic.** Never calculate, add, average, round or estimate a number. Quote tool values exactly.
+4. **Handle "unavailable".** Say so and give the tool's reason. Do not estimate.
+5. **Limit charts and length.** One chart at most. At most 120 words.
+6. **Use proposal mode.** Propose only when the data clearly justifies it. Never say an action is approved or done.
 
-The skill must:
-1. **State when it applies** — monthly curtailment / economic-impact review for a portfolio, zone and month.
-2. **Name the five tools** the agent loop offers, in the usual order: `list_assets`, `get_production` → `get_day_ahead_prices` → `calculate_curtailment_value` (mandatory; a review without it fails) → `propose_action` (only for a recommended action).
-3. **Quote calc output exactly** — EUR and MWh values copied from the calc result, never recomputed, rounded differently or estimated.
-4. **Show assumptions** — the `assumptions` list from the calc result, plus `calculation_version`.
-5. **Prohibit invented values** — if a number is not in the calc result or the inputs, it must not appear.
-6. **Use proposal mode** for any action — never claim an action was executed without an approval result.
-
-Suggested layout:
+Layout:
 ```text
-curtailment-advisor/
-├── SKILL.md            frontmatter (name, description) + instructions
-└── examples/           one good explanation per golden case (used by the no-invented-number eval)
+kpi-advisor/
+├── SKILL.md         frontmatter (name, description) + instructions, under 150 lines
+└── test_skill.py    fails if a tool name or the never-calculate rule is missing
 ```
-
-Keep `SKILL.md` under ~150 lines. Put long reference material in separate files the skill links to.

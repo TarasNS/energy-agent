@@ -1,181 +1,83 @@
-# ARCHITECTURE.md — Energy 4.0 Harness
+# ARCHITECTURE.md: how it is built
 
-**Status:** draft → lead approval before the hackathon · **Scope:** first proof of concept (POC)
-**Role in the chain:** the *how*. This is the single source of truth for layers, component boundaries and shared contracts. Other documents link here instead of repeating it.
+**Role:** the *how*. Why is in [INTENT.md](INTENT.md). Who owns what is in [TEAM.md](TEAM.md).
 
-## 1. Principle
+## 1. The picture
 
-> The model explains and reasons. Deterministic code calculates the business numbers. Humans approve real actions.
+```text
+Chat page (tools/kpi-lab/index.html, charts.js)        render-only: shows what the server returns
+        │  POST /api/chat · POST /api/approve · GET /health
+Server (tools/kpi-lab/server.py)                       daily cap, CORS, issues approval tokens
+        │
+Agent loop (harness/agent.py)                          model picks tools · number check · 8 rounds max
+   ├── model: model/model_gateway.run_turn()           Claude Haiku 5.5 · only place a model SDK may be used
+   └── tools: harness/registry.py + energy_tools.py    nine tools
+          ├── harness/dataset.py                       synthetic portfolio (2 parks, 1 battery, June 2026)
+          ├── mcp/kpi-solar                            every KPI number (13 KPIs, four groups)
+          └── mcp/actions                              propose → approve (one-time token) → audit
+```
 
-| Concern | Owned by |
+## 2. One question
+
+1. The page posts `{question}` to `/api/chat`.
+2. The server takes a slot from the daily cap, then runs `harness.agent.run`.
+3. The loop sends the model the system prompt, the question and the nine tool schemas.
+4. The model returns text or tool calls. The registry runs each call and never raises: a bad call becomes an error result the model can read.
+5. When the model answers in text, `check_numbers` compares every number in the text with the question and all tool results. An unknown number means the text is withheld (`verified: false`, with a note). Charts and proposals still return.
+6. The server returns `{text, verified, note, charts, proposals, trace, stopped}`.
+
+## 3. Approval
+
+1. The model may call `propose_action(action, asset, reason)`. This records a proposal and returns its id. It runs nothing.
+2. The page shows an **Approve** button per proposal. A person enters a name and presses it.
+3. `/api/approve` asks `mcp/actions` for a one-time token, then approves with it. The browser never sees the token.
+4. A missing, wrong or reused token, or a proposal already approved, is refused and audited.
+5. Execution is simulated. There is no path to a real system.
+
+## 4. Contracts
+
+| Contract | Where | Shape |
+|---|---|---|
+| Tool results | `harness/registry.py` | JSON string. Money and energy values are decimal strings |
+| Model turn | `model/model_gateway` | `ModelTurn(text, tool_calls[])` from `run_turn(system, messages, tools)` |
+| Chat answer | `/api/chat` | `{text, verified, note, charts, proposals, trace, stopped}` |
+| Audit line | `artifacts/audit.jsonl` | `{ts, event, proposal_id, action, asset, approver}` |
+| Data schemas | `schemas/*.schema.json` | Checked by `make check` |
+
+## 5. Rules in code
+
+| Rule | Where it is enforced |
 |---|---|
-| Numbers | Deterministic code (`energy-calc`) |
-| Data access | Controlled, read-only tools |
-| Actions | Human approval enforced in code (`actions`) |
-| Everything | Append-only audit log |
+| Numbers come from code | `mcp/kpi-solar` calculates; `check_numbers` withholds anything else |
+| Approval is never a tool | The registry builds nine tools; none approves. Approval lives only in the server's `/api/approve` |
+| Model-agnostic | Only `model/model_gateway/` may import a provider SDK. `make check` fails otherwise |
+| No secrets in git | `make check` scans for key patterns; `.env` is git-ignored |
+| Do not shadow the `mcp` SDK | Never create `mcp/__init__.py` |
+| Synthetic by default | The dataset is seeded and labelled synthetic. No network is needed for tools |
 
-## 2. Layers
+## 6. Still to build
 
-```text
-                         ┌─────────────────────┐
-                         │      Web / UI       │   1. Experience
-                         │  Hackathon Demo UI  │
-                         └──────────┬──────────┘
-                                    ▼
-                         ┌─────────────────────┐
-                         │ Harness: agent loop │   2. Orchestration
-                         │ + tool registry     │
-                         └───────┬─────┬───────┘
-                    ┌────────────┘     └────────────┐
-                    ▼                               ▼
-          ┌──────────────────┐             ┌──────────────────┐
-          │ Energy Skills    │             │ Model Profile    │   3. Energy intelligence
-          │ SKILL.md         │             │ Claude / other   │   6. Models
-          └────────┬─────────┘             └──────────────────┘
-        ┌──────────┼───────────┬──────────────┐
-        ▼          ▼           ▼              ▼
-┌────────────┐ ┌───────────┐ ┌───────────┐ ┌────────────┐
-│ Energy Data│ │ Portfolio │ │Energy Calc│ │  Actions   │       4. Energy tools
-└─────┬──────┘ └─────┬─────┘ └─────┬─────┘ └─────┬──────┘
-      ▼              ▼             ▼             ▼
- Market data     Synthetic /   Deterministic   Proposal            5. Data
- Weather         company data  EUR logic       Approval
- Prices                                         Audit log
-```
-
-| # | Layer | Contents | Lives in | Owner |
-|---|---|---|---|---|
-| 1 | Experience | Lovable screen calling a small local FastAPI server; one plain HTML page as the offline fallback | `apps/web/` | Dev 5 |
-| 2 | Orchestration | Agent loop (from the team's POC): the model picks tools from a fixed registry; the harness enforces step budget, calc-of-record and audit | `harness/` (replaces `workflow/`) | Dev 2 |
-| 3 | Energy intelligence | Skill, context, rules | `.claude/skills/curtailment-advisor/` | Dev 1 |
-| 4 | Energy tools | `energy-data`, `portfolio`, `energy-calc`, `actions` | `mcp/*/` | Dev 1, 3, 4, 2 |
-| 5 | Data | Synthetic portfolio, market fixtures; later ERP / data platform / SCADA adapters | `data/synthetic/` | Dev 4 |
-| 6 | Models | Model gateway: Anthropic SDK behind one interface; profiles `default`, `fast`, `offline` | `model/` | Dev 3 |
-
-**Models are replaceable.** They explain and reason. They are never the calculator of record and never the permission system. All model calls go through `model_gateway.get_client()`; only `model/model_gateway/` imports a provider SDK (enforced by `make check`). Contract: [model/README.md](model/README.md).
-
-## 3. Request flow (Monthly Curtailment Review)
-
-```text
-UI ── POST /api/review {portfolio, zone, month, threshold_eur}
- └─▶ harness.agent.run_review(request)
-      messages = [system.txt + curtailment-advisor skill, request]
-      loop, at most STEP_BUDGET rounds:
-        turn = model_gateway.get_client().run_turn(messages, registry.schemas())
-        no tool calls   → final explanation + recommendation, stop
-        each tool call  → registry.dispatch(name, args) → result (offloaded if large)
-                          audit: tool_call {name, args_hash}
-      typical model-chosen order:
-        list_assets → get_production → get_day_ahead_prices
-        → calculate_curtailment_value → (optional) propose_action
-      harness check: calc was called; result numbers = last calc output, unchanged
- ◀── review-result (+ proposal_id if proposed, + tool trace)
-UI ── [human approves] POST /api/proposals/{id}/approve
-      → actions.issue_approval_token + approve_action(id, token, approver) → simulated result, audit
-```
-
-The model sequences the tools; the controls live in the tools and the harness, not in the prompt. It is still **one** loop, not a multi-agent runtime. `issue_approval_token` and `approve_action` are not in the registry.
-
-### Harness layout (from the POC harness)
-
-```text
-harness/
-├── agent.py              run_review(): POC loop + step budget + calc-of-record check
-├── config.py             STEP_BUDGET, MODEL_PROFILE
-├── prompts/system.txt    short system prompt; skill appended at load
-├── tools/registry.py     POC tools.py: @tool + validation; exactly five tools
-├── trace.py              POC trace.py: JSONL events; tool calls also to the audit log
-└── tests/                POC conftest.py: ScriptedLLM fake model
-```
-
-Source: branch `claude/awesome-planck-bt3ymf`, `harness/poc/src/energy_harness/` (commit `165bbfd`). Mapping and the safety pieces the POC lacks: [TASKS.md](TASKS.md#what-we-reuse-from-the-poc).
-
-The model gateway contract grows from `explain(...)` to `run_turn(messages, tools) → ModelTurn{text, tool_calls}`. The `offline` profile replays recorded turns, so the same loop runs without network.
-
-## 4. Shared contracts
-
-Contracts are JSON Schemas in [`schemas/`](schemas/). They are **draft** until the Milestone A freeze; after that, changes need lead approval (see [PLAN.md §6](PLAN.md#6-stop-conditions)).
-
-| Schema | Describes | Producer → consumer |
-|---|---|---|
-| [`asset.schema.json`](schemas/asset.schema.json) | One asset in a portfolio | portfolio → harness, calc |
-| [`production.schema.json`](schemas/production.schema.json) | One interval of available/actual/curtailed energy | portfolio → calc |
-| [`market-price.schema.json`](schemas/market-price.schema.json) | One interval of day-ahead price | energy-data → calc |
-| [`review-result.schema.json`](schemas/review-result.schema.json) | Output of one review (calc + explanation; `tool_trace` added in T3.5) | harness → UI, evals |
-| [`action-proposal.schema.json`](schemas/action-proposal.schema.json) | Proposal, approval and audit record | actions → harness, UI, audit log |
-
-### UI ↔ server API (POC)
-
-| Method | Path | Returns |
-|---|---|---|
-| `POST` | `/api/review` | review result |
-| `POST` | `/api/proposals` | proposal |
-| `POST` | `/api/proposals/{id}/approve` | proposal + audit record |
-
-Details: [apps/web/README.md](apps/web/README.md). The approve endpoint is the only caller of the token functions; the model's tools stop at `propose_action`.
-
-Money rule: EUR values cross boundaries as **decimal strings with two decimals** (`"85.00"`), never as floats. Energy as strings with three decimals (`"12.500"`). The calc uses `decimal.Decimal`. This makes golden comparisons exact.
-
-## 5. Code conventions (proposed — Dev 3 confirms at Milestone A)
-
-- **Language:** Python 3.11+ for tools, calc, harness, evals. UI stack is Dev 5's choice.
-- **Tool layout:** each `mcp/<tool>/` contains a pure Python package (hyphen → underscore), its tests, and optionally a thin MCP server wrapper:
-  ```text
-  mcp/energy-calc/
-  ├── energy_calc/       pure functions, no I/O
-  ├── tests/
-  └── server.py          optional thin MCP wrapper, added only if a harness needs it
-  ```
-- **Do not create `mcp/__init__.py`.** The folder is not a package; making it one would shadow the official `mcp` Python SDK.
-- **Import paths** are configured once in [`pytest.ini`](pytest.ini) (Dev 3).
-- **Tool neutrality:** pure functions first; the agent loop, MCP and Claude Code specifics stay in wrappers at the edge (`harness/tools/registry.py`, optional `server.py`).
-- **Model neutrality:** business code calls `model_gateway.get_client()` only. The Anthropic SDK lives in `model/model_gateway/anthropic_client.py`; a new vendor is one new class plus a profile in `model/profiles.json`.
-- **No distributed services.** Everything runs in one local process for the demo unless the UI requires a small HTTP API.
-
-## 6. Safety invariants and where they are enforced
-
-| # | Invariant | Enforced by | Proved by |
-|---|---|---|---|
-| 1 | Every displayed EUR value comes from `energy-calc` | Harness copies the recorded calc tool output into the result unchanged and fails if calc was not called; UI renders numbers from the result object, never from model text | Golden tests; `no-invented-number` eval after the POC |
-| 2 | Data tools are read-only | `energy-data` and `portfolio` expose only read functions; no write paths exist | Code review + test that no write function is exported |
-| 3 | No action without approval | One-time token issued only by the human Approve endpoint; `approve_action` validates it in code; approval functions are not in the tool registry | Unit tests in `mcp/actions/tests/` |
-| 4 | Tool calls, proposal and approval are audited | `registry.dispatch` and `actions` append JSON Lines to `AUDIT_LOG_PATH` before returning | Unit tests; `make demo-smoke` |
-| 5 | No live API is a single point of failure | Synthetic data by default; `offline` model profile with recorded replies | Offline rehearsal |
-| 6 | No secret leakage | `.env` git-ignored; `make check` secret scan (hooks after the POC) | `make check` in CI |
-| 7 | (stretch) Data-class ceiling | `portfolio` refuses data above the active profile's class | Stretch eval |
-
-## 7. Runtime configuration
-
-From `.env` (template: [`.env.example`](.env.example)):
-
-| Variable | POC value | Meaning |
-|---|---|---|
-| `ENERGY_DATA_MODE` | `synthetic` | `synthetic` or `live` (live falls back to fixtures) |
-| `STEP_BUDGET` | `10` | Max tool-call rounds per review |
-| `MODEL_PROFILE` | `default` | `default`, `fast` or `offline`; mapping in `model/profiles.json` |
-| `ANTHROPIC_API_KEY` | _(local only)_ | Read by the Anthropic SDK; never committed |
-| `ACTION_MODE` | `proposal_only` | Actions can only be proposed and simulated |
-| `AUDIT_LOG_PATH` | `./artifacts/audit.jsonl` | Append-only audit log |
-
-## 8. Not in this POC
-
-Production SCADA control, enterprise identity/RBAC, ERP/data-platform adapters, branded desktop fork, production deployment, battery optimisation, multi-agent runtime, broad model/harness matrix, Claude Code hooks, the EnergyBench-Lite runner, CI test gating, live market data. These are roadmap items; the architecture leaves room for them as adapters at the data layer and wrappers at the edge.
-
-## 9. Decision log
-
-Record decisions here as one line each. Do not rewrite history; add a new line when a decision changes.
-
-| Decision | By |
+| Item | Owner |
 |---|---|
-| One workflow (Monthly Curtailment Review) for POC | Lead |
-| No custom harness; energy layer is harness-neutral (superseded below) | Lead |
-| Formula v1 split by cause (EVALS.md §2), after a domain check | Dev 4 + Lead |
-| Demo runtime: local HTML page + FastAPI (`apps/web`) | Lead + Dev 5 |
-| Screen built in Lovable during the event; local page stays as offline fallback | Lead + Dev 5 |
-| Anthropic SDK behind a model-agnostic gateway; profiles `default`, `fast`, `offline` | Lead |
-| GitHub repo ready and cloned by everyone before the hackathon starts | Lead |
-| Approved action: `enable_negative_price_curtailment` on one asset, simulated | Lead + Dev 2 |
-| Scope is a first POC built in one short session; everything else is after the POC | Lead |
-| Orchestration is a trimmed agent loop based on coderonfleek/harness-course-build; the model picks tools; replaces the fixed workflow (base superseded below) | Lead |
-| The harness is built from the team's POC (`claude/awesome-planck-bt3ymf`): reuse `agent.py`, `tools.py`, `trace.py`; add calc of record, approval and audit | Lead |
-| _pending:_ Schemas frozen | Dev 3 + Dev 4 + Dev 2 |
+| Audit every tool call, not only proposals and approvals | Dev 2 |
+| Load the skill file as the system prompt | Dev 1 and Dev 2 |
+| Offline model replay (`MODEL_PROFILE=offline`) | Dev 3 |
+| Schemas that match the chat answer and audit line | Dev 3 |
+| Golden cases and number-check tests | Dev 4 |
+| Real data source | Lead decides |
+
+## 7. Deployment
+
+The chat runs as one container on Azure App Service. The `Dockerfile` and `.dockerignore` are on branch `feature/docker-deploy` until Dev 3 brings them onto `main`.
+
+| Part | Detail |
+|---|---|
+| Image | `python:3.11-slim`, only the runtime code. `.dockerignore` is an allowlist: `.env`, tests and docs never enter the image |
+| Build | `az acr build` in Azure Container Registry. No local Docker |
+| Run | App Service pulls the image with its managed identity |
+| Key | `ANTHROPIC_API_KEY` is an App Service setting, never in the image or git |
+| Settings | `KPI_DAILY_CAP` (100), `KPI_ALLOWED_ORIGINS`, `KPI_LAB_HOST`, `KPI_LAB_PORT`, `KPI_CAP_FILE`, `AUDIT_LOG_PATH` |
+| Health | `GET /health` returns 200 and the calls left today |
+| Limit | Runs as root because App Service mounts `/home` writable for root only. Fine for the POC |
+
+Release steps are in the guide: [docs/index.html#deploy](docs/index.html#deploy). Azure resource names are not in the repo.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://energy-agent.local/schemas/review-result.schema.json",
   "title": "ReviewResult",
-  "description": "Output of one Monthly Curtailment Review. Numbers come from energy-calc; text from the model. DRAFT until Milestone A freeze (owners: Dev 2 + Dev 4 + Dev 5).",
+  "description": "Output of one Monthly Curtailment Review. Numbers come from energy-calc; text from the model. DRAFT until Milestone A freeze (owners: Dev 2 + Dev 3 + Dev 4).",
   "type": "object",
   "required": [
     "request",

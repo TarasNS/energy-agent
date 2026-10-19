@@ -31,6 +31,6 @@ The European day-ahead market, DK1 included, moved to a 15-minute market time un
 Price shape: morning and evening peaks, a solar-driven midday dip, about 22 hours of negative prices concentrated on sunny weekends. Yield is about 165 MWh per MW for the month.
 
 ## Rules
-- **Inputs only.** The generator never computes EUR. Golden EUR values are worked out by hand (EVALS.md §3).
-- Dev 4 reviews the scenarios with an energy colleague, then sets `frozen` in the decision log. After that, changing a file changes golden values → stop condition in PLAN.md.
+- **Inputs only.** The generator never computes EUR. Golden values are worked out by hand (EVALS.md §2).
+- Dev 4 reviews the scenarios with an energy colleague, then sets `frozen` in the decision log. After that, changing a file changes golden values → tell the lead.
 - Optional upgrade: replace the synthetic price curve with real public DK1 prices from Energi Data Service for June 2025, frozen as a fixture. More credible, still offline.

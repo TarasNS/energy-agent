@@ -11,7 +11,7 @@ __pycache__/
 .coverage
 *.egg-info/
 
-# Node (if Dev 5 uses a JS stack)
+# Node (if a JS stack is added)
 node_modules/
 dist/
 .next/

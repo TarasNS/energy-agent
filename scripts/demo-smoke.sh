@@ -4,13 +4,13 @@
 # CURRENT STATE: placeholder. It reports which pipeline stages exist and
 # FAILS, because the real smoke test has not been written yet.
 #
-# Dev 2 replaces run_smoke() with the real path (MODEL_PROFILE=offline, synthetic data):
-#   1. run review through the agent loop: demo-solar-dk / DK1 / 2026-06
-#      assert the trace called calculate_curtailment_value and no approval tool
-#   2. assert calculation.economic_value_eur == golden G-07 (exact string)
-#   3. propose enable_negative_price_curtailment for dk1-solar-03 -> proposal_id, audit "proposed"
-#   4. approve WITHOUT a valid token -> refused, nothing executed, audit "approval_denied"
-#   5. approve WITH a token from issue_approval_token -> audit "approved" and "executed_simulated"
+# Dev 2 replaces run_smoke() with the real path (scripted model, no network, synthetic data):
+#   1. ask the three demo questions from DEMO.md through the chat server
+#   2. assert each answer is verified and the numbers equal the golden cases
+#   3. assert the trace has no approval tool and a chart came back
+#   4. propose an action -> proposal_id, audit "proposed"
+#   5. approve WITHOUT a valid token -> refused, audit "approval_denied"
+#   6. approve with the server-issued token -> audit "approved"; a second approval is refused
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
@@ -22,16 +22,16 @@ stage() { # name, path, owner
 
 echo "Demo pipeline stages"
 stage "synthetic fixture"        data/synthetic/demo-solar-dk           "Dev 4"
-stage "portfolio tool"           mcp/portfolio/portfolio                "Dev 3"
-stage "energy-data tool"         mcp/energy-data/energy_data            "Dev 1"
-stage "energy-calc"              mcp/energy-calc/energy_calc            "Dev 4"
+stage "KPI calculator"           mcp/kpi-solar/kpi_solar                "Dev 4"
 stage "model gateway"            model/model_gateway                    "Dev 3"
-stage "curtailment-advisor skill" .claude/skills/curtailment-advisor/SKILL.md "Dev 1"
+stage "kpi-advisor skill"        .claude/skills/kpi-advisor/SKILL.md    "Dev 1"
 stage "agent loop"               harness/agent.py                       "Dev 2"
-stage "tool registry"            harness/tools/registry.py              "Dev 2"
+stage "tool registry"            harness/registry.py                    "Dev 2"
+stage "energy tools"             harness/energy_tools.py                "Dev 2"
 stage "actions tool"             mcp/actions/actions                    "Dev 2"
-stage "offline model turns"      model/recorded/G-07.json               "Dev 3"
-stage "demo page + API"          apps/web/run.sh                        "Dev 5"
+stage "golden cases"             evals/cases/golden.json                "Dev 4"
+stage "offline model turns"      model/recorded/demo-1.json             "Dev 3"
+stage "chat page + server"       tools/kpi-lab/server.py                "Dev 1"
 
 run_smoke() {
   echo

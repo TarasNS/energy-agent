@@ -53,8 +53,8 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; marg
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 100vh; }
 .hero-l { padding: 7.5rem var(--pad) var(--pad); display: flex; flex-direction: column; justify-content: space-between; gap: 3rem; }
 .hero h1 { font-size: clamp(4.5rem, 10vw, 9.5rem); letter-spacing: -0.055em; }
-.hero .tag { font-size: clamp(1.6rem, 2.9vw, 2.6rem); font-weight: 600; letter-spacing: -0.035em; line-height: 1.08; max-width: 16ch; margin: 1.5rem 0 0; }
-.hero-meta { font-size: 1.15rem; letter-spacing: -0.01em; }
+.hero .tag { font-size: clamp(1.5rem, 2.4vw, 2.1rem); font-weight: 500; letter-spacing: -0.03em; line-height: 1.15; max-width: 30ch; margin: 1.25rem 0 0; }
+.hero-meta { font-size: 1.15rem; letter-spacing: -0.01em; max-width: 34ch; }
 .hero-meta span { display: block; color: var(--muted); font-size: 1rem; }
 .hero-r { background: var(--panel); padding: 7.5rem var(--pad) var(--pad); display: flex; align-items: center; }
 .hero-r .tiles { width: 100%; }
@@ -72,7 +72,7 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; marg
 /* ── Sections ── */
 .sec { padding: clamp(4rem, 9vw, 7.5rem) var(--pad); }
 .sec h2 { font-size: clamp(2.6rem, 5.6vw, 5rem); margin-bottom: 1.25rem; }
-.sec .intro { max-width: 46ch; color: var(--muted); font-size: 1.15rem; margin: 0 0 2.5rem; }
+.sec .intro { max-width: 62ch; color: var(--muted); font-size: 1.15rem; margin: 0 0 2.5rem; }
 .sec.alt { background: var(--panel); }
 
 /* Architecture diagram */
@@ -82,11 +82,13 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.045em; line-height: 0.98; marg
 .arch svg { display: block; width: 100%; min-width: 640px; height: auto; }
 .arch .part rect { transition: opacity .3s ease-out, fill .3s; }
 .arch .part text { fill: var(--white); font-family: var(--font); }
-.arch .part .badge { fill: var(--white); stroke: var(--green); stroke-width: 2; }
+.arch .part .badge { fill: var(--white); stroke: var(--green); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .arch .part text.bn { fill: var(--ink); font-size: 12px; font-weight: 700; }
 .arch .t { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
 .arch .s { font-size: 13px; }
-.arch .wire { stroke: var(--ink); stroke-opacity: .45; stroke-width: 1.5; fill: none; marker-end: url(#arr); }
+.arch .wire { stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; marker-end: url(#arr); }
+.arch .wire.plain { marker-end: none; }
+.arch .pulse { fill: var(--green); }
 .arch .band { font-size: 13px; fill: var(--muted); font-family: var(--font); }
 .arch .part { transition: opacity .3s ease-out; }
 .arch[data-focus] .part { opacity: .18; }
@@ -217,20 +219,20 @@ pre code { background: none; padding: 0; font-size: inherit; }
 .loopdiagram { background: var(--white); padding: 1rem; overflow-x: auto; margin: 0 0 .5rem; }
 .loopdiagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
 .loopdiagram .n rect { fill: var(--green); }
-.loopdiagram .n.g rect { fill: var(--white); stroke: var(--green); stroke-width: 2; }
+.loopdiagram .n.g rect { fill: var(--white); stroke: var(--green); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .loopdiagram .n text { fill: var(--white); font: 600 15px var(--font); }
 .loopdiagram .n.g text { fill: var(--ink); }
 .loopdiagram .n text.s { font: 400 11.5px var(--font); }
-.loopdiagram .w { stroke: var(--ink); stroke-opacity: .55; stroke-width: 1.6; fill: none; marker-end: url(#la); }
+.loopdiagram .w { stroke: var(--ink); stroke-width: 1; vector-effect: non-scaling-stroke; fill: none; marker-end: url(#la); }
 .loopdiagram .w.back { stroke-dasharray: 5 4; }
 .loopdiagram .lab { fill: var(--ink); font: 400 12.5px var(--font); }
 .task-plain .t::after { content: ""; }
 @media (max-width: 560px) { .loopsteps > li { grid-template-columns: 1fr; } }
 
 /* POC scope cards */
-.scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; max-width: 62rem; }
+.scope { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; max-width: 62rem; margin-top: 2rem; }
 .scope .card { min-height: 0; justify-content: flex-start; gap: 1rem; background: var(--white); }
-.scope .card.muted { background: transparent; border: 1px solid var(--line); }
+.scope .card.muted { background: var(--panel); }
 .scope ul { margin: 0; padding-left: 1.1rem; font-size: 1.1rem; line-height: 1.8; }
 @media (max-width: 560px) { .scope { grid-template-columns: 1fr; } }
 
@@ -246,4 +248,44 @@ pre code { background: none; padding: 0; font-size: inherit; }
 .two h3 { font-size: 1.35rem; margin-bottom: .75rem; }
 .two ul { margin: 0; padding-left: 1.2rem; }
 .two li { margin-bottom: .35rem; }
-.oneliner { font-size: clamp(1.4rem, 2.6vw, 2rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; max-width: 40ch; margin: 0; }
+.oneliner { font-size: clamp(1.4rem, 2.6vw, 2rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.25; max-width: none; margin: 0 0 1.5rem; }
+.oneliner span { display: block; }
+
+/* Diagram motion: parts rise in once, staggered; a small dot travels each wire. Reduced motion turns it off. */
+@keyframes part-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.js .reveal .arch .part, .js .reveal .loopdiagram .n { opacity: 0; }
+.js .reveal.visible .arch .part, .js .reveal.visible .loopdiagram .n { opacity: 1; animation: part-in .5s ease-out backwards; animation-delay: calc(var(--i, 0) * 45ms); }
+.js .reveal.visible .arch[data-focus] .part { opacity: .18; }
+.js .reveal.visible .arch[data-focus="1"] .part.d1, .js .reveal.visible .arch[data-focus="2"] .part.d2, .js .reveal.visible .arch[data-focus="3"] .part.d3,
+.js .reveal.visible .arch[data-focus="4"] .part.d4, .js .reveal.visible .arch[data-focus="5"] .part.d5 { opacity: 1; }
+.js .reveal.visible .arch .part { transform-box: fill-box; }
+@media (prefers-reduced-motion: reduce) { .arch .pulse { display: none; } .js .reveal .arch .part, .js .reveal .loopdiagram .n { opacity: 1; } }
+
+.loopdiagram .w.plain { marker-end: none; }
+.loopdiagram .n rect { rx: 10; }
+
+/* Front page: each step list starts at 1 */
+.home .busbar { counter-reset: step; }
+
+/* Four developers + lead = five tiles: the last one spans two columns */
+.tiles .tile:last-child { grid-column: span 2; aspect-ratio: auto; }
+
+/* ── Presentation: five slides, one under another ── */
+.deck .page { counter-reset: none; }
+.slide { position: relative; min-height: min(100vh, 48rem); display: flex; align-items: center; padding: 7rem var(--pad) 5rem; }
+.slide.dark { background: var(--ink); color: var(--white); }
+.slide.light { background: var(--white); }
+.slide.paper { background: var(--paper); }
+.slide-in { width: 100%; max-width: 70rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+.slide .k { display: flex; align-items: center; gap: .5rem; font-size: 1rem; }
+.slide .k::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: var(--green); }
+.slide.dark .k::before { background: var(--white); }
+.slide h2 { font-size: clamp(2.8rem, 7vw, 6rem); letter-spacing: -0.05em; line-height: 1; max-width: 16ch; }
+.slide .sub { font-size: clamp(1.2rem, 2vw, 1.6rem); margin: 0; max-width: 34ch; }
+.slide .foot { margin: 2rem 0 0; font-size: 1rem; }
+.slide .no { position: absolute; right: var(--pad); bottom: 1.75rem; font-size: .95rem; font-variant-numeric: tabular-nums; }
+.trio { list-style: none; margin: 2rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem; }
+.trio li { display: flex; flex-direction: column; gap: .6rem; }
+.trio b { font-size: clamp(1.3rem, 2vw, 1.7rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+.trio span { font-size: 1.1rem; max-width: 24ch; }
+@media (max-width: 760px) { .trio { grid-template-columns: 1fr; gap: 1.5rem; } .slide { padding-top: 6rem; } }
