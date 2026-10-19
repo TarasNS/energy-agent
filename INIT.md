@@ -7,7 +7,7 @@ The product must help an energy portfolio team make one decision better:
 **understand monthly curtailment impact in EUR and safely propose the next action.**
 
 ## Read order
-**People:** open `docs/index.html`, read `docs/harness.html`, then follow your page. You do not need to read the list below.
+**People:** open `docs/index.html`, read it once top to bottom, then follow your page. You do not need to read the list below.
 
 **Claude Code sessions** must read these before implementation:
 
