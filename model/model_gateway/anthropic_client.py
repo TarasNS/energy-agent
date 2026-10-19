@@ -29,7 +29,7 @@ def get_client_settings() -> tuple[str, str]:
     key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if not key:
         raise ModelUnavailable("ANTHROPIC_API_KEY is not set. Add it to the git-ignored .env file.")
-    model = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5").strip()
+    model = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-5-5").strip()
     return key, model
 
 

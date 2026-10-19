@@ -1,6 +1,6 @@
 {
   "_comment": "Profile name -> provider + model. Change models here only. Check current IDs in the Anthropic models overview before the hackathon. Owner: Dev 3.",
-  "default": { "provider": "anthropic", "model": "claude-sonnet-5-5", "max_tokens": 1000 },
+  "default": { "provider": "anthropic", "model": "claude-haiku-5-5", "max_tokens": 1000 },
   "fast":    { "provider": "anthropic", "model": "claude-haiku-5-5",  "max_tokens": 1000 },
   "offline": { "provider": "recorded",  "path": "model/recorded" }
 }
