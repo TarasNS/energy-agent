@@ -1,18 +1,24 @@
-"""Anthropic Messages API over HTTP. The only file that talks to the provider.
+"""Anthropic Messages API over HTTPS. The only file that talks to the provider.
 
-Uses httpx directly so no provider SDK is imported (CLAUDE.md rule 9).
-The key is read from ANTHROPIC_API_KEY (.env, git-ignored). It is never logged or returned.
+Uses only the standard library (urllib), so it needs no installed packages and no provider SDK
+(CLAUDE.md rule 9). The key is read from ANTHROPIC_API_KEY (.env, git-ignored, or an app setting).
+It is never logged or returned.
 """
 
 from __future__ import annotations
 
+import json
 import os
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
-
-import httpx
+from typing import Callable
 
 API_URL = "https://api.anthropic.com/v1/messages"
 API_VERSION = "2023-06-01"
+
+# (url, headers, body_bytes, timeout_s) -> (status_code, response_bytes). Replaceable in tests.
+Transport = Callable[[str, dict, bytes, float], tuple[int, bytes]]
 
 
 class ModelUnavailable(Exception):
@@ -33,23 +39,34 @@ def get_client_settings() -> tuple[str, str]:
     return key, model
 
 
-def explain(system: str, user: str, *, max_tokens: int = 400, timeout_s: float = 60.0, transport=None) -> ModelReply:
+def _urllib_transport(url: str, headers: dict, body: bytes, timeout_s: float) -> tuple[int, bytes]:
+    request = urllib.request.Request(url, data=body, headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=timeout_s) as response:
+            return response.status, response.read()
+    except urllib.error.HTTPError as e:
+        return e.code, b""
+
+
+def explain(system: str, user: str, *, max_tokens: int = 400, timeout_s: float = 60.0, transport: Transport | None = None) -> ModelReply:
     key, model = get_client_settings()
-    body = {
+    body = json.dumps({
         "model": model,
         "max_tokens": max_tokens,
         "system": system,
         "messages": [{"role": "user", "content": user}],
-    }
+    }).encode("utf-8")
     headers = {"x-api-key": key, "anthropic-version": API_VERSION, "content-type": "application/json"}
     try:
-        with httpx.Client(timeout=timeout_s, transport=transport) as client:
-            r = client.post(API_URL, json=body, headers=headers)
-    except httpx.HTTPError as e:
+        status, payload = (transport or _urllib_transport)(API_URL, headers, body, timeout_s)
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
         raise ModelUnavailable(f"network error reaching the model provider: {type(e).__name__}") from e
-    if r.status_code != 200:
-        raise ModelUnavailable(f"model provider returned HTTP {r.status_code}")
-    data = r.json()
+    if status != 200:
+        raise ModelUnavailable(f"model provider returned HTTP {status}")
+    try:
+        data = json.loads(payload)
+    except ValueError as e:
+        raise ModelUnavailable("model provider returned an unreadable answer") from e
     text = "".join(block.get("text", "") for block in data.get("content", []) if block.get("type") == "text").strip()
     if not text:
         raise ModelUnavailable("model provider returned an empty answer")

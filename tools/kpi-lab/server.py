@@ -170,6 +170,21 @@ def load_local_env() -> None:
                 os.environ.setdefault(k.strip(), v.strip())
 
 
+def log_startup_error(exc: BaseException) -> None:
+    """Write the traceback where Azure exposes it (/home/LogFiles) or next to the app. No secrets in it."""
+    import traceback
+
+    text = "".join(traceback.format_exception(exc))
+    for target in (Path("/home/LogFiles/kpi-lab-error.log"), HERE / "startup-error.log"):
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text, encoding="utf-8")
+            break
+        except OSError:
+            continue
+    print(text, file=sys.stderr, flush=True)
+
+
 def main() -> None:
     load_local_env()
     host = os.environ.get("KPI_LAB_HOST", "127.0.0.1")
@@ -180,4 +195,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:  # noqa: BLE001
+        log_startup_error(exc)
+        raise

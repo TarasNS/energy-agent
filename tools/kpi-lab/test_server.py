@@ -7,7 +7,6 @@ import json
 import sys
 from pathlib import Path
 
-import httpx
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,19 +44,18 @@ def test_unavailable_kpi_has_no_value_line():
     assert "92.6 %" in msg
 
 
-def test_gateway_reads_reply_from_mock_provider(monkeypatch):
+def test_gateway_reads_reply_from_fake_provider(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-real")
     seen = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
-        seen["headers"] = dict(request.headers)
-        seen["body"] = json.loads(request.content)
-        return httpx.Response(200, json={
-            "model": "claude-sonnet-5-5",
+    def transport(url, headers, body, timeout_s):
+        seen["headers"], seen["body"] = headers, json.loads(body)
+        return 200, json.dumps({
+            "model": "claude-haiku-5-5",
             "content": [{"type": "text", "text": "Output was 92.6 % of expected."}],
-        })
+        }).encode()
 
-    reply = anthropic_client.explain("sys", "user", transport=httpx.MockTransport(handler))
+    reply = anthropic_client.explain("sys", "user", transport=transport)
     assert reply.text == "Output was 92.6 % of expected."
     assert seen["headers"]["x-api-key"] == "test-not-real"
     assert seen["body"]["system"] == "sys"
@@ -72,8 +70,14 @@ def test_missing_key_is_a_clear_error(monkeypatch):
 def test_provider_error_is_surfaced_without_key(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-real")
     with pytest.raises(anthropic_client.ModelUnavailable, match="HTTP 401") as info:
-        anthropic_client.explain("s", "u", transport=httpx.MockTransport(lambda r: httpx.Response(401)))
+        anthropic_client.explain("s", "u", transport=lambda *a: (401, b""))
     assert "test-not-real" not in str(info.value)
+
+
+def test_unreadable_provider_answer_is_an_error(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-not-real")
+    with pytest.raises(anthropic_client.ModelUnavailable, match="unreadable"):
+        anthropic_client.explain("s", "u", transport=lambda *a: (200, b"not json"))
 
 
 # ── Daily cap and CORS ────────────────────────────────────────────────────
