@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-agent.local/schemas/action-proposal.schema.json",
+  "title": "ActionProposal",
+  "description": "A proposed action, its approval state and the audit record format. No physical control actions exist in the hackathon build. DRAFT until Milestone A freeze (owners: Dev 2 + Dev 3).",
+  "type": "object",
+  "required": [
+    "proposal_id",
+    "created_at",
+    "action_type",
+    "status",
+    "requires_approval",
+    "review_ref",
+    "summary",
+    "asset_id"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "proposal_id": {
+      "type": "string",
+      "pattern": "^prop_[A-Za-z0-9]{8,}$"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "enable_negative_price_curtailment",
+        "create_review_task"
+      ],
+      "description": "POC: enable_negative_price_curtailment on one asset, simulated only."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "approved",
+        "rejected",
+        "executed_simulated"
+      ]
+    },
+    "requires_approval": {
+      "const": true
+    },
+    "review_ref": {
+      "type": "object",
+      "required": [
+        "input_hash",
+        "calculation_version",
+        "economic_value_eur"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "input_hash": {
+          "type": "string"
+        },
+        "calculation_version": {
+          "type": "string"
+        },
+        "economic_value_eur": {
+          "type": "string",
+          "pattern": "^-?\\d+\\.\\d{2}$"
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "Human-readable description of what would happen."
+    },
+    "approval": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "approved_by",
+        "approved_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "approved_by": {
+          "type": "string"
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "description": "The approval token itself is never stored or logged."
+    },
+    "asset_id": {
+      "type": "string",
+      "description": "The asset the action is about."
+    }
+  },
+  "$defs": {
+    "audit_record": {
+      "title": "AuditRecord",
+      "description": "One line in AUDIT_LOG_PATH (JSON Lines, append-only).",
+      "type": "object",
+      "required": [
+        "ts",
+        "event",
+        "proposal_id",
+        "actor",
+        "input_hash"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "ts": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "event": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "approval_denied",
+            "approved",
+            "executed_simulated"
+          ]
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "input_hash": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

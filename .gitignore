@@ -1,0 +1,35 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+*.egg-info/
+
+# Node (if Dev 5 uses a JS stack)
+node_modules/
+dist/
+.next/
+
+# Runtime output
+artifacts/*
+!artifacts/.gitkeep
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Large presentation media (link from presentation/README.md instead)
+presentation/video/*.mp4
+presentation/video/*.mov
+
+# Private enterprise data and Nordic Solar configuration (never commit)
+private/

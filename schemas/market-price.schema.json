@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://energy-agent.local/schemas/market-price.schema.json",
+  "title": "MarketPriceInterval",
+  "description": "Day-ahead price for one zone and interval. DRAFT until Milestone A freeze (owners: Dev 1 + Dev 3 + Dev 4).",
+  "type": "object",
+  "required": ["price_zone", "interval_start", "interval_minutes", "day_ahead_price_eur_mwh", "source"],
+  "additionalProperties": false,
+  "properties": {
+    "price_zone": { "type": "string", "enum": ["DK1", "DK2", "SE3", "SE4", "LT"] },
+    "interval_start": { "type": "string", "format": "date-time" },
+    "interval_minutes": { "type": "integer", "enum": [15, 60], "description": "15 for DK1 since 1 Oct 2025." },
+    "day_ahead_price_eur_mwh": { "type": "string", "pattern": "^-?\\d+\\.\\d{2}$", "description": "May be negative." },
+    "source": { "type": "string", "enum": ["fixture", "energi-data-service", "entsoe"], "description": "POC: fixture. Live sources are stretch and must fall back to fixture." },
+    "retrieved_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Energy harness: KPI chat (synthetic)</title>
+<style>
+/* Light only: Nordic Green on Almost Black fails contrast (ns-web-brand), and charts.js follows data-theme. */
+:root {
+  --ns-green: #1A5C00; --ns-almost-black: #1C1C1C; --ns-off-white: #F4F2EB; --ns-white: #FFFFFF;
+  --font-ui: Aptos, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Aptos Mono", ui-monospace, "Cascadia Code", Consolas, Menlo, monospace;
+  --tint: color-mix(in srgb, var(--ns-green) 8%, var(--ns-off-white));
+  --tint-strong: color-mix(in srgb, var(--ns-green) 16%, var(--ns-off-white));
+  --field-line: color-mix(in srgb, var(--ns-almost-black) 40%, var(--ns-white));
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ns-off-white); color: var(--ns-almost-black); font-family: var(--font-ui); font-size: 16px; line-height: 1.6; }
+header.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 18px 16px; background: var(--ns-almost-black); color: var(--ns-white); }
+header.top h1 { font-size: 1.25rem; margin: 0; font-weight: 700; }
+header.top .tag { font-size: .8rem; font-weight: 700; background: var(--ns-white); color: var(--ns-almost-black); border-radius: 6px; padding: .15rem .55rem; }
+main.chat { max-width: 920px; margin: 0 auto; padding: 24px 16px 176px; display: flex; flex-direction: column; gap: 20px; }
+#log { display: flex; flex-direction: column; gap: 20px; }
+.card { background: var(--tint); border-radius: 12px; padding: 20px 22px; min-width: 0; overflow-wrap: anywhere; }
+.msg.user { align-self: flex-end; max-width: 80%; background: var(--ns-green); color: var(--ns-white); border-radius: 12px 12px 2px 12px; padding: 10px 16px; overflow-wrap: anywhere; }
+.setup-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.setup-top .data { font-size: .9rem; max-width: 40ch; }
+.data-note { display: block; font-size: .8rem; font-weight: 700; }
+.field { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; font-weight: 600; }
+input { font: inherit; font-weight: 400; color: var(--ns-almost-black); background: var(--ns-white); border: 1px solid var(--field-line); border-radius: 10px; padding: .6rem .8rem; min-width: 0; }
+input::placeholder { color: var(--ns-almost-black); opacity: 1; }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--ns-almost-black); outline-offset: 2px; }
+.btn { font: inherit; font-size: .95rem; font-weight: 600; border: 0; border-radius: 10px; padding: .6rem 1.1rem; cursor: pointer; background: var(--ns-green); color: var(--ns-white); }
+.btn:hover { background: var(--ns-almost-black); }
+.btn-dark { font: inherit; font-size: .9rem; font-weight: 600; border: 0; border-radius: 10px; padding: .55rem 1rem; cursor: pointer; background: var(--ns-almost-black); color: var(--ns-white); }
+.btn-dark:hover { background: var(--ns-green); }
+.btn:disabled { background: var(--tint-strong); color: var(--ns-almost-black); cursor: not-allowed; }
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pills button { font: inherit; font-size: .9rem; text-align: left; border: 0; border-radius: 999px; padding: .4rem .95rem; cursor: pointer; background: var(--ns-green); color: var(--ns-white); }
+.pills button:hover { background: var(--ns-almost-black); }
+.composer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--ns-off-white); padding: 12px 16px 16px; }
+.composer form { max-width: 920px; margin: 0 auto; display: flex; gap: 8px; }
+.composer input { flex: 1; font-size: 1rem; }
+.foot { font-size: .8rem; text-align: center; max-width: 920px; margin: 8px auto 0; }
+.label { display: inline-block; font-size: .78rem; font-weight: 700; background: var(--tint-strong); border-radius: 6px; padding: .1rem .5rem; margin-bottom: 10px; }
+.answer { margin: 0; white-space: pre-wrap; }
+.note, .error { margin: 0; font-weight: 600; }
+.chart-slot { margin-top: 14px; }
+.chart-slot .ns-chart { background: var(--ns-white); }
+.proposal { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 14px; font-size: .95rem; }
+.status { font-weight: 700; }
+details.trace { margin-top: 14px; font-size: .9rem; }
+details summary { cursor: pointer; font-weight: 600; }
+details ul { font-family: var(--font-mono); font-size: .82rem; margin: 8px 0 0; padding-left: 1.2rem; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Energy harness · KPI chat</h1>
+  <span class="tag">SYNTHETIC DATA</span>
+</header>
+
+<main class="chat">
+  <section class="card" aria-label="Standard requests">
+    <div class="setup-top">
+      <div class="data"><span class="data-note">Data</span>Synthetic 30-day portfolio (no company data)</div>
+      <label class="field">Approver name (for Approve)
+        <input id="approver" type="text" maxlength="100" autocomplete="name" placeholder="Your name">
+      </label>
+      <button type="button" class="btn-dark" id="new">New conversation</button>
+    </div>
+    <div class="pills" id="chips"></div>
+  </section>
+  <div id="log" aria-live="polite"></div>
+</main>
+
+<section class="composer" aria-label="Ask a question">
+  <form id="ask">
+    <input id="q" type="text" autocomplete="off" placeholder="Ask about a KPI, e.g. performance ratio (Enter to send)" aria-label="Your question">
+    <button type="submit" class="btn">Ask</button>
+  </form>
+  <p class="foot">Answers come from a local server and a synthetic 30-day dataset. The model only quotes calculator output, and the server checks every number.</p>
+</section>
+
+<script src="config.js"></script>
+<script src="charts.js"></script>
+<script>
+// Standard requests. Each pill shows and sends the full question.
+const TAGS = [
+  { group: "Solar generation", items: [
+    ["Actual vs expected", "What is the actual vs expected generation for this period?"],
+    ["Performance ratio", "What is the performance ratio of each park?"],
+    ["Availability", "What is the availability of the parks this period?"],
+    ["Capacity factor", "What is the capacity factor of the portfolio?"],
+  ]},
+  { group: "Energy commercial", items: [
+    ["PPA delivery", "What is the PPA delivery against the contract?"],
+    ["Realised price", "What is the realised (capture) price for the period?"],
+    ["Merchant exposure", "What is the merchant price exposure?"],
+  ]},
+  { group: "Asset operations", items: [
+    ["Downtime", "How many hours of downtime did the parks have?"],
+    ["Energy losses", "What are the energy losses against expected output?"],
+    ["Incident resolution", "What is the median incident resolution time?"],
+  ]},
+  { group: "Battery storage", items: [
+    ["Battery", "What are the battery availability, round-trip efficiency and cycle utilisation?"],
+  ]},
+  { group: "General", items: [
+    ["Headline", "Give me the headline KPIs for this period."],
+    ["Help", "What can I ask?"],
+  ]},
+];
+
+const API = window.KPI_API_BASE || "";
+const thread = document.getElementById("log");
+const approver = document.getElementById("approver");
+const question = document.getElementById("q");
+
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text; // model text is never parsed as HTML
+  return n;
+}
+
+// The page only shows what the server sends. No sums, rounding or KPI maths here.
+async function post(path, body) {
+  let res;
+  try {
+    res = await fetch(API + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  } catch (e) {
+    throw new Error("Could not reach the server. Check that it is running, then try again.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status}).`); // 429 carries the limit message
+  return data;
+}
+
+function traceBlock(trace) {
+  const d = el("details", "trace");
+  d.appendChild(el("summary", "", "Tools used"));
+  const list = el("ul");
+  trace.forEach((t) => list.appendChild(el("li", "", `${t.tool} (${t.ok ? "ok" : "error"}) ${JSON.stringify(t.input)}`)));
+  d.appendChild(list);
+  return d;
+}
+
+function proposalRow(p) {
+  const row = el("div", "proposal");
+  const msg = el("span", "error");
+  const btn = el("button", "btn", "Approve");
+  btn.type = "button";
+  btn.addEventListener("click", async () => {
+    const name = approver.value.trim();
+    if (!name) { msg.textContent = "Enter the approver name above first."; approver.focus(); return; }
+    btn.disabled = true;
+    msg.textContent = "";
+    try {
+      const data = await post("/api/approve", { proposal_id: p.proposal_id, approver: name });
+      btn.replaceWith(el("span", "status", data.status));
+    } catch (err) {
+      msg.textContent = err.message;
+      btn.disabled = false;
+    }
+  });
+  row.append(el("span", "", `Proposal ${p.proposal_id}`), btn, msg);
+  return row;
+}
+
+function answerCard(data) {
+  const card = el("div", "card");
+  if (data.label) card.appendChild(el("span", "label", data.label));
+  card.appendChild(data.verified && data.text
+    ? el("p", "answer", data.text)
+    : el("p", "note", data.note || "No answer text was returned."));
+  (data.charts || []).forEach((spec) => {
+    if (!window.renderChart) return;
+    const slot = el("div", "chart-slot");
+    slot.innerHTML = window.renderChart(spec); // charts.js escapes every label it shows
+    card.appendChild(slot);
+  });
+  (data.proposals || []).forEach((p) => card.appendChild(proposalRow(p)));
+  if ((data.trace || []).length) card.appendChild(traceBlock(data.trace));
+  return card;
+}
+
+async function ask(text) {
+  thread.appendChild(el("div", "msg user", text));
+  const pending = el("div", "card", "Asking the model…");
+  thread.appendChild(pending);
+  pending.scrollIntoView({ block: "start" });
+  let node;
+  try {
+    node = answerCard(await post("/api/chat", { question: text }));
+  } catch (err) {
+    node = el("div", "card error", err.message);
+  }
+  pending.replaceWith(node);
+  node.scrollIntoView({ block: "start" });
+}
+
+function greet() {
+  const card = el("div", "card");
+  card.appendChild(el("span", "label", "SYNTHETIC: not Nordic Solar data"));
+  card.appendChild(el("p", "answer", "Hello. I answer KPI questions for a fictional 30-day portfolio (2026-06-01 to 2026-06-30). Pick a question above or type your own. Every number comes from the calculator; if an input is missing, I say so instead of guessing."));
+  thread.appendChild(card);
+}
+
+document.getElementById("ask").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = question.value.trim();
+  if (!text) return;
+  question.value = "";
+  ask(text);
+});
+
+const chips = document.getElementById("chips");
+TAGS.forEach((g) => g.items.forEach(([tag, request]) => {
+  const b = el("button", "", request);
+  b.type = "button";
+  b.title = tag;
+  b.addEventListener("click", () => ask(request));
+  chips.appendChild(b);
+}));
+
+document.getElementById("new").addEventListener("click", () => { thread.replaceChildren(); greet(); });
+greet();
+</script>
+</body>
+</html>
