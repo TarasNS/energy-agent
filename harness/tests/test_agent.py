@@ -54,3 +54,10 @@ def test_model_outage_is_reported_not_raised():
 
     res = run("q", reg, turn=broken, take_slot=lambda: True)
     assert res.stopped == "model_error" and res.text is None and "503" in res.note
+
+
+def test_prompt_tells_the_model_how_to_build_a_chart():
+    # Live test: the model called make_chart with kind and title only, and retried until the step limit.
+    from harness.agent import SYSTEM_PROMPT
+    assert "series" in SYSTEM_PROMPT and "copy each x and y" in SYSTEM_PROMPT.lower()
+    assert "2026-06-01 to 2026-06-30" in SYSTEM_PROMPT
