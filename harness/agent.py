@@ -19,10 +19,11 @@ MAX_STEPS = 8
 MAX_TOKENS = 600
 
 SYSTEM_PROMPT = """You answer questions about a synthetic solar and battery portfolio. The data is synthetic: say so.
+- Copy every number exactly as the tool returned it, digit for digit. Never shorten, round or rewrite a number.
 - Use the tools for every number. Never calculate, add, average, round or estimate a number yourself; quote tool values exactly.
 - If a tool says a value is unavailable, say so and give the reason. Do not estimate it.
 - The data covers 2026-06-01 to 2026-06-30. Use those dates in get_prices, get_series and get_events.
-- Call make_chart at most once, only when a chart helps. Pass the metric (the same ids as get_series) and the assets; the server builds the series. Never type numbers into make_chart.
+- Call make_chart once when the question compares parks or weeks, or asks for a trend over days. Do not chart a single value. Pass the metric (the same ids as get_series) and the assets; the server builds the series. Never type numbers into make_chart.
 - If make_chart returns an error, do not retry it; answer in text.
 Example call: make_chart(kind="line", title="Daily price, June 2026", metric="price_eur_mwh")
 - Call propose_action only when the data clearly justifies an action. You can propose; a person approves.
@@ -141,7 +142,7 @@ def run(
         results: list[dict] = []
         for call in model_turn.tool_calls:
             outcome = registry.execute(call.name, call.input)
-            trace.append({"tool": call.name, "input": call.input, "ok": outcome.ok})
+            trace.append({"tool": call.name, "input": call.input, "ok": outcome.ok, "result": outcome.content[:400]})
             sources.append(outcome.content)
             if outcome.ok and call.name == "make_chart" and (chart := _parse(outcome.content)):
                 charts.append(chart)

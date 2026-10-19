@@ -64,9 +64,6 @@ details ul { font-family: var(--font-mono); font-size: .82rem; margin: 8px 0 0; 
   <section class="card" aria-label="Standard requests">
     <div class="setup-top">
       <div class="data"><span class="data-note">Data</span>Synthetic 30-day portfolio (no company data)</div>
-      <label class="field">Approver name (for Approve)
-        <input id="approver" type="text" maxlength="100" autocomplete="name" placeholder="Your name">
-      </label>
       <button type="button" class="btn-dark" id="new">New conversation</button>
     </div>
     <div class="pills" id="chips"></div>
@@ -114,7 +111,6 @@ const TAGS = [
 
 const API = window.KPI_API_BASE || "";
 const thread = document.getElementById("log");
-const approver = document.getElementById("approver");
 const question = document.getElementById("q");
 
 function el(tag, cls, text) {
@@ -141,7 +137,7 @@ function traceBlock(trace) {
   const d = el("details", "trace");
   d.appendChild(el("summary", "", "Tools used"));
   const list = el("ul");
-  trace.forEach((t) => list.appendChild(el("li", "", `${t.tool} (${t.ok ? "ok" : "error"}) ${JSON.stringify(t.input)}`)));
+  trace.forEach((t) => list.appendChild(el("li", "", `${t.tool} (${t.ok ? "ok" : "error"}) ${JSON.stringify(t.input)} -> ${t.result || ""}`)));
   d.appendChild(list);
   return d;
 }
@@ -152,12 +148,10 @@ function proposalRow(p) {
   const btn = el("button", "btn", "Approve");
   btn.type = "button";
   btn.addEventListener("click", async () => {
-    const name = approver.value.trim();
-    if (!name) { msg.textContent = "Enter the approver name above first."; approver.focus(); return; }
     btn.disabled = true;
     msg.textContent = "";
     try {
-      const data = await post("/api/approve", { proposal_id: p.proposal_id, approver: name });
+      const data = await post("/api/approve", { proposal_id: p.proposal_id });
       btn.replaceWith(el("span", "status", data.status));
     } catch (err) {
       msg.textContent = err.message;

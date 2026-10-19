@@ -2,7 +2,7 @@
 
 - GET  /               the chat page (index.html); charts.js and config.js are the only other files served.
 - POST /api/chat       {question} -> the agent answer (harness/agent.py). 429 when the daily cap is used up first.
-- POST /api/approve    {proposal_id, approver} -> {status}. The server issues the one-time token itself;
+- POST /api/approve    {proposal_id, approver?} -> {status}. The server issues the one-time token itself;
                        the browser never sees it.
 - GET  /health         {status, calls_left_today}
 
@@ -131,9 +131,10 @@ def handle_chat(payload: dict) -> tuple[int, dict]:
 
 def handle_approve(payload: dict) -> tuple[int, dict]:
     proposal_id = str(payload.get("proposal_id", ""))[:64]
-    approver = str(payload.get("approver", "")).strip()[:100]
-    if not proposal_id or not approver:
-        return 400, {"error": "proposal_id and approver are required"}
+    # The chat has no sign-in, so the approver is recorded as a fixed label unless a caller sends one.
+    approver = str(payload.get("approver", "")).strip()[:100] or "chat user"
+    if not proposal_id:
+        return 400, {"error": "proposal_id is required"}
 
     with _approve_lock:
         token = ""  # an empty token is always refused, and the refusal is audited

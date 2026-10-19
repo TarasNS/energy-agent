@@ -62,3 +62,9 @@ def test_prompt_tells_the_model_how_to_build_a_chart():
     assert 'metric="price_eur_mwh"' in SYSTEM_PROMPT
     assert "Never type numbers into make_chart" in SYSTEM_PROMPT
     assert "2026-06-01 to 2026-06-30" in SYSTEM_PROMPT
+
+
+def test_trace_keeps_the_tool_result_so_the_page_can_show_it():
+    # When an answer is withheld, the page still shows what the calculator returned.
+    res = run("merchant exposure?", reg, turn=Scripted(tool_call("get_kpi", {"kpi": "availability"}), answer("x")), take_slot=lambda: True)
+    assert res.trace[0]["result"] and "96.5" in res.trace[0]["result"]
