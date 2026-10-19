@@ -1,0 +1,163 @@
+# KPI catalog for the energy harness. KPI definitions only: no company figures.
+# status: poc (implemented on synthetic data) | planned | reference_only
+# verdict and rationale are in KPI_AUDIT.md. A KPI is not production-ready until its data source is validated and its owner confirmed.
+# owner_role values marked ASSUMPTION are suggestions to confirm with Nordic Solar.
+
+kpis:
+  - id: curtailed_mwh
+    name: Curtailed energy
+    level: asset
+    unit: MWh
+    decimals: 3
+    formula: "sum over intervals of curtailed_mwh, else max(available_mwh - actual_mwh, 0)"
+    verdict: modify
+    note: "Flag rows that used the fallback and report their share."
+    status: poc
+    owner_role: asset operations analyst   # ASSUMPTION
+    data_source: metered_production
+  - id: lost_revenue_eur
+    name: Opportunity loss, merchant curtailment
+    level: asset
+    unit: EUR
+    decimals: 2
+    formula: "sum of curtailed_mwh x max(price, 0), excluding grid-operator curtailment"
+    verdict: modify
+    note: "Opportunity value, not P&L."
+    status: poc
+    owner_role: commercial analyst          # ASSUMPTION
+    data_source: day_ahead_prices
+  - id: grid_operator_lost_eur
+    name: Grid-operator curtailment value
+    level: asset
+    unit: EUR
+    decimals: 2
+    formula: "sum of curtailed_mwh x max(price, 0), grid-operator reason only"
+    verdict: modify
+    note: "Compensation status kept separate; rules from contract or regulation."
+    status: planned
+    owner_role: settlement analyst          # ASSUMPTION
+    data_source: curtailment_reason_codes
+  - id: avoided_negative_cost_eur
+    name: Value of curtailing at negative prices
+    level: asset
+    unit: EUR
+    decimals: 2
+    formula: "sum of curtailed_mwh x abs(price) where price < 0"
+    verdict: keep_with_caveat
+    note: "Never add to lost revenue."
+    status: poc
+    owner_role: commercial analyst          # ASSUMPTION
+    data_source: day_ahead_prices
+  - id: negative_price_exposure_eur
+    name: Negative-price exposure
+    level: asset_or_portfolio
+    unit: EUR
+    decimals: 2
+    formula: "sum of actual_mwh x abs(price) where price < 0"
+    verdict: modify
+    note: "Exposure, not loss. Headline only after the source is validated."
+    status: poc
+    owner_role: trading risk analyst        # ASSUMPTION
+    data_source: metered_production
+  - id: data_completeness_pct
+    name: Data completeness
+    level: it
+    unit: percent
+    decimals: 1
+    formula: "intervals present / expected intervals x 100"
+    verdict: keep
+    note: "Gating KPI for all others."
+    status: poc
+    owner_role: data platform owner         # ASSUMPTION
+    data_source: telemetry
+  - id: availability_pct
+    name: Availability (daylight)
+    level: asset
+    unit: percent
+    decimals: 1
+    formula: "intervals with inverter available / daylight intervals x 100"
+    verdict: modify
+    note: "Fix the daylight definition; separate from technical availability."
+    status: poc
+    owner_role: O&M lead                    # ASSUMPTION
+    data_source: inverter_status
+  - id: realised_capture_price
+    name: Realised (capture) price
+    level: asset
+    unit: EUR/MWh
+    decimals: 2
+    formula: "sum(metered_mwh_i x price_i) / sum(metered_mwh_i)"
+    verdict: introduce_priority
+    status: planned
+    owner_role: commercial analyst          # ASSUMPTION
+    data_source: metered_production + day_ahead_prices
+  - id: actual_vs_expected_pct
+    name: Actual vs expected generation
+    level: asset
+    unit: percent
+    decimals: 1
+    formula: "actual / expected x 100"
+    verdict: introduce
+    status: planned
+    owner_role: asset performance engineer  # ASSUMPTION
+    data_source: metered_production + validated_expected_model
+  - id: performance_ratio_pct
+    name: Performance ratio
+    level: asset
+    unit: percent
+    decimals: 1
+    formula: "actual energy / (POA irradiance x nameplate DC) x 100 (IEC 61724 style)"
+    verdict: introduce
+    status: planned
+    owner_role: asset performance engineer  # ASSUMPTION
+    data_source: metered_production + poa_irradiance_sensor
+  - id: unplanned_downtime_h
+    name: Unplanned downtime
+    level: asset
+    unit: hours
+    decimals: 1
+    formula: "sum of unplanned outage hours"
+    verdict: introduce
+    status: planned
+    owner_role: O&M lead                    # ASSUMPTION
+    data_source: scada_alarms + work_orders
+  - id: bess_round_trip_efficiency_pct
+    name: BESS round-trip efficiency
+    level: asset
+    unit: percent
+    decimals: 1
+    formula: "discharged MWh / charged MWh x 100"
+    verdict: introduce
+    status: planned
+    owner_role: BESS engineer               # ASSUMPTION
+    data_source: metered_both_sides
+  - id: ppa_delivery_pct
+    name: PPA delivery vs contract
+    level: company
+    unit: percent
+    decimals: 1
+    formula: "delivered MWh / contracted MWh x 100"
+    verdict: introduce
+    status: planned
+    owner_role: PPA manager                 # ASSUMPTION
+    data_source: ppa_terms + metered_production
+  - id: data_freshness_min
+    name: Data freshness
+    level: it
+    unit: minutes
+    decimals: 0
+    formula: "now - latest timestamp"
+    verdict: introduce
+    status: planned
+    owner_role: data platform owner         # ASSUMPTION
+    data_source: telemetry
+  - id: company_financials
+    name: Revenue, EBITDA, OPEX, budget variance
+    level: company
+    unit: EUR
+    decimals: 2
+    formula: "from the finance system of record"
+    verdict: introduce
+    status: reference_only
+    owner_role: FP&A lead                   # ASSUMPTION
+    data_source: finance_system_of_record
