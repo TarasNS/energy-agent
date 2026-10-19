@@ -61,7 +61,7 @@ def done(items):
 COL = {1: "var(--d1)", 2: "var(--d2)", 3: "var(--d3)", 4: "var(--d4)", 5: "var(--d5)", "L": "var(--lead)"}
 SUN = ('<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="#1a5c00" stroke-width="1.8"/>'
        '<g stroke="#1a5c00" stroke-width="1.6" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>')
-NAV = [("index.html", "Start", "L"), ("harness.html", "How the harness works", "L"), ("lead.html", "Lead", "L"), ("developer-1.html", "Dev 1 · Prices & skill", 1),
+NAV = [("index.html", "Guide", "L"), ("lead.html", "Lead", "L"), ("developer-1.html", "Dev 1 · Prices & skill", 1),
        ("developer-2.html", "Dev 2 · Harness & approval", 2), ("developer-3.html", "Dev 3 · Portfolio & model", 3),
        ("developer-4.html", "Dev 4 · Calculator", 4), ("developer-5.html", "Dev 5 · Demo screen", 5)]
 FOOT = ('<footer class="dark"><h2>Background, only when a step links to it</h2><ul class="refs">'
@@ -230,7 +230,7 @@ def setup(prompt, extra=()):
         step("Get the code", cmd=f"git clone {REPO}\ncd energy-agent\ngit checkout dev"),
         step("Install", cmd="make setup\nmake check", see="<code>Setup complete</code>, then <code>make check passed.</code>"),
         step("Add the API key", "Paste the Anthropic key the lead gives you into <code>.env</code>. Never commit it. Without a key, <code>MODEL_PROFILE=offline</code> still works.", files=[".env.example"]),
-        step("Read the problem and the harness (10 minutes)", "Read only these two. Claude Code reads the rest for you.", files=["intent.md", ("docs/harness.html", "How the harness works")]),
+        step("Read the problem and the guide (10 minutes)", "Read only these two. Claude Code reads the rest for you.", files=["intent.md", ("docs/index.html", "The guide: how the harness works")]),
         *extra,
         step("Start Claude Code", "Do this when the build starts.", cmd="claude"),
         step("Give Claude your brief", "Claude replies with a plan. Check it only touches your files (top of this page). Then reply <b>go</b>.",
@@ -363,7 +363,7 @@ def lead_page():
 {block("The whole picture", "The number on each box is its developer. Point at a name to see their part.", arch("arch-lead") + legend("arch-lead"), "part")}
 {block("Before the hackathon", "Everything that is not building", route(
         step("Check the repo", "It exists with <code>main</code> and <code>dev</code>. The team site is on GitHub Pages.", cmd="gh repo view TarasNS/energy-agent --web"),
-        step("Read how the harness works", files=[("docs/harness.html", "How the harness works"), "TASKS.md"]),
+        step("Read the guide", files=[("docs/index.html", "The guide: how the harness works"), "TASKS.md"]),
         step("Add names and open a team chat", files=["TEAM.md"]),
         step("Get an Anthropic API key for the team", "Share it privately. Each developer puts it in their own <code>.env</code>; it is never committed."),
         step("Confirm the five decisions (30 minutes)", "With Dev 2, Dev 3 and Dev 4. Each already has a proposed answer. Freeze the schemas.", files=[("intent.md", "intent.md (decisions)"), "schemas/", ("ARCHITECTURE.md", "ARCHITECTURE.md (§9)")]),
@@ -389,6 +389,18 @@ def lead_page():
 
 # ───────────────────────── start page ─────────────────────────
 
+def sec(title, intro, inner, id_, alt=False):
+    i = f'<p class="intro reveal">{intro}</p>' if intro else ""
+    a = " alt" if alt else ""
+    return f'<section class="sec{a}" id="{id_}"><h2 class="reveal">{title}</h2>{i}<div class="reveal">{inner}</div></section>'
+
+
+def tbl(head, rows):
+    h = "".join(f"<th>{c}</th>" for c in head)
+    b = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
+    return f'<div class="tbl"><table><thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
+
+
 def index_page():
     tiles = "".join([tile("lead.html", "L", "Lead", "Repo, decisions, rehearsal"),
                      tile("developer-1.html", 1, "Dev 1", "Price data & AI skill"),
@@ -407,9 +419,10 @@ def index_page():
   <div class="hero-r"><div class="tiles">{tiles}</div></div>
 </section>
 
-<section class="sec" id="poc">
-  <h2 class="reveal">A first proof of concept</h2>
-  <p class="intro reveal">One workflow on synthetic data, run by one small agent loop, built in one short session. It proves the number is trustworthy, the model is swappable, and actions need a human. <a href="harness.html">How the harness works</a>.</p>
+<section class="sec" id="idea">
+  <h2 class="reveal">The idea in one sentence</h2>
+  <p class="oneliner reveal">The AI decides which tool to use next. Code decides what the AI is allowed to do, and what the number is.</p>
+  <p class="intro reveal">One workflow on synthetic data, run by one small agent loop, built in one short session. It proves the number is trustworthy, the model is swappable, and actions need a human. Pick your role above, or read this page top to bottom once (five minutes).</p>
   <div class="scope reveal">
     <div class="card"><span class="k">In the POC</span><ul>
       <li>Agent loop with five fixed tools</li><li>DK1 demo data, 15-minute prices</li><li>EUR by cause, from code</li><li>Claude explanation, swappable model</li>
@@ -420,45 +433,7 @@ def index_page():
   </div>
 </section>
 
-<section class="sec alt" id="architecture">
-  <h2 class="reveal">How it fits together</h2>
-  <p class="intro reveal">One request flows down. The agent loop lets the model pick the tools below it. The number on each box is the developer who builds it. Point at a name to see their part.</p>
-  <div class="reveal">{arch("arch-main")}{legend("arch-main")}</div>
-</section>
-
-<section class="sec" id="loop">
-  <h2 class="reveal">How every task flows</h2>
-  <p class="intro reveal">One small task, one branch, one pull request. Nothing reaches dev without a green test, a green check and a second pair of eyes.</p>
-  <div class="reveal">{LOOP}</div>
-</section>
-
-<section class="sec alt" id="rules">
-  <h2 class="reveal">Four rules</h2>
-  <div class="cards">
-    <div class="card reveal"><span class="k">Numbers</span><b>Come from code, never the AI</b><span class="n">01</span></div>
-    <div class="card reveal"><span class="k">Data</span><b>Read-only and works offline</b><span class="n">02</span></div>
-    <div class="card reveal"><span class="k">Actions</span><b>Need a human; the AI has no approval tool</b><span class="n">03</span></div>
-    <div class="card reveal"><span class="k">Everything</span><b>Every tool call lands in the audit log</b><span class="n">04</span></div>
-  </div>
-</section>
-"""
-    return page("index.html", "Start", body)
-
-
-# ───────────────────────── harness explainer ─────────────────────────
-
-def tbl(head, rows):
-    h = "".join(f"<th>{c}</th>" for c in head)
-    b = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
-    return f'<div class="tbl"><table><thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
-
-
-def harness_page():
-    body = f"""<header class="rolehead lead"><div class="big" aria-hidden="true">H</div><div>
-<h1>How the harness works</h1>
-<p>Read this once before the hackathon. It takes five minutes.</p></div></header>
-{block("In one sentence", None, '<p class="oneliner">The AI decides which tool to use next. Code decides what the AI is allowed to do, and what the number is.</p>', "sentence")}
-{block("One review, step by step", "What happens after someone clicks Run review", route(
+{sec("One review, step by step", "What happens after someone clicks Run review", route(
         step("The screen sends the request", "Portfolio, zone, month, threshold. From the Lovable screen, or the local fallback page."),
         step("The harness starts the agent loop", "It sends the model three things: the <code>curtailment-advisor</code> skill, the request, and the list of five tools.", files=["harness/README.md"]),
         step("The model asks for a tool", "For example <code>list_assets</code>. The harness runs the real Python function, writes an audit line, and sends the result back."),
@@ -468,27 +443,37 @@ def harness_page():
         step("The harness builds the result", "The numbers are copied from the calculator output, never from the model's text. The result also lists the tools used, in order."),
         step("A person approves", "On the screen: name, then <b>Approve</b>. This is outside the loop; the model has no approval tool."),
         step("Everything is in the audit log", "Each tool call, the proposal and the approval are one line in <code>artifacts/audit.jsonl</code>."),
-    ), "flow")}
-{block("What the model can and cannot do", "Enforced in code, not in the prompt", '<div class="two">'
+    ), "flow", True)}
+
+<section class="sec" id="architecture">
+  <h2 class="reveal">How it fits together</h2>
+  <p class="intro reveal">One request flows down. The agent loop lets the model pick the tools below it. The number on each box is the developer who builds it. Point at a name to see their part.</p>
+  <div class="reveal">{arch("arch-main")}{legend("arch-main")}</div>
+</section>
+
+{sec("What the model can and cannot do", "Enforced in code, not in the prompt", '<div class="two">'
         '<div class="box"><h3>Can</h3><ul><li>Choose which of the five tools to call, and in what order</li><li>Read portfolio, production and price data</li><li>Ask the calculator for the EUR result</li><li>Explain the result and recommend a step</li><li>Propose an action</li></ul></div>'
         '<div class="box no"><h3>Cannot</h3><ul><li>Make up or change a number: the screen shows calculator output only</li><li>Skip the calculator: the review fails</li><li>Approve or execute an action: there is no tool for it</li><li>Write data, run shell commands or browse the web</li><li>Run forever: it stops after 10 rounds</li></ul></div>'
-        "</div>", "can")}
-{block("The five tools", "The only things the model can call", tbl(["Tool", "What it does", "Built by"], [
+        "</div>", "can", True)}
+
+{sec("The five tools", "The only things the model can call", tbl(["Tool", "What it does", "Built by"], [
         ["<code>list_assets</code>", "The parks in the portfolio", "Dev 3"],
         ["<code>get_production</code>", "15-minute production and curtailment", "Dev 3"],
         ["<code>get_day_ahead_prices</code>", "15-minute DK1 prices from the fixture", "Dev 1"],
         ["<code>calculate_curtailment_value</code>", "EUR by cause and by asset. Mandatory", "Dev 4"],
         ["<code>propose_action</code>", "Creates a proposal. Does not execute it", "Dev 2"],
     ]), "tools")}
-{block("What we take from our POC", '<a href="https://github.com/TarasNS/energy-agent/tree/claude/awesome-planck-bt3ymf/harness/poc">The working POC harness</a>, branch claude/awesome-planck-bt3ymf', tbl(["POC file", "Ours", "What changes"], [
+
+{sec("What we take from our POC", '<a href="https://github.com/TarasNS/energy-agent/tree/claude/awesome-planck-bt3ymf/harness/poc">The working POC harness</a>, branch claude/awesome-planck-bt3ymf', tbl(["POC file", "Ours", "What changes"], [
         ["<code>agent.py</code>", "<code>harness/agent.py</code>", "Same loop and forced final answer; model via the gateway; must call the calculator; returns a review result"],
         ["<code>tools.py</code>", "<code>harness/tools/registry.py</code>", "Same validation and error handling; exactly five tools; no <code>calculate</code>"],
         ["<code>trace.py</code>", "<code>harness/trace.py</code>", "Same JSONL events; tool calls also go to the audit log"],
         ["<code>tests/conftest.py</code>", "<code>harness/tests/conftest.py</code>", "Same fake model for tests"],
         ["<code>llm.py</code> (OpenRouter)", "Not copied", "Replaced by <code>model_gateway</code>: Anthropic, swappable, offline replay"],
         ["Budget, probe, live APIs, PV estimate, simulator, chat UI", "Not copied", "Not needed for one review on synthetic data"],
-    ]), "poc")}
-{block("What we add to the POC", "The POC answers questions. It never proposes or approves, and the model may do arithmetic.", done([
+    ]), "poc", True)}
+
+{sec("What we add to the POC", "The POC answers questions. It never proposes or approves, and the model may do arithmetic.", done([
         "A deterministic EUR calculator, in Decimal, split by cause (Dev 4).",
         "No arithmetic by the model: the POC calculate tool is removed (Dev 2).",
         "The review fails without a calculator call; numbers come from its output (Dev 2).",
@@ -496,21 +481,40 @@ def harness_page():
         "An append-only audit log of tool calls, proposals and approvals (Dev 2).",
         "Offline demo by replaying recorded model turns (Dev 3).",
     ]), "add")}
-{block("What fails, on purpose", "Each one has a test", done([
+
+{sec("What fails, on purpose", "Each one has a test", done([
         "The model calls a tool that is not registered: error result, nothing runs.",
         "The model never calls the calculator: the review fails with a clear message.",
         "10 rounds pass without an answer: the review stops with a clear message.",
         "Approve with a missing, wrong or reused token: refused, nothing executed, audit line written.",
         "No internet: <code>MODEL_PROFILE=offline</code> replays recorded model turns through the same loop.",
-    ]), "fails")}
-{block("Who builds what", "Full list with dependencies in TASKS.md", tbl(["Person", "Builds", "Page"], [
+    ]), "fails", True)}
+
+<section class="sec" id="loop">
+  <h2 class="reveal">How every task flows</h2>
+  <p class="intro reveal">One small task, one branch, one pull request. Nothing reaches dev without a green test, a green check and a second pair of eyes.</p>
+  <div class="reveal">{LOOP}</div>
+</section>
+
+{sec("Who builds what", "Full list with dependencies in TASKS.md", tbl(["Person", "Builds", "Page"], [
         ["Dev 1", "Price tool, skill and system prompt", '<a href="developer-1.html">developer-1</a>'],
         ["Dev 2", "Tool registry, agent loop, approval and audit, smoke test", '<a href="developer-2.html">developer-2</a>'],
         ["Dev 3", "Portfolio tools, model gateway, offline replay, schemas, merges", '<a href="developer-3.html">developer-3</a>'],
         ["Dev 4", "Calculator, golden tests, no-invented-EUR check", '<a href="developer-4.html">developer-4</a>'],
         ["Dev 5", "Lovable screen, local API and fallback page, demo", '<a href="developer-5.html">developer-5</a>'],
-    ]) + '<p class="files">Files: ' + ", ".join(f(x) for x in ["TASKS.md", "SPEC.md", "ARCHITECTURE.md"]) + "</p>", "who")}
-{block("Words we use", None, tbl(["Word", "Means"], [
+    ]) + '<p class="files">Files: ' + ", ".join(f(x) for x in ["TASKS.md", "SPEC.md", "ARCHITECTURE.md"]) + "</p>", "who", True)}
+
+<section class="sec" id="rules">
+  <h2 class="reveal">Four rules to remember</h2>
+  <div class="cards">
+    <div class="card reveal"><span class="k">Numbers</span><b>Come from code, never the AI</b><span class="n">01</span></div>
+    <div class="card reveal"><span class="k">Data</span><b>Read-only and works offline</b><span class="n">02</span></div>
+    <div class="card reveal"><span class="k">Actions</span><b>Need a human; the AI has no approval tool</b><span class="n">03</span></div>
+    <div class="card reveal"><span class="k">Everything</span><b>Every tool call lands in the audit log</b><span class="n">04</span></div>
+  </div>
+</section>
+
+{sec("Words we use", None, tbl(["Word", "Means"], [
         ["Agent loop", "Ask the model, run the tools it asks for, send results back, repeat"],
         ["Tool registry", "The fixed list of five functions the model may call"],
         ["Step budget", "The most rounds one review may take (10)"],
@@ -519,18 +523,24 @@ def harness_page():
         ["Approval token", "A one-time key the Approve button creates. The model never sees it"],
         ["Audit log", "One JSON line per tool call, proposal and approval"],
         ["Offline profile", "Replays recorded model turns, so the demo works without internet"],
-    ]), "words")}
+    ]), "words", True)}
 """
-    return page("harness.html", "How the harness works", body, "var(--lead)")
+    return page("index.html", "Energy 4.0 Harness guide", body)
+
+
+REDIRECT = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=index.html#flow"><title>Energy 4.0 Harness guide</title></head>
+<body><p><a href="index.html#flow">This page moved into the guide</a></p></body></html>
+"""
 
 
 def main():
     (D / "index.html").write_text(index_page(), encoding="utf-8")
-    (D / "harness.html").write_text(harness_page(), encoding="utf-8")
     (D / "lead.html").write_text(lead_page(), encoding="utf-8")
+    (D / "harness.html").write_text(REDIRECT, encoding="utf-8")
     for n, d in DEVS.items():
         (D / f"developer-{n}.html").write_text(dev_page(n, d), encoding="utf-8")
-    print("docs/ rebuilt: index, harness, lead, developer-1..5")
+    print("docs/ rebuilt: index, lead, developer-1..5")
 
 
 if __name__ == "__main__":
