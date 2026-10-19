@@ -3,175 +3,163 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KPI lab — Energy harness</title>
+<title>Energy harness — KPI chat (synthetic)</title>
 <style>
 :root {
   --ns-green: #1A5C00; --ns-almost-black: #1C1C1C; --ns-off-white: #F4F2EB; --ns-white: #FFFFFF;
   --font-ui: Aptos, "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
   --bg: var(--ns-off-white); --surface: var(--ns-white); --text: var(--ns-almost-black);
-  --border: color-mix(in srgb, var(--ns-almost-black) 25%, var(--ns-off-white));
+  --border: color-mix(in srgb, var(--ns-almost-black) 22%, var(--ns-off-white));
+  --muted-border: color-mix(in srgb, var(--ns-almost-black) 14%, var(--ns-off-white));
   --focus: var(--ns-almost-black);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: var(--ns-almost-black); --surface: color-mix(in srgb, var(--ns-white) 6%, var(--ns-almost-black));
     --text: var(--ns-white); --border: color-mix(in srgb, var(--ns-white) 35%, var(--ns-almost-black));
+    --muted-border: color-mix(in srgb, var(--ns-white) 18%, var(--ns-almost-black));
     --focus: var(--ns-white);
   }
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 1rem; line-height: 1.5; }
-main { max-width: 1040px; margin: 0 auto; padding: 2rem 1rem 4rem; }
-h1 { font-size: 2.25rem; font-weight: 700; margin: 0 0 .25rem; }
-h2 { font-size: 1.35rem; font-weight: 700; margin: 2.5rem 0 .75rem; }
-p { max-width: 70ch; }
-.note { border: 1px solid var(--border); background: var(--surface); padding: .9rem 1.1rem; border-radius: 8px; }
-.grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.1rem; }
-.card h3 { font-size: 1.05rem; margin: 0 0 .15rem; }
-.card .formula { font-size: .85rem; margin: 0 0 .75rem; opacity: .85; }
-label { display: grid; grid-template-columns: 1fr 9rem; align-items: center; gap: .5rem; margin-bottom: .4rem; font-size: .95rem; }
-input { font: inherit; padding: .35rem .5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); width: 100%; }
-input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
-.result { margin-top: .75rem; padding: .6rem .75rem; border: 2px solid var(--text); border-radius: 6px; font-weight: 600; }
-.result.unavailable { border-style: dashed; font-weight: 500; }
-.result small { display: block; font-weight: 400; margin-top: .25rem; }
-.legend span { display: inline-block; margin-right: 1.25rem; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 16px; line-height: 1.5; }
+header.top { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface); }
+header.top h1 { font-size: 1.25rem; margin: 0; font-weight: 700; }
+header.top .tag { font-size: .85rem; border: 1px solid var(--text); border-radius: 4px; padding: .1rem .45rem; }
+.chat { max-width: 920px; margin: 0 auto; padding: 1.25rem 1rem 9rem; display: flex; flex-direction: column; gap: 1rem; }
+.msg { max-width: 100%; }
+.msg.user { align-self: flex-end; background: var(--ns-green); color: var(--ns-white); border: 1px solid var(--text); padding: .6rem .9rem; border-radius: 12px 12px 2px 12px; max-width: 70%; }
+.msg.bot { background: var(--surface); border: 1px solid var(--border); border-radius: 12px 12px 12px 2px; padding: 1rem 1.1rem; }
+.msg.bot pre { white-space: pre-wrap; font-family: var(--font-ui); margin: 0 0 .75rem; font-size: 1rem; }
+.tiles { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin: .5rem 0 .75rem; }
+.tile { border: 1px solid var(--border); border-radius: 8px; padding: .55rem .7rem; }
+.tile .k { font-size: .82rem; }
+.tile .v { font-size: 1.45rem; font-weight: 700; letter-spacing: -.02em; }
+.tile.unavailable { border-style: dashed; }
+.tile.unavailable .v { font-size: 1rem; font-weight: 600; }
+.tile .why { font-size: .8rem; margin-top: .2rem; }
+figure { margin: .5rem 0 .75rem; border: 1px solid var(--muted-border); border-radius: 8px; padding: .6rem .7rem; }
+figcaption { font-size: .9rem; font-weight: 600; margin-bottom: .35rem; }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--text); font-family: var(--font-ui); font-size: 11px; }
+details { margin-top: .4rem; font-size: .9rem; }
+details summary { cursor: pointer; font-weight: 600; }
+details ul { margin: .4rem 0 0; padding-left: 1.1rem; font-family: ui-monospace, Consolas, monospace; font-size: .82rem; }
+.label { font-size: .78rem; border: 1px solid var(--text); border-radius: 4px; padding: 0 .35rem; display: inline-block; margin-bottom: .4rem; }
+.composer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: .75rem 1rem 1rem; }
+.composer .inner { max-width: 920px; margin: 0 auto; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .55rem; }
+.chips button { font: inherit; font-size: .88rem; border: 1px solid var(--text); background: var(--surface); color: var(--text); border-radius: 999px; padding: .25rem .7rem; cursor: pointer; }
+.chips button:hover, .chips button:focus-visible { background: var(--ns-green); color: var(--ns-white); outline: 2px solid var(--focus); outline-offset: 2px; }
+form { display: flex; gap: .5rem; }
+form input { flex: 1; font: inherit; padding: .6rem .8rem; border: 1px solid var(--text); border-radius: 8px; background: var(--bg); color: var(--text); }
+form input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+form button { font: inherit; font-weight: 600; padding: .6rem 1.1rem; border: 1px solid var(--text); border-radius: 8px; background: var(--ns-green); color: var(--ns-white); cursor: pointer; }
+.foot { font-size: .8rem; text-align: center; margin-top: .5rem; }
 </style>
 </head>
 <body>
-<main>
+<header class="top">
+  <h1>Energy harness · KPI chat</h1>
+  <span class="tag">SYNTHETIC DATA</span>
+</header>
 
-<h1>KPI lab</h1>
-<p>Type a value and the KPI updates. If an input is blank, the KPI shows <strong>unavailable</strong> with the reason. It never shows a made-up number.</p>
-<div class="note">
-  <strong>Example values only.</strong> The fields start with round, made-up numbers from the formula tests. They are not Nordic Solar data. Nothing on this page is sent anywhere; the calculation runs in your browser.
-</div>
-<p class="legend" style="margin-top:1rem">
-  <span>Solid border = calculated</span><span>Dashed border = unavailable (input missing)</span>
-</p>
+<main class="chat" id="chat" aria-live="polite"></main>
 
-<h2>Solar generation</h2>
-<div class="grid" id="solar"></div>
-
-<h2>Energy commercial</h2>
-<div class="grid" id="commercial"></div>
-
-<h2>Asset operations</h2>
-<div class="grid" id="asset"></div>
-
-<h2>Battery energy storage (BESS)</h2>
-<div class="grid" id="bess"></div>
-
-<p style="margin-top:2.5rem; font-size:.9rem">
-  Formulas mirror <code>mcp/kpi-solar/kpi_solar/metrics.py</code>. The JavaScript copy is checked against the same hand-worked values by <code>node --test tools/kpi-lab/kpi.test.js</code>.
-</p>
-</main>
+<section class="composer" aria-label="Ask a question">
+  <div class="inner">
+    <div class="chips" id="chips"></div>
+    <form id="ask">
+      <input id="q" type="text" autocomplete="off" placeholder="Ask about a KPI, e.g. “performance ratio”" aria-label="Your question">
+      <button type="submit">Ask</button>
+    </form>
+    <p class="foot">Answers are calculated in your browser from a synthetic 30-day dataset. Nothing is sent anywhere.</p>
+  </div>
+</section>
 
 <script src="kpi.js"></script>
+<script src="data.js"></script>
+<script src="engine.js"></script>
 <script>
-const K = window.KPI;
+const K = window.KPI, DATA = KPI_DATA.build(), ENGINE = window.KPI_ENGINE;
+const chat = document.getElementById("chat");
+const CHIPS = ["Actual vs expected", "Performance ratio", "Availability", "Capacity factor", "PPA delivery", "Realised price", "Merchant exposure", "Downtime", "Energy losses", "Incident resolution", "Battery", "Help"];
 
-// Each KPI: id, group, title, formula text, inputs [{key,label,value}], compute(values) -> result
-const KPIS = [
-  { g: "solar", title: "Actual vs expected generation", formula: "actual ÷ expected × 100 (%)",
-    inputs: [["actual", "Actual MWh", "90"], ["expected", "Expected MWh (baseline)", "100"]],
-    run: v => K.actualVsExpectedPct(v.actual, v.expected) },
-  { g: "solar", title: "Performance ratio", formula: "actual kWh ÷ (POA irradiation × nameplate kWp) × 100 (%)",
-    inputs: [["actual", "Actual kWh", "800"], ["poa", "POA irradiation kWh/m²", "200"], ["kwp", "Nameplate kWp", "5"]],
-    run: v => K.performanceRatioPct(v.actual, v.poa, v.kwp) },
-  { g: "solar", title: "Availability", formula: "available hours ÷ period hours × 100 (%)",
-    inputs: [["avail", "Available hours", "690"], ["period", "Period hours", "720"]],
-    run: v => K.availabilityPct(v.avail, v.period) },
-  { g: "solar", title: "Capacity factor", formula: "MWh ÷ (capacity MW × hours) × 100 (%)",
-    inputs: [["mwh", "Metered MWh", "30"], ["mw", "Capacity MW", "10"], ["hours", "Period hours", "100"]],
-    run: v => K.capacityFactorPct(v.mwh, v.mw, v.hours) },
+function el(tag, cls, html) { const n = document.createElement(tag); if (cls) n.className = cls; if (html !== undefined) n.innerHTML = html; return n; }
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-  { g: "commercial", title: "PPA delivery vs contract", formula: "delivered MWh ÷ contracted MWh × 100 (%)",
-    inputs: [["del", "Delivered MWh", "95"], ["con", "Contracted MWh", "100"]],
-    run: v => K.ppaDeliveryPct(v.del, v.con) },
-  { g: "commercial", title: "Realised (capture) price", formula: "Σ(MWh × price) ÷ Σ MWh (EUR/MWh). Two intervals:",
-    inputs: [["m1", "Interval 1 MWh", "10"], ["p1", "Interval 1 price EUR/MWh", "40"], ["m2", "Interval 2 MWh", "30"], ["p2", "Interval 2 price EUR/MWh", "20"]],
-    run: v => K.realisedPriceEurMwh([[v.m1, v.p1], [v.m2, v.p2]]) },
-  { g: "commercial", title: "Merchant price exposure", formula: "merchant MWh × price move (EUR), a sensitivity",
-    inputs: [["mwh", "Merchant MWh", "200"], ["move", "Price move EUR/MWh", "5"]],
-    run: v => K.merchantExposureEur(v.mwh, v.move) },
-
-  { g: "asset", title: "Downtime", formula: "OUTAGE intervals × interval length (h). Enter statuses separated by commas.",
-    inputs: [["st", "Statuses", "OK,OUTAGE,OK,OUTAGE,CURTAILED"], ["ih", "Interval hours", "0.25"]],
-    run: v => K.downtimeHours(v.st.split(",").map(s => s.trim()).filter(Boolean), v.ih) },
-  { g: "asset", title: "Energy losses", formula: "expected MWh − actual MWh",
-    inputs: [["exp", "Expected MWh", "120"], ["act", "Actual MWh", "100"]],
-    run: v => K.energyLossMwh(v.exp, v.act) },
-  { g: "asset", title: "Incident resolution (median)", formula: "median hours open → close. Enter hours separated by commas.",
-    inputs: [["hrs", "Hours per incident", "2,4,9"]],
-    run: v => K.incidentResolutionHours(v.hrs.split(",").map(s => s.trim()).filter(Boolean)) },
-  { g: "asset", title: "Asset performance", formula: "removed as a separate KPI. Use performance ratio and availability.",
-    inputs: [], run: () => ({ unavailable: "removed: see KPI_REVIEW.md" }) },
-
-  { g: "bess", title: "BESS availability", formula: "available hours ÷ period hours × 100 (%)",
-    inputs: [["avail", "Available hours", "90"], ["period", "Period hours", "100"]],
-    run: v => K.bessAvailabilityPct(v.avail, v.period) },
-  { g: "bess", title: "Round-trip efficiency", formula: "discharged MWh ÷ charged MWh × 100 (%)",
-    inputs: [["dis", "Discharged MWh", "88"], ["chg", "Charged MWh", "100"]],
-    run: v => K.bessRoundTripPct(v.dis, v.chg) },
-  { g: "bess", title: "Cycle utilisation", formula: "throughput MWh ÷ (2 × usable MWh) × 100 (one full cycle = 100)",
-    inputs: [["thr", "Throughput MWh", "400"], ["use", "Usable MWh", "200"]],
-    run: v => K.bessCycleUtilisationPct(v.thr, v.use) },
-];
-
-const UNITS = { "Actual vs expected": "%", "Performance ratio": "%", "Availability": "%", "Capacity factor": "%",
-  "PPA delivery vs contract": "%", "Realised (capture) price": "EUR/MWh", "Merchant price exposure": "EUR",
-  "Downtime": "h", "Energy losses": "MWh", "Incident resolution (median)": "h",
-  "BESS availability": "%", "Round-trip efficiency": "%", "Cycle utilisation": "%" };
-
-function render(kpi, idx) {
-  const card = document.createElement("section");
-  card.className = "card";
-  const id = `kpi-${idx}`;
-  card.innerHTML = `<h3>${kpi.title}</h3><p class="formula">${kpi.formula}</p>` +
-    kpi.inputs.map(([key, label, val]) =>
-      `<label for="${id}-${key}">${label}<input id="${id}-${key}" data-key="${key}" value="${val}" autocomplete="off"></label>`).join("") +
-    `<div class="result" id="${id}-out" role="status" aria-live="polite"></div>`;
-  card.dataset.idx = idx;
-  return card;
+function tile(k) {
+  if (k.unavailable) return `<div class="tile unavailable"><div class="k">${esc(k.title)}</div><div class="v">Unavailable</div><div class="why">${esc(k.unavailable)}</div></div>`;
+  return `<div class="tile"><div class="k">${esc(k.title)}</div><div class="v">${k.value.toFixed(k.decimals)} ${esc(k.unit)}</div></div>`;
 }
 
-function values(card) {
-  const out = {};
-  card.querySelectorAll("input").forEach(el => { out[el.dataset.key] = el.value.trim() === "" ? null : el.value.trim(); });
-  return out;
+// Inline SVG charts: green for the main series, outlined for the second (no red in the palette).
+function lineChart(c) {
+  const W = 860, H = 240, pad = { l: 46, r: 12, t: 12, b: 28 };
+  const all = c.series.flatMap((s) => s.values);
+  const min = Math.min(0, ...all), max = Math.max(...all) * 1.08 || 1;
+  const x = (i) => pad.l + (i / Math.max(1, c.labels.length - 1)) * (W - pad.l - pad.r);
+  const y = (v) => H - pad.b - ((v - min) / (max - min)) * (H - pad.t - pad.b);
+  const path = (vals) => vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const grid = [0, 0.25, 0.5, 0.75, 1].map((f) => { const v = min + f * (max - min); return `<line x1="${pad.l}" x2="${W - pad.r}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" stroke-opacity=".12"/><text x="${pad.l - 6}" y="${y(v) + 4}" text-anchor="end">${v.toFixed(0)}</text>`; }).join("");
+  const xl = c.labels.map((l, i) => (i % 3 === 0 ? `<text x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(l)}</text>` : "")).join("");
+  const lines = c.series.map((s, k) => `<path d="${path(s.values)}" fill="none" stroke="${k ? "currentColor" : "#1A5C00"}" stroke-width="${k ? 1.6 : 2.6}" stroke-dasharray="${k ? "5 4" : ""}"/>`).join("");
+  const legend = c.series.map((s, k) => `<text x="${pad.l + k * 120}" y="${pad.t + 10}" style="font-weight:600">${k ? "- - " : "— "}${esc(s.name)}</text>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.title)}">${grid}${lines}${xl}${legend}</svg>`;
 }
 
-function update(card) {
-  const kpi = KPIS[card.dataset.idx];
-  const out = card.querySelector(".result");
-  const unit = UNITS[kpi.title] || "";
-  let r;
-  try {
-    r = kpi.run(values(card));
-  } catch (e) {
-    out.className = "result";
-    out.innerHTML = `Error: ${e.message}<small>Fix the input. The page does not guess.</small>`;
-    return;
-  }
-  if (K.isUnavailable(r)) {
-    out.className = "result unavailable";
-    out.innerHTML = `Unavailable<small>${r.unavailable}</small>`;
-  } else {
-    out.className = "result";
-    out.innerHTML = `${r.toFixed(unit === "EUR/MWh" || unit === "EUR" ? 2 : (unit === "MWh" ? 3 : 1))} ${unit}`;
-  }
+function barChart(c) {
+  const W = 860, H = 220, pad = { l: 46, r: 12, t: 14, b: 40 };
+  const vals = c.bars.map((b) => b.value ?? 0);
+  const min = Math.min(0, ...vals), max = Math.max(0, ...vals) * 1.1 || 1;
+  const band = (W - pad.l - pad.r) / c.bars.length;
+  const y = (v) => H - pad.b - ((v - min) / (max - min)) * (H - pad.t - pad.b);
+  const zero = y(0);
+  const bars = c.bars.map((b, i) => {
+    const v = b.value ?? 0, bx = pad.l + i * band + band * 0.2, bw = band * 0.6;
+    const top = Math.min(y(v), zero), h = Math.abs(y(v) - zero);
+    const style = v < 0 ? `fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"` : `fill="#1A5C00"`;
+    const shown = b.value === null ? "n/a" : (Number.isInteger(v) ? v : v.toFixed(1));
+    return `<rect x="${bx}" y="${top}" width="${bw}" height="${Math.max(h, 1)}" ${style}/>` +
+      `<text x="${bx + bw / 2}" y="${top - 4}" text-anchor="middle">${esc(shown)}</text>` +
+      `<text x="${bx + bw / 2}" y="${H - 22}" text-anchor="middle">${esc(b.label)}</text>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.title)}"><line x1="${pad.l}" x2="${W - pad.r}" y1="${zero}" y2="${zero}" stroke="currentColor" stroke-opacity=".5"/>${bars}</svg>`;
 }
 
-const groups = { solar: "solar", commercial: "commercial", asset: "asset", bess: "bess" };
-KPIS.forEach((kpi, idx) => {
-  const host = document.getElementById(groups[kpi.g]);
-  const card = render(kpi, idx);
-  host.appendChild(card);
-  card.addEventListener("input", () => update(card));
-  update(card);
+function botMessage(reply) {
+  const box = el("div", "msg bot");
+  box.innerHTML = `<span class="label">${esc(reply.label)}</span><pre>${esc(reply.text)}</pre>` +
+    (reply.kpis.length ? `<div class="tiles">${reply.kpis.map(tile).join("")}</div>` : "") +
+    (reply.chart ? `<figure><figcaption>${esc(reply.chart.title)}</figcaption>${reply.chart.kind === "line" ? lineChart(reply.chart) : barChart(reply.chart)}</figure>` : "") +
+    (reply.trace.length ? `<details><summary>How the calculator got this</summary><ul>${reply.trace.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></details>` : "");
+  return box;
+}
+
+function say(text) { const m = el("div", "msg user", esc(text)); chat.appendChild(m); m.scrollIntoView({ block: "end" }); }
+function answer(text) {
+  const reply = ENGINE.ask(text, DATA, K);
+  chat.appendChild(botMessage(reply));
+  chat.lastElementChild.scrollIntoView({ block: "start" });
+}
+
+document.getElementById("ask").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const input = document.getElementById("q");
+  const text = input.value.trim();
+  if (!text) return;
+  say(text); answer(text); input.value = "";
 });
+
+const chips = document.getElementById("chips");
+CHIPS.forEach((c) => {
+  const b = el("button", "", esc(c)); b.type = "button";
+  b.addEventListener("click", () => { say(c); answer(c); });
+  chips.appendChild(b);
+});
+
+chat.appendChild(botMessage({ label: DATA.label, text: `Hello. I answer KPI questions for a fictional 30-day portfolio (${DATA.period.start} to ${DATA.period.end}). Ask a question or pick a topic below. Every number comes from the calculator; if an input is missing, I say so instead of guessing.`, kpis: [], chart: null, trace: [] }));
+answer("Headline");
 </script>
 </body>
 </html>
