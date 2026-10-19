@@ -198,7 +198,7 @@
   }
 
   function describe(r) {
-    if (isU(r.result)) return `Unavailable: ${r.result.unavailable}.`;
+    if (isU(r.result)) return `${r.title}: unavailable. ${r.result.unavailable}.`;
     return `${r.title}: ${fmt(r.result, r.decimals, r.unit)}.`;
   }
 
