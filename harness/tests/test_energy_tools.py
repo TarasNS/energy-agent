@@ -91,3 +91,16 @@ def test_make_chart_needs_exactly_one_of_metric_or_kpi():
     assert not reg.execute("make_chart", {"kind": "bar", "title": "t"}).ok
     assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "metric": "actual_mwh", "kpi": "availability"}).ok
     assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "kpi": "nope"}).ok
+
+
+def test_compare_kpi_tells_the_model_how_to_chart_it():
+    # Live run: the model called compare_kpi for "the parks" and then skipped make_chart.
+    out = json.loads(registry_for_tests().execute("compare_kpi", {"kpi": "downtime", "by": "asset"}).content)
+    assert out["chart_hint"] == 'make_chart(kind="bar", kpi="downtime", by="asset", title=...)'
+
+
+def test_make_chart_with_kpi_refuses_metric_only_arguments():
+    # assets, start and end were silently ignored with kpi, so a title could describe data that was not charted.
+    reg = registry_for_tests()
+    assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "kpi": "availability", "assets": ["north"]}).ok
+    assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "kpi": "availability", "start": "2026-06-10"}).ok

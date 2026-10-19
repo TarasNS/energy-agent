@@ -90,3 +90,31 @@ def test_withheld_answer_with_one_value_gets_no_chart():
     res = run("availability?", reg, turn=Scripted(
         tool_call("get_kpi", {"kpi": "availability"}), answer("About 97.3 %.")), take_slot=lambda: True)
     assert res.text is None and res.charts == []
+
+
+def test_a_kpi_chart_reaches_the_result_with_calculator_values():
+    rows = json.loads(reg.execute("compare_kpi", {"kpi": "availability", "by": "asset"}).content)["rows"]
+    res = run("availability of the parks?", reg, turn=Scripted(
+        tool_call("make_chart", {"kind": "bar", "title": "Availability by park", "kpi": "availability", "by": "asset"}),
+        answer("See the chart.")), take_slot=lambda: True)
+    assert res.verified and [p["y"] for p in res.charts[0]["series"][0]["points"]] == [r["value"] for r in rows]
+
+
+def test_a_made_up_number_in_a_chart_title_is_removed():
+    res = run("availability of the parks?", reg, turn=Scripted(
+        tool_call("make_chart", {"kind": "bar", "title": "Availability: north 999 %", "kpi": "availability", "by": "asset"}),
+        answer("See the chart.")), take_slot=lambda: True)
+    assert "999" not in res.charts[0]["title"]
+
+
+def test_trace_keeps_a_whole_compare_result():
+    res = run("downtime?", reg, turn=Scripted(tool_call("compare_kpi", {"kpi": "downtime", "by": "asset"}), answer("See.")), take_slot=lambda: True)
+    assert res.trace[0]["result"].endswith("}")
+
+
+def test_answer_cannot_borrow_a_number_from_its_own_chart_title():
+    # make_chart echoes the title; before the fix that echo counted as calculator output.
+    res = run("availability of the parks?", reg, turn=Scripted(
+        tool_call("make_chart", {"kind": "bar", "title": "North 999 %", "kpi": "availability", "by": "asset"}),
+        answer("North reached 999 %.")), take_slot=lambda: True)
+    assert res.text is None and "999" in res.note

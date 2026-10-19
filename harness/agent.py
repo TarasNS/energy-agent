@@ -171,10 +171,16 @@ def run(
         results: list[dict] = []
         for call in model_turn.tool_calls:
             outcome = registry.execute(call.name, call.input)
-            trace.append({"tool": call.name, "input": call.input, "ok": outcome.ok, "result": outcome.content[:400]})
-            sources.append(outcome.content)
-            if outcome.ok and call.name == "make_chart" and (chart := _parse(outcome.content)):
+            trace.append({"tool": call.name, "input": call.input, "ok": outcome.ok, "result": outcome.content[:2000]})
+            chart = _parse(outcome.content) if outcome.ok and call.name == "make_chart" else None
+            if chart:
+                # The title is model text: keep it out of the sources, and drop it if it has numbers the calculator did not return.
+                sources.append(json.dumps({**chart, "title": ""}))
+                if check_numbers(str(chart.get("title", "")), sources, question):
+                    chart["title"] = "Chart from the calculator"
                 charts.append(chart)
+            else:
+                sources.append(outcome.content)
             if outcome.ok and call.name == "propose_action" and (proposal := _parse(outcome.content)):
                 proposals.append(proposal)
             results.append({

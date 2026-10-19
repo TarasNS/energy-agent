@@ -302,7 +302,8 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
         by: Annotated[CompareBy, Field(description="'asset' compares the parks or the battery; 'week' splits the period into 7-day blocks.")],
     ) -> dict:
         """Compare one KPI across the assets or across weeks of the period. Use it for 'which park' or 'by week' questions."""
-        return {"kpi": kpi, "by": by, "rows": _compare_rows(kpi, by)}
+        rows = _compare_rows(kpi, by)
+        return {"kpi": kpi, "by": by, "rows": rows, "chart_hint": f'make_chart(kind="bar", kpi="{kpi}", by="{by}", title=...)'}
 
     @tool
     def get_series(
@@ -361,6 +362,8 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
         if (metric is None) == (kpi is None):
             raise ToolError("pass exactly one of metric (a daily series) or kpi (a KPI across parks or weeks).")
         if kpi is not None:
+            if assets or start or end:
+                raise ToolError("with kpi, use by only; assets, start and end apply to metric.")
             rows = _compare_rows(kpi, by)
             points = [
                 {"x": r["asset"] if by == "asset" else f"{r['start']} to {r['end']}", "y": r["value"]}
