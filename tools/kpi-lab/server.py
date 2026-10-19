@@ -47,7 +47,7 @@ MAX_BODY_BYTES = 64 * 1024
 
 DATASET = build_dataset()
 
-DAILY_CAP = int(os.environ.get("KPI_DAILY_CAP", "100"))
+DAILY_CAP = int(os.environ.get("KPI_DAILY_CAP", "200"))
 CAP_FILE = Path(os.environ.get("KPI_CAP_FILE", "./artifacts/cap.json"))
 ALLOWED_ORIGINS = {o.strip() for o in os.environ.get("KPI_ALLOWED_ORIGINS", "").split(",") if o.strip()}
 
