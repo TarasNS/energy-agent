@@ -23,9 +23,12 @@ SYSTEM_PROMPT = """You answer questions about a synthetic solar and battery port
 - Use the tools for every number. Never calculate, add, average, round or estimate a number yourself; quote tool values exactly.
 - If a tool says a value is unavailable, say so and give the reason. Do not estimate it.
 - The data covers 2026-06-01 to 2026-06-30. Use those dates in get_prices, get_series and get_events.
-- Call make_chart once when the question compares parks or weeks, or asks for a trend over days. Do not chart a single value. Pass ids, never numbers; the server builds the series. Never type numbers into make_chart.
+- Every answer about a KPI or a price gets one chart: call make_chart once. Pass ids, never numbers; the server builds the series. Never type numbers into make_chart.
   - A KPI for each park or each week ("each park", "the parks", "by week"): call compare_kpi, then make_chart with the same kpi and by. Example: make_chart(kind="bar", title="Performance ratio by park", kpi="performance_ratio", by="asset")
-  - A daily trend: pass metric (the same ids as get_series). Example: make_chart(kind="line", title="Daily price, June 2026", metric="price_eur_mwh")
+  - A portfolio KPI, or several headline KPIs: chart the (first) KPI by park, with kpi and by="asset".
+  - A battery KPI: chart it by week, with kpi and by="week".
+  - A price question (realised price, merchant exposure, negative prices) or any daily trend: pass metric (the same ids as get_series). Example: make_chart(kind="line", title="Daily price, June 2026", metric="price_eur_mwh")
+  - Skip the chart only when every value the question needs is unavailable.
 - If make_chart returns an error, do not retry it; answer in text.
 - Call propose_action only when the data clearly justifies an action. You can propose; a person approves.
 - Answer in at most 120 words."""
@@ -35,7 +38,8 @@ STEP_LIMIT_NOTE = "The question needed more steps than the limit allows, so no a
 
 StopReason = Literal["answered", "max_steps", "cap", "model_error"]
 
-NUMBER = re.compile(r"(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])")
+# A number with thousands separators ("2,140.178") is one number, not "2" and "140.178".
+NUMBER = re.compile(r"(?<![\w.,])-?\d{1,3}(?:,\d{3})+(?:\.\d+)?(?![\w.])|(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])")
 
 
 @dataclass
@@ -50,7 +54,7 @@ class AgentResult:
 
 
 def numbers_in(text: str) -> list[float]:
-    return [float(m) for m in NUMBER.findall(text)]
+    return [float(m.replace(",", "")) for m in NUMBER.findall(text)]
 
 
 def check_numbers(reply: str, results: Iterable, question: str) -> list[str]:

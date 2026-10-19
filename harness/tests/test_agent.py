@@ -118,3 +118,12 @@ def test_answer_cannot_borrow_a_number_from_its_own_chart_title():
         tool_call("make_chart", {"kind": "bar", "title": "North 999 %", "kpi": "availability", "by": "asset"}),
         answer("North reached 999 %.")), take_slot=lambda: True)
     assert res.text is None and "999" in res.note
+
+
+def test_thousands_separators_are_read_as_one_number():
+    # Live: "2,140.178 MWh" was split into 2 and 140.178, so correct answers were withheld.
+    from harness.agent import check_numbers
+    sources = ['{"actual_mwh": "2140.178", "value": "10700.89"}']
+    assert check_numbers("Actual 2,140.178 MWh; exposure 10,700.89 EUR.", sources, "q") == []
+    assert check_numbers("Actual 2,140.179 MWh.", sources, "q") != []
+    assert check_numbers("North, 94.7 % and south, 98.2 %.", ['{"a": "94.7", "b": "98.2"}'], "q") == []
