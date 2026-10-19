@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Annotated, Callable, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from harness.registry import ToolError, ToolRegistry, tool
 from kpi_solar import metrics as K
@@ -30,6 +30,12 @@ CompareBy = Literal["asset", "week"]
 class ChartPoint(BaseModel):
     x: str = Field(description="Category or day label, shown as given.")
     y: str = Field(description="Value as a string, copied exactly from a tool result.")
+
+    @field_validator("x", "y", mode="before")
+    @classmethod
+    def _number_as_string(cls, value):
+        # Models often send a JSON number; keep it as the string the tool returned, unchanged.
+        return str(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else value
 
 
 class ChartSeries(BaseModel):

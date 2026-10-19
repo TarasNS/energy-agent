@@ -47,3 +47,13 @@ def test_make_chart_echoes_the_spec_with_strings():
             "series": [{"name": "Availability %", "points": [{"x": "north", "y": "96.5"}]}]}
     out = json.loads(registry_for_tests().execute("make_chart", spec).content)
     assert out["kind"] == "bar" and out["series"][0]["points"][0] == {"x": "north", "y": "96.5"}
+
+
+def test_make_chart_accepts_numbers_and_keeps_them_as_strings():
+    # A model often passes y as a JSON number; the value is still copied from a tool result.
+    spec = {"kind": "line", "title": "Price",
+            "series": [{"name": "EUR/MWh", "points": [{"x": "Jun 01", "y": 54.1}, {"x": "Jun 02", "y": -4}]}]}
+    result = registry_for_tests().execute("make_chart", spec)
+    assert result.ok, result.content
+    points = json.loads(result.content)["series"][0]["points"]
+    assert points == [{"x": "Jun 01", "y": "54.1"}, {"x": "Jun 02", "y": "-4"}]
