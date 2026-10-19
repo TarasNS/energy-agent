@@ -66,3 +66,16 @@ def test_token_never_in_audit(audit_path):
     approve_action(pid, token, "Taras")
 
     assert token not in audit_path.read_text(encoding="utf-8")
+
+
+def test_replayed_proposal_cannot_be_approved_again(audit_path):
+    # Review Focus 4: after a successful approval, a fresh token must not be issued,
+    # and an attempt with any token must be refused and audited.
+    pid = propose_action("schedule_inspection", "north", "r")
+    token = issue_approval_token(pid)
+    assert approve_action(pid, token, "Taras")["status"] == "executed_simulated"
+
+    with pytest.raises(KeyError):
+        issue_approval_token(pid)
+    assert approve_action(pid, "anything", "Taras") == {"status": "denied"}
+    assert read_audit(audit_path)[-1]["event"] == "approval_denied"

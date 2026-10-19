@@ -14,6 +14,7 @@ from pathlib import Path
 
 _proposals: dict[str, dict] = {}
 _tokens: dict[str, str] = {}
+_executed: set[str] = set()  # approved once; never approvable again
 
 
 def _audit_path() -> Path:
@@ -45,6 +46,8 @@ def propose_action(action: str, asset: str, reason: str) -> str:
 def issue_approval_token(proposal_id: str) -> str:
     if proposal_id not in _proposals:
         raise KeyError(f"unknown proposal: {proposal_id}")
+    if proposal_id in _executed:
+        raise KeyError(f"already executed: {proposal_id}")
     token = secrets.token_urlsafe(32)
     _tokens[proposal_id] = token
     return token
@@ -56,12 +59,13 @@ def approve_action(proposal_id: str, token: str, approver: str) -> dict:
     asset = proposal.get("asset")
     expected = _tokens.get(proposal_id)
 
-    if expected is None or not hmac.compare_digest(expected, token or ""):
+    if proposal_id in _executed or expected is None or not hmac.compare_digest(expected, token or ""):
         _audit("approval_denied", proposal_id, action, asset, approver)
         return {"status": "denied"}
 
     # One-time: a successful approval spends the token. A wrong token leaves the real one usable.
     del _tokens[proposal_id]
+    _executed.add(proposal_id)
     _audit("approved", proposal_id, action, asset, approver)
     _audit("executed_simulated", proposal_id, action, asset, approver)
     return {"status": "executed_simulated"}
