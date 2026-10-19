@@ -354,13 +354,21 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
         metric: Annotated[MetricName | None, Field(description="A daily series to chart, the same ids as get_series. Use this or kpi.")] = None,
         kpi: Annotated[str | None, Field(description="A kpi id from list_kpis, charted across parks or weeks. Use this or metric.")] = None,
         by: Annotated[CompareBy, Field(description="With kpi: 'asset' (default) for one bar per park, 'week' for 7-day blocks.")] = "asset",
+        kpis: Annotated[list[str] | None, Field(description="Several kpi ids for the portfolio, one row each. Use with kind='table' for headline questions.")] = None,
         assets: Annotated[list[str] | None, Field(description="With metric: one series per asset, 'portfolio' (default), 'north', 'south' or 'battery'.")] = None,
         start: Annotated[str | None, Field(description="With metric: first day, YYYY-MM-DD. Default: first day of the period.")] = None,
         end: Annotated[str | None, Field(description="With metric: last day, YYYY-MM-DD. Default: last day of the period.")] = None,
     ) -> dict:
-        """Chart values straight from the calculator: a daily series (metric) or one KPI across parks or weeks (kpi). Pass ids, never numbers. Call it at most once per answer."""
-        if (metric is None) == (kpi is None):
-            raise ToolError("pass exactly one of metric (a daily series) or kpi (a KPI across parks or weeks).")
+        """Chart values straight from the calculator: a daily series (metric), one KPI across parks or weeks (kpi), or several portfolio KPIs (kpis). Pass ids, never numbers. Call it at most once per answer."""
+        if sum(x is not None for x in (metric, kpi, kpis)) != 1:
+            raise ToolError("pass exactly one of metric (a daily series), kpi (a KPI across parks or weeks) or kpis (several portfolio KPIs).")
+        if kpis is not None:
+            if not kpis or assets or start or end:
+                raise ToolError("kpis needs at least one kpi id; assets, start and end apply to metric.")
+            rows = [_kpi_row(data, k, "portfolio", None, None) for k in kpis]
+            points = [{"x": f"{r['title']} ({r['unit']})", "y": r["value"]} for r in rows]
+            return {"chart_id": f"chart-{next(chart_ids)}", "kind": kind, "title": title,
+                    "series": [{"name": "Portfolio", "points": points}]}
         if kpi is not None:
             if assets or start or end:
                 raise ToolError("with kpi, use by only; assets, start and end apply to metric.")

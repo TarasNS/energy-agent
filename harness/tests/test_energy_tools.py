@@ -104,3 +104,22 @@ def test_make_chart_with_kpi_refuses_metric_only_arguments():
     reg = registry_for_tests()
     assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "kpi": "availability", "assets": ["north"]}).ok
     assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "kpi": "availability", "start": "2026-06-10"}).ok
+
+
+def test_make_chart_tables_several_kpis_for_the_portfolio():
+    # Headline questions span several KPIs; a table of them was not possible before.
+    reg = registry_for_tests()
+    out = json.loads(reg.execute("make_chart", {"kind": "table", "title": "Headline KPIs",
+                                                "kpis": ["availability", "performance_ratio", "incident_resolution"]}).content)
+    rows = [json.loads(reg.execute("get_kpi", {"kpi": k}).content) for k in ["availability", "performance_ratio", "incident_resolution"]]
+    points = out["series"][0]["points"]
+    assert out["kind"] == "table"
+    assert [p["x"] for p in points] == [f"{r['title']} ({r['unit']})" for r in rows]
+    assert [p["y"] for p in points] == [r["value"] for r in rows]  # unavailable stays None, shown as n/a
+
+
+def test_make_chart_kpis_list_is_exclusive_and_checked():
+    reg = registry_for_tests()
+    assert not reg.execute("make_chart", {"kind": "table", "title": "t", "kpis": ["availability"], "kpi": "availability"}).ok
+    assert not reg.execute("make_chart", {"kind": "table", "title": "t", "kpis": ["nope"]}).ok
+    assert not reg.execute("make_chart", {"kind": "table", "title": "t", "kpis": []}).ok

@@ -24,10 +24,13 @@ SYSTEM_PROMPT = """You answer questions about a synthetic solar and battery port
 - If a tool says a value is unavailable, say so and give the reason. Do not estimate it.
 - The data covers 2026-06-01 to 2026-06-30. Use those dates in get_prices, get_series and get_events.
 - Every answer about a KPI or a price gets one chart: call make_chart once. Pass ids, never numbers; the server builds the series. Never type numbers into make_chart.
-  - A KPI for each park or each week ("each park", "the parks", "by week"): call compare_kpi, then make_chart with the same kpi and by. Example: make_chart(kind="bar", title="Performance ratio by park", kpi="performance_ratio", by="asset")
-  - A portfolio KPI, or several headline KPIs: chart the (first) KPI by park, with kpi and by="asset".
-  - A battery KPI: chart it by week, with kpi and by="week".
-  - A price question (realised price, merchant exposure, negative prices) or any daily trend: pass metric (the same ids as get_series). Example: make_chart(kind="line", title="Daily price, June 2026", metric="price_eur_mwh")
+  Choose the kind from the question, so different questions get different kinds:
+  - Each park ("each park", "the parks"): call compare_kpi, then a bar chart. Example: make_chart(kind="bar", title="Performance ratio by park", kpi="performance_ratio", by="asset")
+  - By week, or a battery KPI: a line chart by week. Example: make_chart(kind="line", title="Round-trip efficiency by week", kpi="bess_round_trip", by="week")
+  - Headline KPIs, or three or more KPIs: a table of the KPIs you quote. Never a table for one or two KPIs. Example: make_chart(kind="table", title="Headline KPIs", kpis=["actual_vs_expected", "availability", "performance_ratio"])
+  - Generation, or "actual vs expected generation": daily energy as an area chart, even though actual_vs_expected is one KPI. Example: make_chart(kind="area", title="Daily generation by park", metric="actual_mwh", assets=["north", "south"])
+  - A price question (realised price, merchant exposure, negative prices): the daily price line. Example: make_chart(kind="line", title="Daily price, June 2026", metric="price_eur_mwh")
+  - Any other single portfolio KPI: a bar chart by park, with kpi and by="asset".
   - Skip the chart only when every value the question needs is unavailable.
 - If make_chart returns an error, do not retry it; answer in text.
 - Call propose_action only when the data clearly justifies an action. You can propose; a person approves.

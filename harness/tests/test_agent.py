@@ -62,6 +62,9 @@ def test_prompt_tells_the_model_how_to_build_a_chart():
     from harness.agent import SYSTEM_PROMPT
     assert 'metric="price_eur_mwh"' in SYSTEM_PROMPT
     assert 'kpi="performance_ratio", by="asset"' in SYSTEM_PROMPT
+    # Different questions map to different chart kinds, not only bars.
+    for kind in ('kind="bar"', 'kind="line"', 'kind="area"', 'kind="table"'):
+        assert kind in SYSTEM_PROMPT
     assert "Never type numbers into make_chart" in SYSTEM_PROMPT
     assert "2026-06-01 to 2026-06-30" in SYSTEM_PROMPT
 
