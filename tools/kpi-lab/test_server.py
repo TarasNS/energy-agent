@@ -74,3 +74,41 @@ def test_provider_error_is_surfaced_without_key(monkeypatch):
     with pytest.raises(anthropic_client.ModelUnavailable, match="HTTP 401") as info:
         anthropic_client.explain("s", "u", transport=httpx.MockTransport(lambda r: httpx.Response(401)))
     assert "test-not-real" not in str(info.value)
+
+
+# ── Daily cap and CORS ────────────────────────────────────────────────────
+
+from datetime import datetime, timezone  # noqa: E402
+
+
+def test_daily_cap_stops_calls_at_the_limit(monkeypatch):
+    monkeypatch.setattr(server, "DAILY_CAP", 3)
+    monkeypatch.setitem(server._cap, "day", None)
+    monkeypatch.setitem(server._cap, "used", 0)
+    day = datetime(2026, 10, 20, 12, tzinfo=timezone.utc)
+    assert [server.take_call_slot(day) for _ in range(4)] == [True, True, True, False]
+
+
+def test_daily_cap_resets_on_a_new_day(monkeypatch):
+    monkeypatch.setattr(server, "DAILY_CAP", 1)
+    monkeypatch.setitem(server._cap, "day", None)
+    monkeypatch.setitem(server._cap, "used", 0)
+    assert server.take_call_slot(datetime(2026, 10, 20, tzinfo=timezone.utc))
+    assert not server.take_call_slot(datetime(2026, 10, 20, 23, tzinfo=timezone.utc))
+    assert server.take_call_slot(datetime(2026, 10, 21, tzinfo=timezone.utc))
+
+
+def test_capped_request_makes_no_provider_call(monkeypatch):
+    monkeypatch.setattr(server, "DAILY_CAP", 0)
+    monkeypatch.setitem(server._cap, "day", None)
+    monkeypatch.setitem(server._cap, "used", 0)
+    called = []
+    monkeypatch.setattr(server, "explain", lambda *a, **k: called.append(1))
+    out = server.explain_results({"question": "q", "results": [{"title": "A", "value": 1.0, "display": "1.0 %"}]})
+    assert out["status"] == 429 and called == []
+
+
+def test_cors_allows_only_listed_origins(monkeypatch):
+    monkeypatch.setattr(server, "ALLOWED_ORIGINS", {"https://example.azurestaticapps.net"})
+    assert "https://example.azurestaticapps.net" in server.ALLOWED_ORIGINS
+    assert "https://evil.example" not in server.ALLOWED_ORIGINS

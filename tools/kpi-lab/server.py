@@ -17,14 +17,14 @@ import json
 import os
 import re
 import sys
+import threading
+from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-
-from dotenv import load_dotenv  # noqa: E402
 
 from model.model_gateway import ModelUnavailable, explain  # noqa: E402
 
@@ -39,6 +39,28 @@ SYSTEM = (
     "3. Say the data is synthetic, not company data.\n"
     "4. No recommendations to act on production systems."
 )
+
+
+DAILY_CAP = int(os.environ.get("KPI_DAILY_CAP", "100"))
+ALLOWED_ORIGINS = {o.strip() for o in os.environ.get("KPI_ALLOWED_ORIGINS", "").split(",") if o.strip()}
+
+_cap_lock = threading.Lock()
+_cap = {"day": None, "used": 0}
+
+
+def take_call_slot(now: datetime | None = None) -> bool:
+    """Count one model call against today's cap (UTC day). False when the cap is used up.
+
+    Counted before the call is made, so failed calls count too: the budget is protected either way.
+    """
+    day = (now or datetime.now(timezone.utc)).strftime("%Y-%m-%d")
+    with _cap_lock:
+        if _cap["day"] != day:
+            _cap["day"], _cap["used"] = day, 0
+        if _cap["used"] >= DAILY_CAP:
+            return False
+        _cap["used"] += 1
+        return True
 
 
 def numbers_in(text: str) -> list[float]:
@@ -80,6 +102,8 @@ def explain_results(payload: dict) -> dict:
     results = payload.get("results") or []
     if not isinstance(results, list) or not results:
         return {"status": 400, "body": {"error": "results missing"}}
+    if not take_call_slot():
+        return {"status": 429, "body": {"error": f"The explanation limit for today ({DAILY_CAP} calls) is used up. The calculator answers still work; try again tomorrow (UTC)."}}
     try:
         reply = explain(SYSTEM, build_user_message(question, results), max_tokens=300)
     except ModelUnavailable as e:
@@ -100,6 +124,19 @@ class Handler(SimpleHTTPRequestHandler):
     def log_message(self, fmt, *args):  # keep the console quiet; never log request bodies
         return
 
+    def _cors(self):
+        origin = self.headers.get("Origin", "")
+        if origin and origin in ALLOWED_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+            self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    def do_OPTIONS(self):
+        self.send_response(HTTPStatus.NO_CONTENT)
+        self._cors()
+        self.end_headers()
+
     def do_POST(self):
         if self.path != "/api/explain":
             self.send_error(HTTPStatus.NOT_FOUND)
@@ -118,15 +155,27 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
         self.send_header("Cache-Control", "no-store")
+        self._cors()
         self.end_headers()
         self.wfile.write(data)
 
 
+def load_local_env() -> None:
+    """Local runs read .env; Azure sets the same variables as app settings."""
+    env_file = ROOT / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            if "=" in line and not line.lstrip().startswith("#"):
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+
 def main() -> None:
-    load_dotenv(ROOT / ".env")
-    port = int(os.environ.get("KPI_LAB_PORT", "8000"))
-    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"KPI chat on http://127.0.0.1:{port}/index.html  (Ctrl+C to stop)")
+    load_local_env()
+    host = os.environ.get("KPI_LAB_HOST", "127.0.0.1")
+    port = int(os.environ.get("KPI_LAB_PORT") or os.environ.get("PORT", "8000"))
+    server = ThreadingHTTPServer((host, port), Handler)
+    print(f"KPI chat on http://{host}:{port}/index.html  (Ctrl+C to stop)")
     server.serve_forever()
 
 
