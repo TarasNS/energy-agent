@@ -25,7 +25,6 @@
   // Brand tokens only (ns-web-brand). Light is the default; dark swaps the ink and series colours.
   // Tints are color-mix() of an approved token. Nothing here uses a border.
   var CSS = [
-    "@keyframes ns-draw { to { stroke-dashoffset: 0; } }",
     "@keyframes ns-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }",
     "@keyframes ns-fade { from { opacity: 0; } to { opacity: 1; } }",
     "@keyframes ns-rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }",
@@ -65,15 +64,16 @@
     ".ns-chart .ns-legend { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.875rem; font-weight: 600; }",
     ".ns-chart .ns-legend li { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--ns-tint); }",
     ".ns-chart .ns-sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--sc); }",
-    ".ns-chart svg { display: block; width: 100%; height: auto; overflow: visible; font-size: 14px; }",
+    ".ns-chart svg { display: block; width: 100%; height: auto; overflow: visible; font-size: 9px; }",
     ".ns-chart svg text { fill: var(--ns-ink); font-family: inherit; }",
-    ".ns-chart .ns-grid { stroke: var(--ns-grid); stroke-width: 1; }",
-    ".ns-chart .ns-axis { stroke: var(--ns-axis); stroke-width: 1.5; }",
-    ".ns-chart .ns-line { fill: none; stroke: var(--sc); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }",
-    ".ns-chart .ns-area { fill: var(--sc); fill-opacity: 0.16; }",
-    ".ns-chart .ns-dot { fill: var(--sc); }",
+    // Hairlines: every stroke is 1 screen pixel (non-scaling), so the SVG viewBox never thickens them.
+    ".ns-chart .ns-grid { stroke: var(--ns-grid); stroke-width: 1px; vector-effect: non-scaling-stroke; }",
+    ".ns-chart .ns-axis { stroke: var(--ns-axis); stroke-width: 1px; vector-effect: non-scaling-stroke; }",
+    ".ns-chart .ns-line { fill: none; stroke: var(--sc); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }",
+    ".ns-chart .ns-area { fill: var(--sc); fill-opacity: 0.12; }",
+    ".ns-chart .ns-dot { fill: var(--ns-card); stroke: var(--sc); stroke-width: 1px; vector-effect: non-scaling-stroke; }",
     ".ns-chart .ns-bar.pos { fill: var(--sc); }",
-    ".ns-chart .ns-bar.neg { fill: none; stroke: var(--sc); stroke-width: 2; stroke-dasharray: 5 4; stroke-linejoin: round; }",
+    ".ns-chart .ns-bar.neg { fill: none; stroke: var(--sc); stroke-width: 1px; vector-effect: non-scaling-stroke; stroke-dasharray: 4 3; stroke-linejoin: round; }",
     ".ns-chart .ns-lbl { font-weight: 600; }",
     ".ns-chart .ns-empty { margin: 8px 0 0; font-weight: 600; }",
     ".ns-chart .ns-table-wrap { overflow-x: auto; }",
@@ -84,7 +84,7 @@
     ".ns-chart .ns-table thead th { background: var(--ns-tint-strong); }",
     ".ns-chart .ns-table tbody tr:nth-child(odd) > * { background: var(--ns-tint); }",
     "@media (prefers-reduced-motion: no-preference) {",
-    "  .ns-chart .ns-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: ns-draw 600ms ease-out var(--d, 0ms) forwards; }",
+    "  .ns-chart .ns-line { opacity: 0; animation: ns-fade 500ms ease-out var(--d, 0ms) forwards; }",
     "  .ns-chart .ns-area { opacity: 0; animation: ns-fade 300ms ease-out var(--d, 0ms) forwards; }",
     "  .ns-chart .ns-dot, .ns-chart .ns-lbl { opacity: 0; animation: ns-fade 200ms ease-out var(--d, 0ms) forwards; }",
     "  .ns-chart .ns-bar { transform-box: fill-box; animation: ns-grow 350ms ease-out var(--d, 0ms) both; }",
@@ -159,23 +159,26 @@
     return undefined;
   }
 
-  // Linear y scale that always includes zero, with 12% headroom above the largest value.
-  function scaleOf(values) {
+  // Linear y scale with 12% headroom. Bars and areas include zero (their baseline); lines fit the data.
+  function scaleOf(values, includeZero) {
     var finite = values.filter(function (v) { return isFinite(v); });
-    var lo = Math.min.apply(null, [0].concat(finite));
-    var hi = Math.max.apply(null, [0].concat(finite));
+    var base = includeZero ? [0] : [];
+    var lo = Math.min.apply(null, base.concat(finite));
+    var hi = Math.max.apply(null, base.concat(finite));
     if (hi - lo <= 0) hi = lo + 1;
-    hi += (hi - lo) * 0.12;
+    var pad = (hi - lo) * 0.12;
+    if (!includeZero) lo -= pad;
+    hi += pad;
     return function (v) { return PLOT_B - ((v - lo) / (hi - lo)) * (PLOT_B - PLOT_T); };
   }
 
-  function gridSvg(zeroY) {
+  function gridSvg(baseY) {
     var out = "";
     for (var g = 1; g <= 3; g++) {
       var gy = f1(PLOT_T + ((PLOT_B - PLOT_T) * g) / 4);
       out += "<line class=\"ns-grid\" x1=\"" + PAD_L + "\" x2=\"" + (VB_W - PAD_R) + "\" y1=\"" + gy + "\" y2=\"" + gy + "\"/>";
     }
-    out += "<line class=\"ns-axis\" x1=\"" + PAD_L + "\" x2=\"" + (VB_W - PAD_R) + "\" y1=\"" + f1(zeroY) + "\" y2=\"" + f1(zeroY) + "\"/>";
+    out += "<line class=\"ns-axis\" x1=\"" + PAD_L + "\" x2=\"" + (VB_W - PAD_R) + "\" y1=\"" + f1(baseY) + "\" y2=\"" + f1(baseY) + "\"/>";
     return out;
   }
 
@@ -199,11 +202,12 @@
     });
     var all = [];
     series.forEach(function (s) { cats.forEach(function (c) { all.push(numberOf(valueAt(s, c))); }); });
-    var y = scaleOf(all);
-    var zeroY = y(0);
-    var showValues = n <= 10;
+    var y = scaleOf(all, area);
+    var baseY = area ? y(0) : PLOT_B;
+    // Value labels only for a short single series; otherwise the table below the chart holds the numbers.
+    var showValues = !area && series.length === 1 && n <= 6;
     var showDots = n <= 12;
-    var body = gridSvg(zeroY);
+    var body = gridSvg(baseY);
 
     series.forEach(function (s, k) {
       var pts = [];
@@ -218,13 +222,13 @@
       if (area) {
         var first = pts[0];
         var last = pts[pts.length - 1];
-        var fillD = d + " L" + f1(last.x) + "," + f1(zeroY) + " L" + f1(first.x) + "," + f1(zeroY) + " Z";
+        var fillD = d + " L" + f1(last.x) + "," + f1(baseY) + " L" + f1(first.x) + "," + f1(baseY) + " Z";
         g += "<path class=\"ns-area\" style=\"--d:450ms\" d=\"" + fillD + "\"/>";
       }
       g += "<path class=\"ns-line\" pathLength=\"1\" style=\"--d:0ms\" d=\"" + d + "\"/>";
       pts.forEach(function (p) {
         if (showDots) {
-          g += "<circle class=\"ns-dot\" r=\"4\" cx=\"" + f1(p.x) + "\" cy=\"" + f1(p.y) + "\" style=\"--d:600ms\"/>";
+          g += "<circle class=\"ns-dot\" r=\"3\" cx=\"" + f1(p.x) + "\" cy=\"" + f1(p.y) + "\" style=\"--d:600ms\"/>";
         }
         if (showValues) {
           // Later series and falling values put their label under the point, so labels do not stack.
@@ -262,7 +266,7 @@
     var S = series.length;
     var all = [];
     series.forEach(function (s) { cats.forEach(function (c) { all.push(numberOf(valueAt(s, c))); }); });
-    var y = scaleOf(all);
+    var y = scaleOf(all, true);
     var zeroY = y(0);
     var band = PLOT_W / n;
     var group = band * 0.72;
