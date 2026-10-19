@@ -261,6 +261,18 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
     chart_ids = itertools.count(1)
     asset_ids = [a["id"] for a in data["assets"]]
 
+    def _compare_rows(kpi: str, by: str) -> list[dict]:
+        if kpi not in KPIS:
+            raise ToolError(f"unknown kpi '{kpi}'. Use one of: {', '.join(KPIS)}.")
+        if by == "asset":
+            names = ["battery"] if KPIS[kpi].scope == "bess" else [a["id"] for a in data["assets"] if a["kind"] == "pv"]
+            return [_kpi_row(data, kpi, name, None, None) for name in names]
+        days = data["days"]
+        return [
+            _kpi_row(data, kpi, "portfolio", block[0], block[-1])
+            for block in (days[i:i + 7] for i in range(0, len(days), 7))
+        ]
+
     @tool
     def list_assets() -> list[dict]:
         """List the parks and the battery in the portfolio. Use it when the question does not name an asset."""
@@ -290,18 +302,7 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
         by: Annotated[CompareBy, Field(description="'asset' compares the parks or the battery; 'week' splits the period into 7-day blocks.")],
     ) -> dict:
         """Compare one KPI across the assets or across weeks of the period. Use it for 'which park' or 'by week' questions."""
-        if kpi not in KPIS:
-            raise ToolError(f"unknown kpi '{kpi}'. Use one of: {', '.join(KPIS)}.")
-        if by == "asset":
-            names = ["battery"] if KPIS[kpi].scope == "bess" else [a["id"] for a in data["assets"] if a["kind"] == "pv"]
-            rows = [_kpi_row(data, kpi, name, None, None) for name in names]
-        else:
-            days = data["days"]
-            rows = [
-                _kpi_row(data, kpi, "portfolio", block[0], block[-1])
-                for block in (days[i:i + 7] for i in range(0, len(days), 7))
-            ]
-        return {"kpi": kpi, "by": by, "rows": rows}
+        return {"kpi": kpi, "by": by, "rows": _compare_rows(kpi, by)}
 
     @tool
     def get_series(
@@ -347,14 +348,26 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
 
     @tool
     def make_chart(
-        kind: Annotated[ChartKind, Field(description="line for trends, bar for comparing parks or days, area for cumulative shape, table for exact values.")],
+        kind: Annotated[ChartKind, Field(description="line for trends, bar for comparing parks or weeks, area for cumulative shape, table for exact values.")],
         title: Annotated[str, Field(description="Short chart title.")],
-        metric: Annotated[MetricName, Field(description="The daily series to chart, the same ids as get_series.")],
-        assets: Annotated[list[str] | None, Field(description="One series per asset: 'portfolio' (default), 'north', 'south' or 'battery'.")] = None,
-        start: Annotated[str | None, Field(description="First day, YYYY-MM-DD. Default: first day of the period.")] = None,
-        end: Annotated[str | None, Field(description="Last day, YYYY-MM-DD. Default: last day of the period.")] = None,
+        metric: Annotated[MetricName | None, Field(description="A daily series to chart, the same ids as get_series. Use this or kpi.")] = None,
+        kpi: Annotated[str | None, Field(description="A kpi id from list_kpis, charted across parks or weeks. Use this or metric.")] = None,
+        by: Annotated[CompareBy, Field(description="With kpi: 'asset' (default) for one bar per park, 'week' for 7-day blocks.")] = "asset",
+        assets: Annotated[list[str] | None, Field(description="With metric: one series per asset, 'portfolio' (default), 'north', 'south' or 'battery'.")] = None,
+        start: Annotated[str | None, Field(description="With metric: first day, YYYY-MM-DD. Default: first day of the period.")] = None,
+        end: Annotated[str | None, Field(description="With metric: last day, YYYY-MM-DD. Default: last day of the period.")] = None,
     ) -> dict:
-        """Chart a daily series straight from the calculator. Pass the metric, never the numbers. Call it at most once per answer, when a picture helps."""
+        """Chart values straight from the calculator: a daily series (metric) or one KPI across parks or weeks (kpi). Pass ids, never numbers. Call it at most once per answer."""
+        if (metric is None) == (kpi is None):
+            raise ToolError("pass exactly one of metric (a daily series) or kpi (a KPI across parks or weeks).")
+        if kpi is not None:
+            rows = _compare_rows(kpi, by)
+            points = [
+                {"x": r["asset"] if by == "asset" else f"{r['start']} to {r['end']}", "y": r["value"]}
+                for r in rows
+            ]
+            series = [{"name": rows[0]["unit"] if rows else "", "points": points}]
+            return {"chart_id": f"chart-{next(chart_ids)}", "kind": kind, "title": title, "series": series}
         names = assets or ["portfolio"]
         for name in names:
             if name != "portfolio" and name not in asset_ids:

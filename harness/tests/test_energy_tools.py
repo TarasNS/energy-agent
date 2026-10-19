@@ -65,3 +65,29 @@ def test_make_chart_refuses_unknown_asset_and_metric():
     reg = registry_for_tests()
     assert not reg.execute("make_chart", {"kind": "line", "title": "t", "metric": "price_eur_mwh", "assets": ["mars"]}).ok
     assert not reg.execute("make_chart", {"kind": "line", "title": "t", "metric": "nope"}).ok
+
+
+def test_make_chart_charts_a_kpi_by_asset_from_compare_kpi():
+    # Regression: 12 of the 13 standard questions are KPIs, and make_chart could only chart daily series,
+    # so those answers never had a chart.
+    reg = registry_for_tests()
+    out = json.loads(reg.execute("make_chart", {"kind": "bar", "title": "PR by park", "kpi": "performance_ratio", "by": "asset"}).content)
+    rows = json.loads(reg.execute("compare_kpi", {"kpi": "performance_ratio", "by": "asset"}).content)["rows"]
+    points = out["series"][0]["points"]
+    assert out["kind"] == "bar"
+    assert [p["x"] for p in points] == [r["asset"] for r in rows]
+    assert [p["y"] for p in points] == [r["value"] for r in rows]
+
+
+def test_make_chart_charts_a_kpi_by_week():
+    reg = registry_for_tests()
+    out = json.loads(reg.execute("make_chart", {"kind": "line", "title": "Availability by week", "kpi": "availability", "by": "week"}).content)
+    rows = json.loads(reg.execute("compare_kpi", {"kpi": "availability", "by": "week"}).content)["rows"]
+    assert [p["y"] for p in out["series"][0]["points"]] == [r["value"] for r in rows]
+
+
+def test_make_chart_needs_exactly_one_of_metric_or_kpi():
+    reg = registry_for_tests()
+    assert not reg.execute("make_chart", {"kind": "bar", "title": "t"}).ok
+    assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "metric": "actual_mwh", "kpi": "availability"}).ok
+    assert not reg.execute("make_chart", {"kind": "bar", "title": "t", "kpi": "nope"}).ok

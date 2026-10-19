@@ -61,6 +61,7 @@ def test_prompt_tells_the_model_how_to_build_a_chart():
     # The model passes a metric; the server builds the series, so no numbers are copied by the model.
     from harness.agent import SYSTEM_PROMPT
     assert 'metric="price_eur_mwh"' in SYSTEM_PROMPT
+    assert 'kpi="performance_ratio", by="asset"' in SYSTEM_PROMPT
     assert "Never type numbers into make_chart" in SYSTEM_PROMPT
     assert "2026-06-01 to 2026-06-30" in SYSTEM_PROMPT
 
