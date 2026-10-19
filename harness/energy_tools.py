@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Annotated, Callable, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field
 
 from harness.registry import ToolError, ToolRegistry, tool
 from kpi_solar import metrics as K
@@ -25,22 +25,6 @@ MetricName = Literal[
     "curtailed_mwh", "price_eur_mwh", "bess_charged_mwh", "bess_discharged_mwh",
 ]
 CompareBy = Literal["asset", "week"]
-
-
-class ChartPoint(BaseModel):
-    x: str = Field(description="Category or day label, shown as given.")
-    y: str = Field(description="Value as a string, copied exactly from a tool result.")
-
-    @field_validator("x", "y", mode="before")
-    @classmethod
-    def _number_as_string(cls, value):
-        # Models often send a JSON number; keep it as the string the tool returned, unchanged.
-        return str(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else value
-
-
-class ChartSeries(BaseModel):
-    name: str = Field(description="Series name shown in the legend.")
-    points: list[ChartPoint]
 
 
 def _fixed(value: float | int, places: int) -> str:
@@ -236,6 +220,21 @@ def _assets_for(data: dict, scope: str, asset: str) -> list[dict]:
     return match
 
 
+def _daily_series(data: dict, metric: str, asset: str, start: str | None, end: str | None) -> dict:
+    days, s, e = _period(data, start, end)
+    if metric == "price_eur_mwh":
+        prices = {p["date"]: p["meanPrice"] for p in data["prices"]}
+        points = [{"date": d, "value": _fixed(prices[d], 2)} for d in days]
+        return {"metric": metric, "unit": "EUR/MWh", "start": s, "end": e, "points": points}
+    unit, scope, key, places = METRICS[metric]
+    assets = _assets_for(data, scope, asset)
+    points = [
+        {"date": d, "value": _fixed(sum(row[key] for a in assets for row in _rows(a, [d])), places)}
+        for d in days
+    ]
+    return {"metric": metric, "unit": unit, "asset": asset, "start": s, "end": e, "points": points}
+
+
 def _kpi_row(data: dict, kpi: str, asset: str, start: str | None, end: str | None) -> dict:
     if kpi not in KPIS:
         raise ToolError(f"unknown kpi '{kpi}'. Use one of: {', '.join(KPIS)}.")
@@ -312,18 +311,7 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
         end: Annotated[str | None, Field(description="Last day, YYYY-MM-DD. Default: last day of the period.")] = None,
     ) -> dict:
         """Read a daily series, one point per day. Use it for trends and for values to feed make_chart."""
-        days, s, e = _period(data, start, end)
-        if metric == "price_eur_mwh":
-            prices = {p["date"]: p["meanPrice"] for p in data["prices"]}
-            points = [{"date": d, "value": _fixed(prices[d], 2)} for d in days]
-            return {"metric": metric, "unit": "EUR/MWh", "start": s, "end": e, "points": points}
-        unit, scope, key, places = METRICS[metric]
-        assets = _assets_for(data, scope, asset)
-        points = [
-            {"date": d, "value": _fixed(sum(row[key] for a in assets for row in _rows(a, [d])), places)}
-            for d in days
-        ]
-        return {"metric": metric, "unit": unit, "asset": asset, "start": s, "end": e, "points": points}
+        return _daily_series(data, metric, asset, start, end)
 
     @tool
     def get_prices(
@@ -361,15 +349,24 @@ def build_energy_tools(data: dict, proposals: Callable[[str, str, str], str]) ->
     def make_chart(
         kind: Annotated[ChartKind, Field(description="line for trends, bar for comparing parks or days, area for cumulative shape, table for exact values.")],
         title: Annotated[str, Field(description="Short chart title.")],
-        series: Annotated[list[ChartSeries], Field(description="One or more series. Every y value is a string copied from a tool result.")],
+        metric: Annotated[MetricName, Field(description="The daily series to chart, the same ids as get_series.")],
+        assets: Annotated[list[str] | None, Field(description="One series per asset: 'portfolio' (default), 'north', 'south' or 'battery'.")] = None,
+        start: Annotated[str | None, Field(description="First day, YYYY-MM-DD. Default: first day of the period.")] = None,
+        end: Annotated[str | None, Field(description="Last day, YYYY-MM-DD. Default: last day of the period.")] = None,
     ) -> dict:
-        """Prepare one chart from values already returned by other tools. Call it at most once per answer, when a picture helps."""
-        return {
-            "chart_id": f"chart-{next(chart_ids)}",
-            "kind": kind,
-            "title": title,
-            "series": [s.model_dump() for s in series],
-        }
+        """Chart a daily series straight from the calculator. Pass the metric, never the numbers. Call it at most once per answer, when a picture helps."""
+        names = assets or ["portfolio"]
+        for name in names:
+            if name != "portfolio" and name not in asset_ids:
+                raise ToolError(f"unknown asset '{name}'. Use one of: portfolio, {', '.join(asset_ids)}.")
+        series = []
+        for name in names:
+            read = _daily_series(data, metric, name, start, end)
+            series.append({
+                "name": name if len(names) > 1 else read["unit"],
+                "points": [{"x": p["date"], "y": p["value"]} for p in read["points"]],
+            })
+        return {"chart_id": f"chart-{next(chart_ids)}", "kind": kind, "title": title, "series": series}
 
     @tool
     def propose_action(

@@ -40,5 +40,5 @@ def answer(text: str) -> ModelTurn:
     return ModelTurn(text=text, tool_calls=[], stop_reason="end_turn", model="scripted")
 
 
-CHART = {"kind": "bar", "title": "t", "series": [{"name": "a", "points": [{"x": "north", "y": "96.5"}]}]}
+CHART = {"kind": "line", "title": "t", "metric": "price_eur_mwh", "assets": None}
 PROPOSAL = {"action": "schedule_inspection", "asset": "north", "reason": "r"}

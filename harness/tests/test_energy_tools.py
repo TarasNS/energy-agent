@@ -42,18 +42,26 @@ def test_compare_by_asset_returns_one_row_per_park():
     assert [row["asset"] for row in out["rows"]] == ["north", "south"]
 
 
-def test_make_chart_echoes_the_spec_with_strings():
-    spec = {"kind": "bar", "title": "Availability by park",
-            "series": [{"name": "Availability %", "points": [{"x": "north", "y": "96.5"}]}]}
-    out = json.loads(registry_for_tests().execute("make_chart", spec).content)
-    assert out["kind"] == "bar" and out["series"][0]["points"][0] == {"x": "north", "y": "96.5"}
+def test_make_chart_builds_the_series_from_the_calculator():
+    reg = registry_for_tests()
+    out = json.loads(reg.execute("make_chart", {"kind": "line", "title": "Price", "metric": "price_eur_mwh"}).content)
+    series = json.loads(reg.execute("get_series", {"metric": "price_eur_mwh"}).content)
+    assert out["kind"] == "line" and len(out["series"]) == 1
+    points = out["series"][0]["points"]
+    assert len(points) == 30 and points[0]["x"] == "2026-06-01"
+    assert [p["y"] for p in points] == [p["value"] for p in series["points"]]
 
 
-def test_make_chart_accepts_numbers_and_keeps_them_as_strings():
-    # A model often passes y as a JSON number; the value is still copied from a tool result.
-    spec = {"kind": "line", "title": "Price",
-            "series": [{"name": "EUR/MWh", "points": [{"x": "Jun 01", "y": 54.1}, {"x": "Jun 02", "y": -4}]}]}
-    result = registry_for_tests().execute("make_chart", spec)
-    assert result.ok, result.content
-    points = json.loads(result.content)["series"][0]["points"]
-    assert points == [{"x": "Jun 01", "y": "54.1"}, {"x": "Jun 02", "y": "-4"}]
+def test_make_chart_one_series_per_asset():
+    reg = registry_for_tests()
+    out = json.loads(reg.execute("make_chart", {"kind": "line", "title": "Availability", "metric": "availability_hours",
+                                                "assets": ["north", "south"]}).content)
+    assert len(out["series"]) == 2
+    north = json.loads(reg.execute("get_series", {"metric": "availability_hours", "asset": "north"}).content)
+    assert [p["y"] for p in out["series"][0]["points"]] == [p["value"] for p in north["points"]]
+
+
+def test_make_chart_refuses_unknown_asset_and_metric():
+    reg = registry_for_tests()
+    assert not reg.execute("make_chart", {"kind": "line", "title": "t", "metric": "price_eur_mwh", "assets": ["mars"]}).ok
+    assert not reg.execute("make_chart", {"kind": "line", "title": "t", "metric": "nope"}).ok

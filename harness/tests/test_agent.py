@@ -45,7 +45,7 @@ def test_chart_and_proposal_are_collected():
               turn=Scripted(tool_call("make_chart", CHART), tool_call("propose_action", PROPOSAL),
                             answer("See chart.")),
               take_slot=lambda: True)
-    assert res.charts[0]["kind"] == "bar" and res.proposals[0]["status"] == "proposed"
+    assert res.charts[0]["kind"] == "line" and res.proposals[0]["status"] == "proposed"
 
 
 def test_model_outage_is_reported_not_raised():
@@ -57,7 +57,8 @@ def test_model_outage_is_reported_not_raised():
 
 
 def test_prompt_tells_the_model_how_to_build_a_chart():
-    # Live test: the model called make_chart with kind and title only, and retried until the step limit.
+    # The model passes a metric; the server builds the series, so no numbers are copied by the model.
     from harness.agent import SYSTEM_PROMPT
-    assert "series" in SYSTEM_PROMPT and "copy each x and y" in SYSTEM_PROMPT.lower()
+    assert 'metric="price_eur_mwh"' in SYSTEM_PROMPT
+    assert "Never type numbers into make_chart" in SYSTEM_PROMPT
     assert "2026-06-01 to 2026-06-30" in SYSTEM_PROMPT
