@@ -36,6 +36,9 @@ SYSTEM_PROMPT = """You answer questions about a synthetic solar and battery port
 - Call propose_action only when the data clearly justifies an action. You can propose; a person approves.
 - Answer in at most 120 words."""
 
+# The data period, as the system prompt states it: its dates are known numbers, not model inventions.
+PERIOD = "2026-06-01 to 2026-06-30"
+
 CAP_NOTE = "The daily limit of model calls has been reached, so no answer was given. Try again tomorrow."
 STEP_LIMIT_NOTE = "The question needed more steps than the limit allows, so no answer was given. Try a narrower question."
 
@@ -183,7 +186,7 @@ def run(
             if chart:
                 # The title is model text: keep it out of the sources, and drop it if it has numbers the calculator did not return.
                 sources.append(json.dumps({**chart, "title": ""}))
-                if check_numbers(str(chart.get("title", "")), sources, question):
+                if check_numbers(str(chart.get("title", "")), sources + [PERIOD], question):
                     chart["title"] = "Chart from the calculator"
                 charts.append(chart)
             else:

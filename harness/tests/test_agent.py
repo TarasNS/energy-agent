@@ -130,3 +130,11 @@ def test_thousands_separators_are_read_as_one_number():
     assert check_numbers("Actual 2,140.178 MWh; exposure 10,700.89 EUR.", sources, "q") == []
     assert check_numbers("Actual 2,140.179 MWh.", sources, "q") != []
     assert check_numbers("North, 94.7 % and south, 98.2 %.", ['{"a": "94.7", "b": "98.2"}'], "q") == []
+
+
+def test_a_title_with_the_data_period_is_kept():
+    # Live v5: "Headline KPIs, June 2026" was replaced because no tool had returned a date yet.
+    res = run("headline KPIs?", reg, turn=Scripted(
+        tool_call("make_chart", {"kind": "table", "title": "Headline KPIs, June 2026", "kpis": ["availability", "performance_ratio", "capacity_factor"]}),
+        answer("See the table.")), take_slot=lambda: True)
+    assert res.charts[0]["title"] == "Headline KPIs, June 2026"
