@@ -93,17 +93,45 @@ def _assistant_blocks(turn: ModelTurn) -> list[dict]:
     return blocks
 
 
+def _fallback_chart(sources: list[str]) -> dict | None:
+    """A chart of values the calculator returned, for an answer that was withheld. Only tool values; no arithmetic."""
+    parsed = [p for p in (_parse(s) for s in sources) if isinstance(p, dict)]
+    for r in parsed:
+        if "metric" in r and r.get("points"):
+            points = [{"x": p["date"], "y": p["value"]} for p in r["points"]]
+            return {"chart_id": "fallback", "kind": "line", "title": f"{r['metric']} from the calculator",
+                    "series": [{"name": r.get("unit", ""), "points": points}]}
+    rows: list[dict] = []
+    for r in parsed:
+        if "rows" in r:
+            rows += r["rows"]
+        elif "kpi" in r and "value" in r:
+            rows.append(r)
+    rows = [r for r in rows if r.get("value") is not None]
+    if not rows:
+        return None
+    kpi = rows[0]["kpi"]
+    rows = [r for r in rows if r["kpi"] == kpi]
+    if len(rows) < 2:
+        return None
+    by_asset = len({r["asset"] for r in rows}) > 1
+    points = [{"x": r["asset"] if by_asset else f"{r['start']} to {r['end']}", "y": r["value"]} for r in rows]
+    return {"chart_id": "fallback", "kind": "bar", "title": f"{rows[0]['title']} from the calculator",
+            "series": [{"name": rows[0]["unit"], "points": points}]}
+
+
 def _finish(text: str | None, question: str, sources: list[str], charts, proposals, trace) -> AgentResult:
     text = (text or "").strip()
     if not text:
         return AgentResult(None, False, "The model returned no answer text.", charts, proposals, trace)
     bad = check_numbers(text, sources, question)
     if bad:
+        fallback = None if charts else _fallback_chart(sources)
         return AgentResult(
             None, False,
             f"Answer withheld: it contained numbers not in the calculator output ({', '.join(bad)}). "
             "The charts and tool results are shown instead.",
-            charts, proposals, trace,
+            charts + ([fallback] if fallback else []), proposals, trace,
         )
     return AgentResult(text, True, None, charts, proposals, trace)
 

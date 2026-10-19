@@ -1,3 +1,4 @@
+import json
 from harness.agent import run
 from harness.tests.conftest import CHART, PROPOSAL, Scripted, answer, registry_for_tests, tool_call
 from model.model_gateway import ModelUnavailable
@@ -68,3 +69,23 @@ def test_trace_keeps_the_tool_result_so_the_page_can_show_it():
     # When an answer is withheld, the page still shows what the calculator returned.
     res = run("merchant exposure?", reg, turn=Scripted(tool_call("get_kpi", {"kpi": "availability"}), answer("x")), take_slot=lambda: True)
     assert res.trace[0]["result"] and "96.5" in res.trace[0]["result"]
+
+
+def test_withheld_answer_gets_a_chart_from_the_tool_results():
+    # The model quotes a number the calculator did not return; the page still gets a chart of the real values.
+    north = reg.execute("get_kpi", {"kpi": "availability", "asset": "north"}).content
+    south = reg.execute("get_kpi", {"kpi": "availability", "asset": "south"}).content
+    res = run("availability?", reg, turn=Scripted(
+        tool_call("get_kpi", {"kpi": "availability", "asset": "north"}),
+        tool_call("get_kpi", {"kpi": "availability", "asset": "south"}),
+        answer("About 97.3 % in total.")), take_slot=lambda: True)
+    assert res.text is None and not res.verified
+    assert len(res.charts) == 1 and res.charts[0]["kind"] == "bar"
+    points = res.charts[0]["series"][0]["points"]
+    assert [p["y"] for p in points] == [json.loads(north)["value"], json.loads(south)["value"]]
+
+
+def test_withheld_answer_with_one_value_gets_no_chart():
+    res = run("availability?", reg, turn=Scripted(
+        tool_call("get_kpi", {"kpi": "availability"}), answer("About 97.3 %.")), take_slot=lambda: True)
+    assert res.text is None and res.charts == []
