@@ -62,6 +62,9 @@ details ul { margin: .4rem 0 0; padding-left: 1.1rem; font-family: ui-monospace,
 .composer input { flex: 1; font: inherit; padding: .6rem .8rem; border: 1px solid var(--text); border-radius: 8px; background: var(--bg); color: var(--text); }
 .composer input:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
 .composer button { font: inherit; font-weight: 600; padding: .6rem 1.1rem; border: 1px solid var(--text); border-radius: 8px; background: var(--ns-green); color: var(--ns-white); cursor: pointer; }
+.explain { margin-top: .6rem; border-top: 1px dashed var(--border); padding-top: .6rem; }
+.explain-text { margin: .2rem 0; white-space: pre-wrap; }
+.explain-model { font-size: .75rem; opacity: .7; }
 .foot { font-size: .8rem; text-align: center; margin: .5rem auto 0; max-width: 920px; }
 </style>
 </head>
@@ -177,8 +180,32 @@ function botMessage(reply) {
 function say(text) { const m = el("div", "msg user", esc(text)); chat.appendChild(m); m.scrollIntoView({ block: "end" }); }
 function answer(text) {
   const reply = ENGINE.ask(text, DATA, K);
-  chat.appendChild(botMessage(reply));
-  chat.lastElementChild.scrollIntoView({ block: "start" });
+  const msg = botMessage(reply);
+  chat.appendChild(msg);
+  msg.scrollIntoView({ block: "start" });
+  explainWithModel(text, reply, msg);
+}
+
+// The calculator's numbers go to the local server, which asks the model to explain them.
+// The model may only quote those numbers; the server checks each one. On the static site there is no server: nothing is shown.
+async function explainWithModel(question, reply, msg) {
+  const results = reply.kpis.map((k) => ({
+    title: k.title,
+    value: k.value,
+    display: k.value === null ? null : `${k.value.toFixed(k.decimals)} ${k.unit}`,
+    unavailable: k.unavailable,
+  }));
+  const box = el("div", "explain", `<span class="label">Explanation (model)</span><p class="explain-text">Asking the model…</p>`);
+  msg.appendChild(box);
+  try {
+    const res = await fetch("/api/explain", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question, results }) });
+    const data = await res.json().catch(() => null); // static site: no JSON, so there is no server
+    if (!data) throw new Error("no server");
+    box.querySelector(".explain-text").textContent = data.verified ? data.text : (data.note || data.error || "No explanation available.");
+    if (data.model) box.insertAdjacentHTML("beforeend", `<small class="explain-model">${esc(data.model)}</small>`);
+  } catch (e) {
+    box.remove(); // no server (static site): the calculator answer stands on its own
+  }
 }
 
 document.getElementById("ask").addEventListener("submit", (e) => {
