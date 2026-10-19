@@ -1,0 +1,15 @@
+# Allowlist: ignore everything, then let in only what the image needs.
+# This keeps .env, private/, artifacts/, tests and docs out of the build.
+*
+!Dockerfile
+!harness/
+!model/model_gateway/
+!mcp/kpi-solar/kpi_solar/
+!mcp/actions/actions/
+!tools/kpi-lab/server.py
+!tools/kpi-lab/index.html
+!tools/kpi-lab/charts.js
+!tools/kpi-lab/config.js
+**/tests/
+**/__pycache__/
+**/*.pyc
