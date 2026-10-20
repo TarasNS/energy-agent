@@ -56,11 +56,18 @@ def check_required():
             errors.append(f"missing required file: {f}")
 
 
+SCHEMA_FILES = ["chat-result", "chart", "proposal", "audit-line"]
+
+
 def check_schemas():
     try:
-        import jsonschema  # optional, installed by make setup
+        import jsonschema  # installed by make setup; a missing package is a failure, not a skip
     except ImportError:
-        jsonschema = None
+        errors.append("jsonschema is not installed: run python scripts/dev.py setup")
+        return
+    for name in SCHEMA_FILES:
+        if not (ROOT / "schemas" / f"{name}.schema.json").exists():
+            errors.append(f"missing contract schema: schemas/{name}.schema.json")
     for p in sorted((ROOT / "schemas").glob("*.json")):
         try:
             data = json.loads(p.read_text())

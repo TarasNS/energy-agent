@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chat-result.schema.json",
+  "title": "Chat result",
+  "description": "What harness.agent.run returns and POST /api/chat sends to the page (SPEC.md §6 and §8).",
+  "type": "object",
+  "required": ["text", "verified", "note", "charts", "proposals", "trace", "stopped"],
+  "additionalProperties": false,
+  "properties": {
+    "text": {"type": ["string", "null"], "description": "The answer. null when it is withheld."},
+    "verified": {"type": "boolean"},
+    "note": {"type": ["string", "null"], "description": "Plain text for the manager. null when verified is true."},
+    "charts": {"type": "array", "items": {"$ref": "chart.schema.json"}},
+    "proposals": {"type": "array", "items": {"$ref": "proposal.schema.json"}},
+    "trace": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tool", "input", "ok"],
+        "additionalProperties": false,
+        "properties": {
+          "tool": {"type": "string"},
+          "input": {"type": "object"},
+          "ok": {"type": "boolean"}
+        }
+      }
+    },
+    "stopped": {"enum": ["answered", "max_steps", "cap", "model_error"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"verified": {"const": true}}, "required": ["verified"]},
+      "then": {"properties": {"text": {"type": "string"}, "note": {"type": "null"}}},
+      "else": {"properties": {"text": {"type": "null"}, "note": {"type": "string"}}}
+    },
+    {
+      "if": {"properties": {"stopped": {"const": "max_steps"}}, "required": ["stopped"]},
+      "then": {"properties": {"note": {"type": "string"}}, "required": ["note"]}
+    }
+  ]
+}
