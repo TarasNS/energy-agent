@@ -1,0 +1,4 @@
+[
+  {"text": null, "tool_calls": [{"id": "toolu_1", "name": "get_kpi", "input": {"kpi": "availability", "asset": "portfolio"}}]},
+  {"text": "Availability was 96.5 percent.", "tool_calls": []}
+]
