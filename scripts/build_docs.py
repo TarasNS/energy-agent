@@ -221,6 +221,84 @@ def merge_svg():
     return "".join(out)
 
 
+# The merge order: slug -> (merge number, round). The diagram, the table and every task use this one list.
+ORDER = {
+    "contracts": (1, 1), "portfolio": (2, 1), "gateway": (3, 2), "kpi-formulas": (4, 2), "skill": (5, 1),
+    "charts": (6, 1), "tools": (7, 3), "agent-loop": (8, 4), "actions": (9, 4), "golden-cases": (10, 5),
+    "number-check": (11, 5), "server-smoke": (12, 5), "chat-page": (13, 6), "offline-replay": (14, 6), "container": (15, 7),
+}
+
+
+def order_svg():
+    """The 15 pull requests in merge order, in rounds. Right-angle arrows run through the gaps, one lane each."""
+    # key: (round, row, slug, who)
+    N = {
+        "contracts": (1, 0, "contracts", "Dev 1 Anna"), "portfolio": (1, 1, "portfolio", "Dev 2 Huiling"),
+        "skill": (1, 2, "skill", "Dev 4 Søren"), "charts": (1, 3, "charts", "Dev 4 Søren"),
+        "gateway": (2, 0, "gateway", "Dev 1 Anna"), "formulas": (2, 1, "kpi-formulas", "Dev 2 Huiling"),
+        "tools": (3, 1, "tools", "Dev 3 Raul"),
+        "loop": (4, 1, "agent-loop", "Dev 3 Raul"), "actions": (4, 2, "actions", "Dev 3 Raul"),
+        "golden": (5, 0, "golden-cases", "Dev 2 Huiling"), "numcheck": (5, 1, "number-check", "Dev 2 Huiling"),
+        "server": (5, 2, "server-smoke", "Dev 3 Raul"),
+        "page": (6, 2, "chat-page", "Dev 4 Søren"), "replay": (6, 1, "offline-replay", "Dev 1 Anna"),
+        "container": (7, 2, "container", "Dev 1 Anna"),
+    }
+    W, H, PITCH, ROWP, X0, Y0 = 120, 54, 152, 84, 8, 46
+    G = PITCH - W
+    slots: dict = {}
+
+    def left(k): return X0 + (N[k][0] - 1) * PITCH
+    def right(k): return left(k) + W
+    def ymid(k): return Y0 + N[k][1] * ROWP + H / 2
+
+    def gutter(c):
+        n = slots.get(c, 0)
+        slots[c] = n + 1
+        return X0 + (c - 1) * PITCH + W + 9 + n * 7
+
+    def lane(b):
+        return Y0 + b * ROWP - (ROWP - H) / 2
+
+    # (source, target, kind, out offset, in offset, gutter column, lane row, dashed). The order fixes each arrow's lane.
+    edges = [
+        ("formulas", "tools", "straight", 0, 0, None, None, False), ("tools", "loop", "straight", 0, 0, None, None, False),
+        ("loop", "numcheck", "straight", 0, 0, None, None, False), ("actions", "server", "straight", 0, 0, None, None, False),
+        ("server", "page", "straight", 0, 0, None, None, False),
+        ("gateway", "loop", "elbow", 0, -10, 3, None, False), ("skill", "loop", "elbow", 0, 10, 3, None, True),
+        ("tools", "golden", "elbow", -10, 0, 3, None, False), ("loop", "server", "elbow", 10, -10, 4, None, False),
+        ("charts", "page", "elbow", 0, 10, 5, None, False),
+        ("portfolio", "tools", "lane", 0, -10, None, 1, False), ("contracts", "actions", "lane", 0, 0, None, 3, True),
+        ("loop", "replay", "lane", -10, 0, None, 1, False), ("server", "container", "lane", 10, 0, None, 3, False),
+    ]
+    out = ['<div class="loopdiagram" style="overflow-x:auto"><svg viewBox="0 0 1076 396" style="min-width:940px" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ot">'
+           '<title id="ot">The 15 pull requests in merge order, in seven rounds. Arrows point from a pull request to the ones that need it.</title>', _defs("la")]
+    for r in range(1, 8):
+        out.append(f'<text class="lab" style="font-weight:600;letter-spacing:.06em" x="{X0 + (r - 1) * PITCH + W / 2}" y="24" text-anchor="middle">ROUND {r}</text>')
+        if r > 1:
+            x = X0 + (r - 1) * PITCH - G / 2
+            out.append(f'<line x1="{x}" y1="34" x2="{x}" y2="384" style="stroke:var(--line);stroke-width:1"/>')
+    for src, tgt, kind, oo, io, gcol, ln, dashed in edges:
+        sx, sy, tx, ty = right(src), ymid(src) + oo, left(tgt), ymid(tgt) + io
+        if kind == "straight":
+            pts = [(sx, sy), (tx - 2, ty)]
+        elif kind == "elbow":
+            xv = gutter(gcol)
+            pts = [(sx, sy), (xv, sy), (xv, ty), (tx - 2, ty)]
+        else:
+            x1, x2, ly = gutter(N[src][0]), gutter(N[tgt][0] - 1), lane(ln)
+            pts = [(sx, sy), (x1, sy), (x1, ly), (x2, ly), (x2, ty), (tx - 2, ty)]
+        d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts)
+        out.append(f'<path class="w{" back" if dashed else ""}" style="stroke-linejoin:round" d="{d}"/>')
+    for i, (k, (r, row, slug, who)) in enumerate(N.items(), 1):
+        x, y = left(k), Y0 + row * ROWP
+        no = ORDER[slug][0]
+        out.append(f'<g class="n" style="--i:{i}"><rect x="{x}" y="{y}" width="{W}" height="{H}" rx="9"/>'
+                   f'<text style="font-size:12.5px" x="{x + W / 2}" y="{y + 23}" text-anchor="middle">{slug}</text>'
+                   f'<text class="s" x="{x + W / 2}" y="{y + 41}" text-anchor="middle">#{no} · {who}</text></g>')
+    out.append("</svg></div>")
+    return "".join(out)
+
+
 def deploy_svg():
     items = [("main", "the lead pulls it", "var(--ink)"), ("Build image", "Azure Container Registry", "var(--green)"),
              ("App Service", "pulls the image", "var(--green)"), ("Chat page + API", "GET /health is 200", "var(--lead)")]
@@ -248,6 +326,9 @@ GL = {
 }
 
 
+GL = {**GL, 1: GL[3], 2: GL[4], 3: GL[2], 4: GL[1]}  # icons follow the developer numbering: Dev 1 model, 2 calculator, 3 harness, 4 skill
+
+
 def tile(href, d, k, title):
     cls = "tile lead" if d == "L" else "tile"
     return f'<a class="{cls}" href="{href}" style="background:{COL[d]}"><span class="k">{k}</span>{GL[d]}<b>{title}</b></a>'
@@ -270,6 +351,7 @@ def brief(n, slug, own, job):
         f"{job}\n\n"
         "Rules for this task:\n"
         f"- Work on a new branch called dev{n}/{slug}, created from main.\n"
+        f"- This is pull request {ORDER[slug][0]} of 15 in the merge order (round {ORDER[slug][1]}). The lead merges in that order.\n"
         f"- Edit only these paths: {own}.\n"
         "- Before you change anything, show me your plan (goal, files, the test, done-when) and wait for my \"go\".\n"
         "- Write the test first. Run it. If it fails, fix the code, never the test, and run it again until it passes. Show me the output."
@@ -286,7 +368,10 @@ def finish(n, slug):
 
 
 def task(n, title, slug, own, job, see, why="", files=()):
-    head = f'<li><span class="t">{title}</span>' + (f"<p>{why}</p>" if why else "")
+    no, rnd = ORDER[slug]
+    head = (f'<li><span class="t">{title}</span>'
+            f'<p class="files"><b>Pull request #{no} of 15</b> · round {rnd} · branch <code>dev{n}/{slug}</code> · '
+            f'<a href="index.html#order">see the order</a></p>' + (f"<p>{why}</p>" if why else ""))
     if files:
         head += '<p class="files">Files: ' + ", ".join(f(x) if isinstance(x, str) else f(*x) for x in files) + "</p>"
     rows = [
@@ -527,6 +612,30 @@ def index_page():
     step("Update before the next task", "Paste this at the start of every task.", claude="Update main from GitHub, create my next branch dev<N>/<task> from it, and tell me in plain words if anything conflicts."),
     step("Two people changed the same file?", "Stop. The ownership table in TEAM.md decides who owns it. Do not resolve it yourself.", files=["TEAM.md"], claude="Show me which files conflict and who owns each one. Explain the conflict in plain words. Do not change anything."),
   )}</div>
+</section>
+
+<section class="sec alt" id="order">
+  <h2 class="reveal">The order of the pull requests</h2>
+  <p class="intro reveal">The lead merges in this order. Each pull request goes from <code>devN/&lt;task&gt;</code> into <code>main</code>. Some can swap: the skill and the charts can merge any time, the golden cases and the number check can swap, and the gateway and the formulas can swap. Do not merge the tools or the loop before the portfolio and the formulas.</p>
+  <div class="reveal">{order_svg()}<p class="files">Solid arrow: needs it merged first. Dashed arrow: reads it when it exists, so it can merge later. The number is the merge order, and it is on the same task on each developer page.</p></div>
+  <div class="reveal">{tbl(["#", "Who", "Branch", "Why here"], [
+    ["1", "Dev 1 Anna", "<code>dev1/contracts</code>", "The others read the schemas. Dev 2 and Dev 3 review it first"],
+    ["2", "Dev 2 Huiling", "<code>dev2/portfolio</code>", "The tools and the golden cases read this data"],
+    ["3", "Dev 1 Anna", "<code>dev1/gateway</code>", "The agent loop calls the model through it"],
+    ["4", "Dev 2 Huiling", "<code>dev2/kpi-formulas</code>", "Every number comes from here"],
+    ["5", "Dev 4 Søren", "<code>dev4/skill</code>", "Needs nothing, so it can merge any time. The loop reads it when it exists"],
+    ["6", "Dev 4 Søren", "<code>dev4/charts</code>", "Needs nothing. The chat page uses it"],
+    ["7", "Dev 3 Raul", "<code>dev3/tools</code>", "Needs the portfolio and the formulas for real numbers"],
+    ["8", "Dev 3 Raul", "<code>dev3/agent-loop</code>", "Needs the tools and the gateway"],
+    ["9", "Dev 3 Raul", "<code>dev3/actions</code>", "Approval and audit; the loop writes the tool-call lines"],
+    ["10", "Dev 2 Huiling", "<code>dev2/golden-cases</code>", "Runs the tools with no model"],
+    ["11", "Dev 2 Huiling", "<code>dev2/number-check</code>", "Tests the loop's number check"],
+    ["12", "Dev 3 Raul", "<code>dev3/server-smoke</code>", "The server needs the loop and the actions"],
+    ["13", "Dev 4 Søren", "<code>dev4/chat-page</code>", "Needs the charts, and the real server to finish"],
+    ["14", "Dev 1 Anna", "<code>dev1/offline-replay</code>", "Records answers once the loop works"],
+    ["15", "Dev 1 Anna", "<code>dev1/container</code>", "Last, because it packages the server"],
+  ])}</div>
+  <p class="intro reveal" style="margin-top:1.5rem">After every merge, the lead runs <code>make check</code> and <code>make test</code> on <code>main</code>, and the next developer updates from <code>main</code> before the next task.</p>
 </section>
 
 <section class="sec" id="deploy">
