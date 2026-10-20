@@ -46,7 +46,9 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 | `make demo-smoke` | Fails until Dev 2 makes it real |
 | `make verify` | `check` + `test` + `demo-smoke` with a summary; a NOT IMPLEMENTED step counts as FAIL (by design) |
 
-Single test: `python -m pytest path/to/test_x.py::test_name`. Makefile and scripts are bash; on Windows use Git Bash or WSL.
+No `make` (common on Windows)? Every row works as `python scripts/dev.py <command>` (setup, check, test, run, docs, verify, demo-smoke); `make` calls the same file.
+
+Single test: `python -m pytest path/to/test_x.py::test_name`. `demo-smoke` needs bash (Git Bash or WSL on Windows).
 
 ## Architecture (big picture)
 `tools/kpi-lab` (chat page + local server) → `harness/agent.py` (loop, number check) → model via `model/model_gateway` and tools in `harness/energy_tools.py` → `mcp/kpi-solar` (numbers), `mcp/actions` (propose, approve, audit), `harness/dataset.py` (synthetic portfolio). Models explain; they are never the calculator of record or the permission system. Full detail: [ARCHITECTURE.md](ARCHITECTURE.md).
