@@ -371,7 +371,7 @@ def task(n, title, slug, own, job, see, why="", files=()):
     no, rnd = ORDER[slug]
     head = (f'<li><span class="t">{title}</span>'
             f'<p class="files"><b>Pull request #{no} of 15</b> · round {rnd} · branch <code>dev{n}/{slug}</code> · '
-            f'<a href="index.html#order">see the order</a></p>' + (f"<p>{why}</p>" if why else ""))
+            f'<a href="index.html#combine">see the order</a></p>' + (f"<p>{why}</p>" if why else ""))
     if files:
         head += '<p class="files">Files: ' + ", ".join(f(x) if isinstance(x, str) else f(*x) for x in files) + "</p>"
     rows = [
@@ -603,8 +603,8 @@ def index_page():
 
 <section class="sec alt" id="combine">
   <h2 class="reveal">How we put our parts together</h2>
-  <p class="intro reveal">Nobody sends files by chat or e-mail, and there is no shared folder. GitHub is the one place where our parts meet. Every part arrives as a pull request.</p>
-  <div class="reveal">{merge_svg()}</div>
+  <p class="intro reveal">Nobody sends files by chat or e-mail, and there is no shared folder. GitHub is the one place where our parts meet. Every part arrives as a pull request, and the lead merges them in the order below: each arrow points from a pull request to the ones that need it.</p>
+  <div class="reveal">{order_svg()}<p class="files">Solid arrow: needs it merged first. Dashed arrow: reads it when it exists, so it can merge later. The number is the merge order, and it is on the same task on each developer page.</p></div>
   <div class="reveal">{route(
     step("Work on your own branch", "The brief prompt on your page makes branch <code>devN/&lt;task&gt;</code> from <code>main</code>. You never edit <code>main</code> directly."),
     step("Finish with the finish prompt", "Claude runs <code>make check</code> and <code>make test</code>, pushes your branch and opens a pull request into <code>main</code>. There is no automatic build: the local checks are the gate."),
@@ -615,9 +615,8 @@ def index_page():
 </section>
 
 <section class="sec alt" id="order">
-  <h2 class="reveal">The order of the pull requests</h2>
-  <p class="intro reveal">The lead merges in this order. Each pull request goes from <code>devN/&lt;task&gt;</code> into <code>main</code>. Some can swap: the skill and the charts can merge any time, the golden cases and the number check can swap, and the gateway and the formulas can swap. Do not merge the tools or the loop before the portfolio and the formulas.</p>
-  <div class="reveal">{order_svg()}<p class="files">Solid arrow: needs it merged first. Dashed arrow: reads it when it exists, so it can merge later. The number is the merge order, and it is on the same task on each developer page.</p></div>
+  <h2 class="reveal">The order of the pull requests, as a list</h2>
+  <p class="intro reveal">The same order as the diagram above, with the reason for each place. Each pull request goes from <code>devN/&lt;task&gt;</code> into <code>main</code>. Some can swap: the skill and the charts can merge any time, the golden cases and the number check can swap, and the gateway and the formulas can swap. Do not merge the tools or the loop before the portfolio and the formulas.</p>
   <div class="reveal">{tbl(["#", "Who", "Branch", "Why here"], [
     ["1", "Dev 1 Anna", "<code>dev1/contracts</code>", "The others read the schemas. Dev 2 and Dev 3 review it first"],
     ["2", "Dev 2 Huiling", "<code>dev2/portfolio</code>", "The tools and the golden cases read this data"],
