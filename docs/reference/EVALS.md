@@ -1,14 +1,14 @@
 # EVALS.md: what "correct" means
 
-**Owner:** Dev 4 · **Role:** defines how we prove the numbers are right. The calculator is `mcp/kpi-solar`; the model is never the calculator of record.
+**Owner:** Dev 2 · **Role:** defines how we prove the numbers are right. The calculator is `mcp/kpi-solar`; the model is never the calculator of record.
 
 ## 1. Three layers of proof
 
 | Layer | Question it answers | Where | Status |
 |---|---|---|---|
-| Formula tests | Does each KPI function return the hand-worked value, and refuse bad input? | `mcp/kpi-solar/tests/` | Dev 4, task 2 |
-| Golden cases | Does each tool, with no model, return the hand-worked value for the demo data? | `evals/cases/golden.json`, `tests/test_golden.py` | Dev 4, task 3 |
-| Number check | Is a number the tools never returned always withheld? | `tests/test_number_check.py` | Dev 4, task 4 |
+| Formula tests | Does each KPI function return the hand-worked value, and refuse bad input? | `mcp/kpi-solar/tests/` | Dev 2, task 2 |
+| Golden cases | Does each tool, with no model, return the hand-worked value for the demo data? | `evals/cases/golden.json`, `tests/test_golden.py` | Dev 2, task 3 |
+| Number check | Is a number the tools never returned always withheld? | `tests/test_number_check.py` | Dev 2, task 4 |
 
 ## 2. Rules for a golden case
 

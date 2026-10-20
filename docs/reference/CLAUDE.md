@@ -2,7 +2,7 @@
 
 This file guides Claude Code (claude.ai/code) in this repository.
 
-Curated by Dev 3. Keep it short and true: only stable rules, real commands and architecture the repo actually implements. Propose changes via PR.
+Curated by Dev 1. Keep it short and true: only stable rules, real commands and architecture the repo actually implements. Propose changes via PR.
 
 ## Project
 Energy 4.0 Harness: a chat assistant for a solar and battery portfolio, **built from scratch by the team from `SPEC.md`**. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
@@ -18,7 +18,7 @@ If documents conflict: stop, report the conflict, do not resolve it yourself.
 2. Money and energy cross boundaries as decimal strings (`"85.00"`), never floats.
 3. Data tools are read-only.
 4. Actions go through `propose_action` → server `/api/approve` → `approve_action(token)`. Approval is enforced in code, never only in a prompt. Approval functions are never in the agent's tool registry.
-5. Every proposal, approval and refusal is appended to the audit log. Tool calls join them (Dev 2's task).
+5. Every proposal, approval and refusal is appended to the audit log. Tool calls join them (Dev 3's task).
 6. Synthetic data is the default. The demo must run offline.
 7. Never put credentials in source, prompts, fixtures or logs. Use `.env` (git-ignored).
 8. No production SCADA or ERP writes. No physical control actions.
@@ -29,10 +29,10 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 
 | Path | Owner |
 |---|---|
-| `.claude/skills/`, `.claude/hooks/`, `tools/kpi-lab/` (page, charts, config) | Dev 1 |
-| `harness/`, `mcp/actions/`, `tools/kpi-lab/server.py`, `scripts/demo-smoke.sh`, `.claude/agents/` | Dev 2 |
-| `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke), `requirements*.txt`, `pytest.ini`, `.env.example`, `Dockerfile`, `.dockerignore`, `model/`, `schemas/`, `docs/`, `.github/` | Dev 3 |
-| `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md` | Dev 4 |
+| `.claude/skills/`, `.claude/hooks/`, `tools/kpi-lab/` (page, charts, config) | Dev 4 |
+| `harness/`, `mcp/actions/`, `tools/kpi-lab/server.py`, `scripts/demo-smoke.sh`, `.claude/agents/` | Dev 3 |
+| `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke), `requirements*.txt`, `pytest.ini`, `.env.example`, `Dockerfile`, `.dockerignore`, `model/`, `schemas/`, `docs/`, `.github/` | Dev 1 |
+| `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md` | Dev 2 |
 | `INTENT.md`, `SPEC.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py` | Lead |
 
 ## Commands
@@ -41,9 +41,9 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 | `make setup` | Works: checks tools, creates `.venv`, installs requirements, checks the API key |
 | `make check` | Works: structure, JSON schemas, doc links, secret scan, model-agnostic import guard |
 | `make test` | Runs pytest |
-| `make run` | Starts the chat server (`tools/kpi-lab/server.py`) on http://127.0.0.1:8000 once Dev 2 builds it |
+| `make run` | Starts the chat server (`tools/kpi-lab/server.py`) on http://127.0.0.1:8000 once Dev 3 builds it |
 | `make docs` | Rebuilds `docs/` from `scripts/build_docs.py` (edit the script, not the HTML) |
-| `make demo-smoke` | Fails until Dev 2 writes `scripts/demo-smoke.sh` |
+| `make demo-smoke` | Fails until Dev 3 writes `scripts/demo-smoke.sh` |
 | `make verify` | `check` + `test` + `demo-smoke` with a summary; a NOT IMPLEMENTED step counts as FAIL (by design) |
 
 No `make` (common on Windows)? Every row works as `python scripts/dev.py <command>` (setup, check, test, run, docs, verify, demo-smoke); `make` calls the same file.

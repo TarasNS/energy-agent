@@ -1,4 +1,4 @@
-# Energy 4.0 Harness — root commands (owner: Dev 3)
+# Energy 4.0 Harness — root commands (owner: Dev 1)
 # Every target calls scripts/dev.py, so `python scripts/dev.py <target>` works where make is not installed.
 # Targets whose implementation does not exist yet FAIL with an explanation.
 # They never report false success.

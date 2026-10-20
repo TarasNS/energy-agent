@@ -1,4 +1,4 @@
 -r requirements.txt
-# Dev/test dependencies only (owner: Dev 3). Product runtime deps go in each component.
+# Dev/test dependencies only (owner: Dev 1). Product runtime deps go in each component.
 pytest>=8.0
 jsonschema>=4.21

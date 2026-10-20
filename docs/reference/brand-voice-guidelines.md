@@ -34,7 +34,7 @@ The reader is a busy engineer building live during a short hackathon session. Ev
 
 #### Sequential
 - **What it means**: The page reads as "do this, then this". Numbering is continuous across a page.
-- **How it shows up**: Groups by moment (set up → build tasks → finish each task). Hand-offs to other people are steps too ("Send Dev 4 the golden number").
+- **How it shows up**: Groups by moment (set up → build tasks → finish each task). Hand-offs to other people are steps too ("Send Dev 2 the golden number").
 - **What to avoid**: Unordered section lists (mission, why, inputs, handoff) that the reader must assemble into a plan.
 - **Evidence**: Lead: "very straightforward 1 by 1 steps, do this after this".
 - **Confidence**: High
@@ -87,7 +87,7 @@ The reader is a busy engineer building live during a short hackathon session. Ev
 
 | Before | After |
 |---|---|
-| "Inputs you depend on: schemas/market-price.schema.json (Dev 3 + Dev 4, draft now; build against it)" | "4. Open `schemas/market-price.schema.json`. Tell Claude: 'Build get_day_ahead_prices against this schema, tests first.'" |
+| "Inputs you depend on: schemas/market-price.schema.json (Dev 1 + Dev 2, draft now; build against it)" | "4. Open `schemas/market-price.schema.json`. Tell Claude: 'Build get_day_ahead_prices against this schema, tests first.'" |
 | "Why your part matters: the skill turns a generic model into an energy assistant that quotes numbers…" | *(removed from the working page: lives in INTENT.md)* |
 
 ---

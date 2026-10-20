@@ -1,6 +1,6 @@
 # .claude/hooks/ — after the POC
 
-**Owner:** Dev 1 · **Status:** not part of the hackathon session
+**Owner:** Dev 4 · **Status:** not part of the hackathon session
 
 In the POC, secrets are protected by `.gitignore` and the secret scan in `make check`. Hooks come after the POC:
 

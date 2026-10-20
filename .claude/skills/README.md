@@ -1,8 +1,8 @@
 # .claude/skills/
 
-**Owner:** Dev 1 · **Task:** [Dev 1 page](../../docs/developer-1.html)
+**Owner:** Dev 4 · **Task:** [Dev 4 page](../../docs/developer-4.html)
 
-The POC has **one** skill: `kpi-advisor/SKILL.md`. It is the model's instruction file. Dev 2's agent loop reads this file as the system prompt when it exists, and has a built-in fallback until it lands.
+The POC has **one** skill: `kpi-advisor/SKILL.md`. It is the model's instruction file. Dev 3's agent loop reads this file as the system prompt when it exists, and has a built-in fallback until it lands.
 
 ## The skill must
 1. **Say the data is synthetic** and every answer must say so.

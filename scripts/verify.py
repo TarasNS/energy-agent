@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repository health check behind `make check` (owner: Dev 3).
+"""Repository health check behind `make check` (owner: Dev 1).
 
 Checks: required files, JSON schemas, local links in Markdown and HTML,
 developer page sections, secret patterns, and mcp/ package shadowing.
@@ -20,7 +20,7 @@ errors: list[str] = []
 REQUIRED = """README.md INTENT.md TEAM.md ARCHITECTURE.md
 SPEC.md EVALS.md DEMO.md CLAUDE.md Makefile .env.example .gitignore requirements-dev.txt pytest.ini
 index.html docs/index.html docs/lead.html .claude/brand-voice-guidelines.md
-docs/developer-1.html docs/developer-2.html docs/developer-3.html docs/developer-4.html docs/presentation.html
+docs/developer-4.html docs/developer-3.html docs/developer-1.html docs/developer-2.html docs/presentation.html
 docs/css/style.css docs/js/app.js scripts/build_docs.py model/README.md requirements.txt
 .claude/agents/researcher.md .claude/agents/verifier.md .claude/agents/simplifier.md
 .github/PULL_REQUEST_TEMPLATE.md

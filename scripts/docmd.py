@@ -1,4 +1,4 @@
-"""Small Markdown to HTML converter for the document pages in docs/reference/ (owner: Dev 3).
+"""Small Markdown to HTML converter for the document pages in docs/reference/ (owner: Dev 1).
 
 Handles what our documents use: headings, paragraphs, tables, lists, fenced code, quotes,
 bold, italics, inline code and links. Standard library only.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Owner: Dev 3. The project commands without make: python scripts/dev.py <command>.
+"""Owner: Dev 1. The project commands without make: python scripts/dev.py <command>.
 
 Works on Windows, macOS and Linux with only Python 3.11+. The Makefile calls this file,
 so `make <command>` and `python scripts/dev.py <command>` do the same thing.
@@ -76,7 +76,7 @@ def test() -> int:
     rc = run("-m", "pytest")
     if rc == 5:
         print("\nNOT IMPLEMENTED: no tests collected.")
-        print("  Needed: tests under mcp/*/tests/, harness/, evals/ or tests/ (owner: Dev 4, plus each component owner).")
+        print("  Needed: tests under mcp/*/tests/, harness/, evals/ or tests/ (owner: Dev 2, plus each component owner).")
         return 1
     if rc != 0 and subprocess.call([python_for(), "-c", "import pytest"], cwd=ROOT, stderr=subprocess.DEVNULL) != 0:
         print("pytest not available. Run: python scripts/dev.py setup")
@@ -93,7 +93,7 @@ def docs() -> int:
 
 def demo_smoke() -> int:
     if not (ROOT / "scripts" / "demo-smoke.sh").exists():
-        print("NOT IMPLEMENTED: scripts/demo-smoke.sh does not exist yet (Dev 2).")
+        print("NOT IMPLEMENTED: scripts/demo-smoke.sh does not exist yet (Dev 3).")
         return 1
     bash = shutil.which("bash")
     if not bash:
