@@ -1,0 +1,120 @@
+[
+  {
+    "id": "G-01",
+    "question": "How did actual generation compare with expected for the portfolio on 1-2 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "actual_vs_expected", "asset": "portfolio", "start": "2026-06-01", "end": "2026-06-02"},
+    "expected": "92.7",
+    "unit": "%",
+    "note": "Actual MWh: north 36.027 + 37.119, south 28.710 + 34.220 = 136.076. Expected MWh: north 39.512 + 40.081, south 31.489 + 35.788 = 146.870. 136.076 / 146.870 x 100 = 92.6506... -> 92.7."
+  },
+  {
+    "id": "G-02",
+    "question": "What was the performance ratio of Park North on 3 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "performance_ratio", "asset": "north", "start": "2026-06-03", "end": "2026-06-03"},
+    "expected": "81.5",
+    "unit": "%",
+    "note": "E_AC = 49.451 MWh = 49451.0 kWh. H_POA = 6.07 kWh/m2. Nameplate 10000 kWp. 49451 / (6.07 x 10000) x 100 = 49451 / 60700 x 100 = 81.4679... -> 81.5. One park, so the tool's average of park ratios is this ratio."
+  },
+  {
+    "id": "G-03",
+    "question": "What was portfolio availability during the Park North outage on 7-8 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "availability", "asset": "portfolio", "start": "2026-06-07", "end": "2026-06-08"},
+    "expected": "74.0",
+    "unit": "%",
+    "note": "CHECKED BY HAND. Available hours: north 12 + 11 = 23, south 24 + 24 = 48, total 71. Period hours: 2 days x 24 h x 2 parks = 96. 71 / 96 x 100 = 73.958... -> 74.0."
+  },
+  {
+    "id": "G-04",
+    "question": "What was the capacity factor of Park South on 4 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "capacity_factor", "asset": "south", "start": "2026-06-04", "end": "2026-06-04"},
+    "expected": "20.7",
+    "unit": "%",
+    "note": "Energy 39.721 MWh. Capacity 8 MW x 24 h = 192 MWh. 39.721 / 192 x 100 = 20.688... -> 20.7."
+  },
+  {
+    "id": "G-05",
+    "question": "How did Park South deliver against its PPA on 2 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "ppa_delivery", "asset": "south", "start": "2026-06-02", "end": "2026-06-02"},
+    "expected": "95.6",
+    "unit": "%",
+    "note": "PPA share 0.5 of output (demo assumption). Delivered = 34.220 x 0.5 = 17.110 MWh. Contracted = 35.788 x 0.5 = 17.894 MWh. 17.110 / 17.894 x 100 = 95.618... -> 95.6. Day chosen so neither half ends in a 5 at the fourth decimal (no rounding tie)."
+  },
+  {
+    "id": "G-06",
+    "question": "What price did the portfolio capture on 1-2 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "realised_price", "asset": "portfolio", "start": "2026-06-01", "end": "2026-06-02"},
+    "expected": "18.17",
+    "unit": "EUR/MWh",
+    "note": "Daily PV MWh: 1 June 36.027 + 28.710 = 64.737; 2 June 37.119 + 34.220 = 71.339. Prices: -6.30 and 40.37 EUR/MWh. Value = 64.737 x -6.30 + 71.339 x 40.37 = -407.8431 + 2879.95543 = 2472.11233 EUR. Energy = 136.076 MWh. 2472.11233 / 136.076 = 18.1671... -> 18.17. The negative-price day pulls the capture price down."
+  },
+  {
+    "id": "G-07",
+    "question": "How much would a 10 EUR/MWh price move change merchant revenue for 1-2 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "merchant_exposure", "asset": "portfolio", "start": "2026-06-01", "end": "2026-06-02"},
+    "expected": "680.38",
+    "unit": "EUR",
+    "note": "Actual MWh 136.076 (see G-01). Merchant share 1 - 0.5 = 0.5, so merchant MWh = 68.038. 68.038 x 10 EUR/MWh = 680.38 EUR. A sensitivity, not a forecast."
+  },
+  {
+    "id": "G-08",
+    "question": "How many hours was Park North down on 7-8 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "downtime", "asset": "north", "start": "2026-06-07", "end": "2026-06-08"},
+    "expected": "25.00",
+    "unit": "h",
+    "note": "CHECKED BY HAND. Outage hours: 7 June 12, 8 June 13. 48 hourly intervals, 25 of them OUTAGE, x 1 h = 25.00 h."
+  },
+  {
+    "id": "G-09",
+    "question": "How much energy did the portfolio lose on 7-8 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "energy_loss", "asset": "portfolio", "start": "2026-06-07", "end": "2026-06-08"},
+    "expected": "63.222",
+    "unit": "MWh",
+    "note": "CHECKED BY HAND. Expected: north 41.897 + 47.966 = 89.863, south 35.749 + 36.059 = 71.808, total 161.671. Actual: north 13.447 + 15.793 = 29.240, south 34.409 + 34.800 = 69.209, total 98.449. 161.671 - 98.449 = 63.222 MWh."
+  },
+  {
+    "id": "G-10",
+    "question": "What is the median incident resolution time in June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "incident_resolution", "asset": "portfolio", "start": "2026-06-01", "end": "2026-06-30"},
+    "expected": null,
+    "expected_unavailable": "no incident records; ticket data required",
+    "unit": "h",
+    "note": "The synthetic dataset has no tickets, so the correct answer is no number. The tool must say it is unavailable and give the reason."
+  },
+  {
+    "id": "G-11",
+    "question": "What was battery availability on 1-2 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "bess_availability", "asset": "battery", "start": "2026-06-01", "end": "2026-06-02"},
+    "expected": "95.8",
+    "unit": "%",
+    "note": "Available hours 22 + 24 = 46. Period 2 days x 24 h = 48. 46 / 48 x 100 = 95.833... -> 95.8."
+  },
+  {
+    "id": "G-12",
+    "question": "What was the battery round-trip efficiency on 1-2 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "bess_round_trip", "asset": "battery", "start": "2026-06-01", "end": "2026-06-02"},
+    "expected": "85.8",
+    "unit": "%",
+    "note": "CHECKED BY HAND. Charged 11.593 + 8.570 = 20.163 MWh. Discharged 9.794 + 7.503 = 17.297 MWh. 17.297 / 20.163 x 100 = 85.786... -> 85.8."
+  },
+  {
+    "id": "G-13",
+    "question": "How hard was the battery cycled on 1-2 June?",
+    "tool": "get_kpi",
+    "arguments": {"kpi": "bess_cycle_utilisation", "asset": "battery", "start": "2026-06-01", "end": "2026-06-02"},
+    "expected": "46.8",
+    "unit": "%",
+    "note": "Throughput (dataset column, rounded per day): 21.388 + 16.074 = 37.462 MWh over 2 days, average 18.731 MWh/day. Usable 20 MWh. 18.731 / (2 x 20) x 100 = 46.8275 -> 46.8."
+  }
+]
