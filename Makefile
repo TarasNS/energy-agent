@@ -1,10 +1,11 @@
 # Energy 4.0 Harness — root commands (owner: Dev 3)
+# Every target calls scripts/dev.py, so `python scripts/dev.py <target>` works where make is not installed.
 # Targets whose implementation does not exist yet FAIL with an explanation.
 # They never report false success.
 
 SHELL := /bin/bash
 VENV  := .venv
-PY    := $(if $(wildcard $(VENV)/bin/python),$(VENV)/bin/python,python3)
+PY    := $(or $(wildcard $(VENV)/bin/python),$(wildcard $(VENV)/Scripts/python.exe),$(shell command -v python3 || command -v python))
 
 .PHONY: help setup check test eval run demo-smoke verify docs
 
@@ -19,21 +20,13 @@ help:
 	@echo "make docs        rebuild the docs/ portal"
 
 setup:
-	@bash scripts/setup.sh
+	@$(PY) scripts/dev.py setup
 
 check:
-	@$(PY) scripts/verify.py
+	@$(PY) scripts/dev.py check
 
 test:
-	@$(PY) -m pytest; rc=$$?; \
-	if [ $$rc -eq 5 ]; then \
-	  echo ""; \
-	  echo "NOT IMPLEMENTED: no tests collected."; \
-	  echo "  Needed: tests under mcp/*/tests/, harness/, evals/ or tests/ (owner: Dev 4, plus each component owner)."; \
-	  exit 1; \
-	elif [ $$rc -eq 127 ] || ! $(PY) -c 'import pytest' 2>/dev/null; then \
-	  echo "pytest not available. Run: make setup"; exit 1; \
-	else exit $$rc; fi
+	@$(PY) scripts/dev.py test
 
 eval:
 	@if [ -f evals/run.py ]; then $(PY) evals/run.py; \
@@ -44,13 +37,13 @@ eval:
 	fi
 
 run:
-	@$(PY) tools/kpi-lab/server.py
+	@$(PY) scripts/dev.py run
 
 demo-smoke:
 	@bash scripts/demo-smoke.sh
 
 verify:
-	@bash scripts/verify.sh
+	@$(PY) scripts/dev.py verify
 
 docs:
-	@$(PY) scripts/build_docs.py
+	@$(PY) scripts/dev.py docs

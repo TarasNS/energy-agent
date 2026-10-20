@@ -293,7 +293,7 @@ def setup(extra=()):
     return route(
         step("Open the project in Claude Code", "In the Claude desktop app, choose the Code tab and open the folder <code>energy-agent</code>. No folder yet? Ask Claude to clone it in the next step."),
         step("Let Claude set it up", "Claude installs the tools and runs the checks. You read the answer.",
-             claude=f"Set up this project on my computer. If the code is not here, clone https://github.com/{REPO_NAME}.git. Switch to the main branch, run make setup and make check, and explain any failure in plain words. Do not ask me to type my API key in this chat.",
+             claude=f"Set up this project on my computer. If the code is not here, clone https://github.com/{REPO_NAME}.git. Switch to the main branch, run make setup and make check, and explain any failure in plain words. If make is not installed (common on Windows), run python scripts/dev.py setup and python scripts/dev.py check instead, and from now on read every make X in this project as python scripts/dev.py X. Do not ask me to type my API key in this chat.",
              see="<code>make check passed.</code>"),
         step("Add the key", "Ask the lead for the Anthropic key. Copy <code>.env.example</code> to <code>.env</code>, paste the key after <code>ANTHROPIC_API_KEY=</code> and save. Never commit it.", files=[".env.example"]),
         step("Read the idea (5 minutes)", "Only this file. Claude reads the rest for you.", files=["INTENT.md"]),

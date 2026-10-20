@@ -4,8 +4,8 @@
   document.documentElement.classList.add("js");
 
   // Markdown links: set this if the portal is published on GitHub Pages (owner: Dev 3),
-  // e.g. "https://github.com/TarasNS/energy-agent/blob/dev/"
-  var REPO_BLOB_BASE = "";
+  // the guide lives in TarasNS/energy-agent-guide; the files it links to stay in TarasNS/energy-agent
+  var REPO_BLOB_BASE = "https://github.com/TarasNS/energy-agent/blob/main/";
   if (REPO_BLOB_BASE && location.protocol !== "file:") {
     document.querySelectorAll('a[href^="../"]').forEach(function (a) {
       var href = a.getAttribute("href");
