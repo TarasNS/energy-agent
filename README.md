@@ -16,17 +16,17 @@ A chat assistant for a solar and battery portfolio. The model picks tools, deter
 | Role | Your page |
 |---|---|
 | Lead | [docs/lead.html](docs/lead.html) |
-| Dev 1 · Model & server | [docs/developer-1.html](docs/developer-1.html) |
-| Dev 2 · Calculator & evals | [docs/developer-2.html](docs/developer-2.html) |
-| Dev 3 · Harness & audit | [docs/developer-3.html](docs/developer-3.html) |
-| Dev 4 · Approval & release | [docs/developer-4.html](docs/developer-4.html) |
+| Dev 1 · Contracts & model | [docs/developer-1.html](docs/developer-1.html) |
+| Dev 2 · Data, calculator & tools | [docs/developer-2.html](docs/developer-2.html) |
+| Dev 3 · Agent loop & smoke | [docs/developer-3.html](docs/developer-3.html) |
+| Dev 4 · Approval, server & release | [docs/developer-4.html](docs/developer-4.html) |
 | Dev 5 · Chat page in Lovable (lead) | [docs/developer-5.html](docs/developer-5.html) |
 
 Reference, only when a task links to it: [SPEC.md](SPEC.md), [ARCHITECTURE.md](ARCHITECTURE.md), [TEAM.md](TEAM.md), [EVALS.md](EVALS.md), [DEMO.md](DEMO.md), [KPI_REVIEW.md](KPI_REVIEW.md), [CLAUDE.md](CLAUDE.md).
 
 ## What the team builds
 
-Already merged: contracts, model gateway and replay, synthetic portfolio, 13 KPI formulas, skill, charts, nine tools and the agent loop. The rest is 17 numbered tasks in four rounds, following [SPEC.md](SPEC.md). The harness is made of:
+The repository starts with documents and checks only. The team builds the whole harness in 23 numbered tasks over four rounds, following [SPEC.md](SPEC.md). The harness is made of:
 
 - the synthetic portfolio and 13 KPI formulas (`mcp/kpi-solar`, `data/synthetic`)
 - nine read-only tools, the agent loop and the number check (`harness/`)

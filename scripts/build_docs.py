@@ -70,9 +70,9 @@ def done(items):
 COL = {1: "var(--d1)", 2: "var(--d2)", 3: "var(--d3)", 4: "var(--d4)", 5: "var(--lead)", "L": "var(--lead)"}
 SUN = ('<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="#1a5c00" stroke-width="1.8"/>'
        '<g stroke="#1a5c00" stroke-width="1.6" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>')
-NAV = [("index.html", "Guide", "L"), ("lead.html", "Lead", "L"), ("developer-1.html", "Dev 1 · Model & server", 1),
-       ("developer-2.html", "Dev 2 · Calculator & evals", 2), ("developer-3.html", "Dev 3 · Harness & audit", 3),
-       ("developer-4.html", "Dev 4 · Approval & release", 4), ("developer-5.html", "Dev 5 · Chat page (lead)", 5),
+NAV = [("index.html", "Guide", "L"), ("lead.html", "Lead", "L"), ("developer-1.html", "Dev 1 · Contracts & model", 1),
+       ("developer-2.html", "Dev 2 · Data, calculator & tools", 2), ("developer-3.html", "Dev 3 · Agent loop & smoke", 3),
+       ("developer-4.html", "Dev 4 · Approval, server & release", 4), ("developer-5.html", "Dev 5 · Chat page (lead)", 5),
        ("presentation.html", "Presentation", "L")]
 def foot(base=""):
     docs = ["INTENT.md", "SPEC.md", "ARCHITECTURE.md", "TEAM.md", "EVALS.md", "DEMO.md", "KPI_REVIEW.md", "CLAUDE.md"]
@@ -138,10 +138,10 @@ def arch(id_, focus=None):
          '<path class="wire" d="M115 396V436"/>', '<path class="wire" d="M355 396V436"/>', '<path class="wire" d="M595 396V436"/>', '<path class="wire" d="M840 396V436"/>',
          part(5, 370, 20, 220, 64, "Chat page", "Lovable · energy-agent-ui"),
          part(3, 370, 120, 220, 64, "Agent loop", "number check · harness/"),
-         part(4, 100, 220, 230, 64, "KPI advisor skill", "the model's instructions"),
+         part(1, 100, 220, 230, 64, "KPI advisor skill", "the model's instructions"),
          part(1, 630, 220, 230, 64, "Model gateway", "Claude Haiku 5.5 · swappable"),
-         part(1, 10, 330, 210, 66, "Server", "/api/chat · /api/approve"),
-         part(3, 250, 330, 210, 66, "Energy tools", "nine tools · harness/"),
+         part(4, 10, 330, 210, 66, "Server", "/api/chat · /api/approve"),
+         part(2, 250, 330, 210, 66, "Energy tools", "nine tools · harness/"),
          part(2, 490, 330, 210, 66, "KPI calculator", "mcp/kpi-solar · every number"),
          part(4, 730, 330, 220, 66, "Actions", "propose → approve"),
          part(2, 10, 438, 210, 62, "Day-ahead prices", "daily · synthetic"),
@@ -150,7 +150,7 @@ def arch(id_, focus=None):
          part(4, 730, 438, 220, 62, "Audit log", "proposals, approvals, tool calls"),
          '<text class="band" x="10" y="540">Across everything</text>',
          part(1, 10, 552, 225, 62, "Contracts & checks", "schemas · make check"),
-         part(1, 245, 552, 225, 62, "Offline replay", "model/recorded"),
+         part(3, 245, 552, 225, 62, "Offline replay", "model/recorded"),
          part(3, 480, 552, 225, 62, "Smoke test", "make demo-smoke"),
          part(5, 715, 552, 235, 62, "Demo story", "DEMO.md · screenshots"),
          *[f'<circle class="pulse" r="3"><animateMotion dur="2.4s" begin="{b}s" repeatCount="indefinite" path="{d}"/></circle>' for d, b in PULSES],
@@ -159,7 +159,7 @@ def arch(id_, focus=None):
 
 
 def legend(target):
-    names = {1: "Dev 1 · Model & server", 2: "Dev 2 · Calculator & evals", 3: "Dev 3 · Harness & audit", 4: "Dev 4 · Approval & release", 5: "Dev 5 · Chat page"}
+    names = {1: "Dev 1 · Contracts & model", 2: "Dev 2 · Data, calculator & tools", 3: "Dev 3 · Agent loop & smoke", 4: "Dev 4 · Approval, server & release", 5: "Dev 5 · Chat page"}
     return (f'<ul class="legend" data-legend="{target}">'
             + "".join(f'<li><button type="button" data-d="{d}" aria-pressed="false"><i>{d}</i>{n}</button></li>' for d, n in names.items())
             + "</ul>")
@@ -225,7 +225,8 @@ def merge_svg():
 def flow_svg():
     """The build flow: people as rows, four rounds as columns, an arrow from a task to each task that needs it.
     Arrows are faint until a task is pointed at (docs/js/app.js)."""
-    NW, NH, GUT, LBL, HDR, SUB, LH = 198, 44, 68, 124, 40, 56, 128
+    NW, NH, GUT, LBL, HDR, SUB = 198, 44, 68, 124, 40, 54
+    LH = (max(x["sub"] for x in FLOW) + 1) * SUB + 22
     PITCH = NW + GUT
 
     def nx(r): return LBL + (r - 1) * PITCH
@@ -256,7 +257,7 @@ def flow_svg():
 
     W, H = LBL + 4 * PITCH - GUT + 12, HDR + 5 * LH
     out = [f'<div class="loopdiagram" style="overflow-x:auto"><svg id="flow" viewBox="0 0 {W} {H}" style="min-width:1000px" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="flt">',
-           '<title id="flt">The build flow: 17 numbered tasks in four rounds, one row per person. An arrow points from a task to each task that needs it.</title>',
+           f'<title id="flt">The build flow: {len(FLOW)} numbered tasks in four rounds, one row per person. An arrow points from a task to each task that needs it.</title>',
            '<style>#flow .fe{fill:none;stroke:var(--ink);stroke-width:1.3;stroke-linejoin:round;opacity:.55;marker-end:url(#fa)}'
            '#flow .fa{fill:var(--ink)}#flow .fn rect{fill:var(--green)}#flow .fn.d5 rect{fill:var(--lead)}'
            '#flow .fn.res rect{fill:var(--panel);stroke:var(--ink);stroke-dasharray:5 4}#flow .fn text{fill:var(--white);pointer-events:none}'
@@ -425,14 +426,14 @@ def tasks_of(n):
 
 
 DEVS = {
-    1: dict(title="Model &amp; Server", own=["model/", "schemas/", "scripts/", "CLAUDE.md", "Makefile", ".github/", "docs/", "tools/kpi-lab/server.py"],
-            what="You built the contracts, the model gateway and the replay. Now you build the server the page and the smoke test talk to, then run the five questions."),
-    2: dict(title="Calculator &amp; Evals", own=["mcp/kpi-solar/", "evals/", "tests/", "data/synthetic/", "EVALS.md", "KPI_REVIEW.md"],
-            what="You built the portfolio and the formulas. Now you prove the numbers: golden cases, the number check, the same cases through the live server, and the rehearsal."),
-    3: dict(title="Harness &amp; Audit", own=["harness/", "model/recorded/", "scripts/demo-smoke.sh", ".claude/agents/"],
-            what="You built the tools and the loop. Now you record the demo, write and run the smoke test, and add an audit line for every tool call."),
-    4: dict(title="Approval &amp; Release", own=["mcp/actions/", "Dockerfile", ".dockerignore", ".claude/skills/", "tools/kpi-lab/charts.js"],
-            what="You built the skill and the charts. As the team's software developer you now build the approval step, the container and the Azure release."),
+    1: dict(title="Contracts &amp; Model", own=["schemas/", "model/", ".claude/skills/", "tests/test_number_check.py", "scripts/", "CLAUDE.md", "Makefile", ".github/", "docs/"],
+            what="You write the shared contracts, the model gateway and the skill the model reads, then test the number check and run the five questions."),
+    2: dict(title="Data, Calculator &amp; Tools", own=["data/synthetic/", "mcp/kpi-solar/", "harness/registry.py", "harness/energy_tools.py", "evals/", "tests/", "EVALS.md", "KPI_REVIEW.md"],
+            what="You build the synthetic portfolio, the 13 KPI formulas and the nine tools that serve them, then prove the numbers with golden cases."),
+    3: dict(title="Agent Loop &amp; Smoke", own=["harness/agent.py", "scripts/demo-smoke.sh", "model/recorded/", ".claude/agents/"],
+            what="You build the agent loop with the number check, audit every tool call, write and run the smoke test, and record the demo answers."),
+    4: dict(title="Approval, Server &amp; Release", own=["mcp/actions/", "tools/kpi-lab/", "Dockerfile", ".dockerignore", "scripts/test_container.py"],
+            what="As the team's software developer you build the approval step, the server and the container, and you release to Azure."),
     5: dict(title="Chat Page (Lovable)", own=["energy-agent-ui (Lovable repository)"],
             what="You are the lead and Dev 5. You approve and merge pull requests, and you build the chat page in Lovable. Lovable commits it to its own repository."),
 }
@@ -466,7 +467,7 @@ def lead_page():
     ), "decide")}
 {block("Before the build", "Four prompts, each takes a minute", route(
                 step("Check the spec with an energy colleague", "15 minutes. Are the KPI definitions right, and are the data ranges plausible?", files=["KPI_REVIEW.md", "SPEC.md"]),
-        step("Keep the team off the old build", "The earlier build is kept on tag <code>reference-v1</code> so you can compare at the end. Tell the team not to open it.", claude="Tell me what is on tag reference-v1 and confirm that main has no harness code. Do not change anything."),
+        step("Keep the team off the old build", "The earlier builds are kept on tags <code>reference-v1</code> and <code>team-build-v1</code> so you can compare at the end. Tell the team not to open them.", claude="Tell me what is on tags reference-v1 and team-build-v1 and confirm that main has no harness code. Do not change anything."),
         step("Share the key privately", "One Anthropic key for the team. Each developer puts it in their own <code>.env</code>; it is never committed."),
         step("Send each person their page", "Link: <code>docs/developer-N.html</code>, Dev 1 to Dev 5. Each person runs the setup prompt on their page before the session and picks Haiku 5.5."),
     ), "before")}
@@ -483,10 +484,10 @@ def lead_page():
         step("Check the demo story", "The three-minute story and the questions to ask live.", files=["DEMO.md"], claude="Open DEMO.md and run each question in the demo table against the chat page. Tell me which questions give a good answer and which do not, and suggest replacements. Do not change any code."),
     ), "presentation")}
 {block("Before presenting", None, route(
-        step("Compare with the earlier build", "Only you may open tag <code>reference-v1</code>. Ask the same five questions on the new build and on it, and judge how close they are. Differences are fine; wrong numbers are not.", claude="Run the new harness and the build on tag reference-v1 side by side in separate folders. Ask both: Which park lost most energy in June? / What is our battery round-trip efficiency? / Should we change anything about negative prices? / What was the total revenue of park A in 2031? / Add up the energy of both parks and give me the average. Show a table: tools used, chart yes or no, verified yes or no, and the first 200 characters of each answer. Do not edit any file."),
-        step("Check the smoke test", "Dev 3 runs it in task #14. Ask for the output before you approve the release."),
+        step("Compare with the earlier build", "Only you may open tags <code>reference-v1</code> and <code>team-build-v1</code>. Ask the same five questions on the new build and on them, and judge how close they are. Differences are fine; wrong numbers are not.", claude="Run the new harness and the build on tag reference-v1 side by side in separate folders. Ask both: Which park lost most energy in June? / What is our battery round-trip efficiency? / Should we change anything about negative prices? / What was the total revenue of park A in 2031? / Add up the energy of both parks and give me the average. Show a table: tools used, chart yes or no, verified yes or no, and the first 200 characters of each answer. Do not edit any file."),
+        step("Check the smoke test", "Dev 3 runs it in task #19. Ask for the output before you approve the release."),
         step("Rehearse twice, once with Wi-Fi off", "Time it. It must be under three minutes. Save one screenshot per step as the fallback.", files=["DEMO.md"]),
-        step("Approve the release", "Dev 4 runs the release (task #15) and asks you before every change in Azure.", files=[("docs/index.html#deploy", "Deploying to Azure")]),
+        step("Approve the release", "Dev 4 runs the release (task #21) and asks you before every change in Azure.", files=[("docs/index.html#deploy", "Deploying to Azure")]),
     ), "present")}
 """
     return page("lead.html", "Lead", body, "var(--lead)")
@@ -508,16 +509,16 @@ def tbl(head, rows):
 
 def index_page():
     tiles = (tile("lead.html", "L", "Lead", "Decisions, approvals &amp; merges")
-             + tile("developer-1.html", 1, "Dev 1", "Model &amp; server")
-             + tile("developer-2.html", 2, "Dev 2", "Calculator &amp; evals")
-             + tile("developer-3.html", 3, "Dev 3", "Harness &amp; audit")
-             + tile("developer-4.html", 4, "Dev 4", "Approval &amp; release")
+             + tile("developer-1.html", 1, "Dev 1", "Contracts &amp; model")
+             + tile("developer-2.html", 2, "Dev 2", "Data, calculator &amp; tools")
+             + tile("developer-3.html", 3, "Dev 3", "Agent loop &amp; smoke")
+             + tile("developer-4.html", 4, "Dev 4", "Approval, server &amp; release")
              + tile("developer-5.html", 5, "Dev 5", "Chat page in Lovable")
 )
     process = route(
         step("The lead settles the idea", "Read " + f("INTENT.md") + " (five minutes). The lead answers its two open questions.", files=[("docs/lead.html", "Lead page")]),
         step("Everyone sets up once", "Open your page from the tiles above and paste the setup prompt. Claude installs the tools and runs the checks."),
-        step("Each person takes their tasks", "Five people, seventeen numbered tasks in four rounds. Every task in round 1 needs nothing, so everyone starts at once. <a href=\"#combine\">See the flow</a>."),
+        step("Each person takes their tasks", "Five people, 23 numbered tasks in four rounds. Every task in round 1 needs nothing, so everyone starts at once. <a href=\"#combine\">See the flow</a>."),
         step("Build each task with Claude", "One prompt to start, one to finish. Test first, then the verifier, then a pull request. <a href=\"#loop\">See the loop</a>."),
         step("The parts meet on GitHub", "One pull request per task into <code>main</code>, named with its task number. The lead merges each one as soon as it is green. <a href=\"#combine\">See how</a>."),
         step("The lead prepares the presentation", "Five slides and the three-minute demo.", files=[("docs/presentation.html", "Presentation"), "DEMO.md"]),
@@ -544,7 +545,7 @@ def index_page():
 
 <section class="sec alt" id="combine">
   <h2 class="reveal">How we put our parts together</h2>
-  <p class="intro reveal">Nobody sends files by chat or e-mail, and there is no shared folder. GitHub is the one place where our parts meet. Every part arrives as a pull request, and the lead merges each one as soon as it is green. The flow below has 17 numbered tasks in four rounds, one row per person; an arrow points from a task to each task that needs it. Point at or tap a task to light up its chain.</p>
+  <p class="intro reveal">Nobody sends files by chat or e-mail, and there is no shared folder. GitHub is the one place where our parts meet. Every part arrives as a pull request, and the lead merges each one as soon as it is green. The flow below has 23 numbered tasks in four rounds, one row per person; an arrow points from a task to each task that needs it. Point at or tap a task to light up its chain.</p>
   <div class="reveal">{flow_svg()}<p class="files">The number on a task is the same on its developer page and in its pull request name. Dashed grey boxes are reserve time. Everyone builds with Claude Haiku 5.5 in Claude Code; Dev 5 builds the chat page in Lovable.</p></div>
   <div class="reveal">{route(
     step("Work on your own branch", "The brief prompt on your page makes branch <code>devN/&lt;task&gt;</code> from <code>main</code>. You never edit <code>main</code> directly."),
@@ -557,14 +558,14 @@ def index_page():
 
 <section class="sec alt" id="order">
   <h2 class="reveal">Every task, as a list</h2>
-  <p class="intro reveal">The same tasks as the flow above. Already merged before this flow: contracts, model gateway, offline replay, portfolio, KPI formulas, skill, charts, nine tools and the agent loop.</p>
+  <p class="intro reveal">The same tasks as the flow above. The repository starts with documents and checks only; every part of the harness is one of these tasks.</p>
   <div class="reveal">{tbl(["Task", "Round", "Who", "What", "Needs", "How"], flow_table())}</div>
   <p class="intro reveal" style="margin-top:1.5rem">After every merge the lead runs <code>make check</code> and <code>make test</code> on <code>main</code>, and the next developer updates from <code>main</code> before the next task.</p>
 </section>
 
 <section class="sec" id="deploy">
   <h2 class="reveal">Deploying to Azure</h2>
-  <p class="intro reveal">The chat runs as one container on Azure App Service. Azure builds the image, so nobody needs Docker on a laptop. Dev 4 writes the container files (task #2) and releases (task #15). The chat page is not in the container: Dev 5 builds it in Lovable, and its address goes into <code>KPI_ALLOWED_ORIGINS</code>.</p>
+  <p class="intro reveal">The chat runs as one container on Azure App Service. Azure builds the image, so nobody needs Docker on a laptop. Dev 4 writes the container files (task #10) and releases (task #21). The chat page is not in the container: Dev 5 builds it in Lovable, and its address goes into <code>KPI_ALLOWED_ORIGINS</code>.</p>
   <div class="reveal">{deploy_svg()}</div>
   <div class="reveal">{tbl(["Part", "How it works"], [
     ["Image", "<code>python:3.11-slim</code> with only the runtime code. <code>.dockerignore</code> is an allowlist, so <code>.env</code>, tests and docs never enter the image."],
@@ -577,7 +578,7 @@ def index_page():
   <p class="intro reveal" style="margin-top:1.5rem">Not confirmed yet: the Azure names (registry, web app, resource group) and who has access. They are not in the repo. The lead confirms them before the first release.</p>
   <div class="reveal">{route(
     step("Pull main first", "Only deploy <code>main</code>, after <code>make verify</code> is green."),
-    step("Release", "Dev 4 pastes this into Claude Code (task #15). Claude asks for the names, and the lead approves each change in Azure.", claude="Build the container image from main in Azure Container Registry, update the web app to the new image, then call /health and tell me the result. Ask me for the registry, web app and resource group names, and ask before every az command that changes Azure. Never print the API key."),
+    step("Release", "Dev 4 pastes this into Claude Code (task #21). Claude asks for the names, and the lead approves each change in Azure.", claude="Build the container image from main in Azure Container Registry, update the web app to the new image, then call /health and tell me the result. Ask me for the registry, web app and resource group names, and ask before every az command that changes Azure. Never print the API key."),
     step("Check the live page", "Open the page, ask one question, and confirm an answer and a chart come back. Then press Approve on a proposal and check the audit line."),
   )}</div>
 </section>
@@ -604,12 +605,12 @@ def index_page():
   ])}</div>
 </section>
 
-{sec("Who builds what", "Exact tasks are on each page", tbl(["Person", "Builds now", "Page"], [
-    ["Dev 1 Anna", "Server routes, server on the real loop, the five-question run (#1, #9, #13)", '<a href="developer-1.html">developer-1</a>'],
-    ["Dev 2 Huiling", "Golden cases, number-check tests, golden through the server, rehearsal (#3, #4, #12, #17)", '<a href="developer-2.html">developer-2</a>'],
-    ["Dev 3 Raul", "Demo recordings, smoke script, tool-call audit, smoke run (#5, #6, #10, #14)", '<a href="developer-3.html">developer-3</a>'],
-    ["Dev 4 Søren", "Container files, actions and approval, release to Azure, fixes from the smoke test (#2, #7, #15, #16)", '<a href="developer-4.html">developer-4</a>'],
-    ["Dev 5 Taras (lead)", "Chat page in Lovable, page on the server (#8, #11); approves and merges", '<a href="developer-5.html">developer-5</a>'],
+{sec("Who builds what", "Exact tasks are on each page", tbl(["Person", "Builds", "Page"], [
+    ["Dev 1 Anna", "Contracts, model gateway, skill, number-check tests, five-question run (#1, #2, #3, #12, #17)", '<a href="developer-1.html">developer-1</a>'],
+    ["Dev 2 Huiling", "Synthetic portfolio, KPI formulas, nine tools, golden cases, rehearsal (#4, #5, #13, #18, #23)", '<a href="developer-2.html">developer-2</a>'],
+    ["Dev 3 Raul", "Agent loop, smoke script, tool-call audit, smoke run, demo recordings (#6, #7, #14, #19, #20)", '<a href="developer-3.html">developer-3</a>'],
+    ["Dev 4 Søren", "Actions and approval, server, container, release, fixes (#8, #9, #10, #15, #21, #22)", '<a href="developer-4.html">developer-4</a>'],
+    ["Dev 5 Taras (lead)", "Chat page in Lovable, page on the server (#11, #16); approves and merges", '<a href="developer-5.html">developer-5</a>'],
 ]) + f'<p class="files">Files: {f("TEAM.md")}, {f("ARCHITECTURE.md")}</p>', "who", True)}
 
 """

@@ -7,7 +7,7 @@ Curated by Dev 1. Keep it short and true: only stable rules, real commands and a
 ## Project
 Energy 4.0 Harness: a chat assistant for a solar and battery portfolio, **built by the team from `SPEC.md`**. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
 
-**Scope: first proof of concept (POC).** **Current state:** contracts, model gateway and replay code, synthetic portfolio, 13 KPI formulas, skill, charts, nine tools and the agent loop with the number check are merged. Still to build, in 17 numbered tasks over four rounds (the flow on `docs/index.html`): server, actions and approval, audit of tool calls, recordings, golden and number-check tests, container, smoke test, the Lovable chat page, release. Builders use Claude Haiku 5.5: keep each pull request to one file and its test. Do not look for or copy code from tag `reference-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
+**Scope: first proof of concept (POC).** **Current state:** documents, checks and the guide only. No harness code exists yet: the team builds it in 23 numbered tasks over four rounds (the flow on `docs/index.html`, defined in `scripts/flow.py`). Builders use Claude Haiku 5.5: keep each pull request to one file and its test. Do not look for or copy code from tags `reference-v1` or `team-build-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
 
 ## Read before working
 `INTENT.md` (why, scope, done) → `SPEC.md` (exact contracts) → `ARCHITECTURE.md` (how) → `TEAM.md` (who) → your page in `docs/` (your tasks and prompts).
@@ -29,11 +29,11 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 
 | Path | Owner |
 |---|---|
-| `.claude/skills/`, `.claude/hooks/`, `tools/kpi-lab/charts.js`, `mcp/actions/`, `Dockerfile`, `.dockerignore`, `scripts/test_container.py` | Dev 4 |
-| `harness/`, `model/recorded/`, `scripts/demo-smoke.sh`, `.claude/agents/` | Dev 3 |
-| `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke and test_container), `requirements*.txt`, `pytest.ini`, `.env.example`, `model/` (except `model/recorded/`), `schemas/`, `docs/`, `.github/`, `tools/kpi-lab/server.py`, `tools/kpi-lab/test_server.py` | Dev 1 |
-| `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md` | Dev 2 |
-| `INTENT.md`, `SPEC.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py`; the chat page in the Lovable repository `energy-agent-ui` | Dev 5 (lead) |
+| `schemas/`, `model/` (except `model/recorded/`), `.claude/skills/`, `tests/test_number_check.py`, `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke, smoke_turns, test_container), `requirements*.txt`, `pytest.ini`, `.env.example`, `.github/`, `docs/` | Dev 1 |
+| `data/synthetic/`, `mcp/kpi-solar/`, `harness/registry.py`, `harness/energy_tools.py`, `evals/`, `tests/` (rest), `EVALS.md`, `KPI_REVIEW.md` | Dev 2 |
+| `harness/agent.py`, `scripts/demo-smoke.sh`, `scripts/smoke_turns.json`, `model/recorded/`, `.claude/agents/` | Dev 3 |
+| `mcp/actions/`, `tools/kpi-lab/`, `Dockerfile`, `.dockerignore`, `scripts/test_container.py` | Dev 4 |
+| `INTENT.md`, `SPEC.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py`, `scripts/flow.py`; the chat page in the Lovable repository `energy-agent-ui` | Dev 5 (lead) |
 
 ## Commands
 | Command | Status |
@@ -41,7 +41,7 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 | `make setup` | Works: checks tools, creates `.venv`, installs requirements, checks the API key |
 | `make check` | Works: structure, JSON schemas, doc links, secret scan, model-agnostic import guard |
 | `make test` | Runs pytest |
-| `make run` | Starts the chat server (`tools/kpi-lab/server.py`) on http://127.0.0.1:8000 once Dev 1 builds it (task #1) |
+| `make run` | Starts the chat server (`tools/kpi-lab/server.py`) on http://127.0.0.1:8000 once Dev 4 builds it (task #9) |
 | `make docs` | Rebuilds `docs/` from `scripts/build_docs.py` (edit the script, not the HTML) |
 | `make demo-smoke` | Fails until Dev 3 writes `scripts/demo-smoke.sh` |
 | `make verify` | `check` + `test` + `demo-smoke` with a summary; a NOT IMPLEMENTED step counts as FAIL (by design) |

@@ -2,7 +2,7 @@
 
 **Owner:** Lead · **Role:** the acceptance test for the POC. If this demo works, the POC works.
 
-**Setup:** the chat page, synthetic data (2 parks, 1 battery, June 2026), server running. Offline fallback for the server: `MODEL_PROFILE=offline` once Dev 3's recordings (task #5) are merged. The chat page is built in Lovable and needs internet.
+**Setup:** the chat page, synthetic data (2 parks, 1 battery, June 2026), server running. Offline fallback for the server: `MODEL_PROFILE=offline` once Dev 3's recordings (task #20) are merged. The chat page is built in Lovable and needs internet.
 
 ## One-line pitch
 Ask your portfolio a question, get a number you can trust, and approve the next step yourself.
@@ -23,12 +23,12 @@ Managers have the data, but a generic AI assistant raises three questions: *Can 
 | 2:40 | Show the audit line | "Every step is traceable." |
 | 2:50 | Close | "First proof of concept on synthetic data. Next: a real data source and a second workflow." |
 
-The exact numbers on screen come from the golden cases in [EVALS.md](EVALS.md). Fill them in here after task #3 (golden cases).
+The exact numbers on screen come from the golden cases in [EVALS.md](EVALS.md). Fill them in here after task #18 (golden cases).
 
 ## Fallback ladder
 1. **No model access:** run the server with `MODEL_PROFILE=offline`. Same loop, recorded model turns, same numbers. The Lovable page still needs internet; with no internet at all, use the screenshots.
 2. **Server unreachable:** run it on the presenter's laptop.
-3. **Page fails:** the screenshots saved in the rehearsal (task #17, Dev 2).
+3. **Page fails:** the screenshots saved in the rehearsal (task #23, Dev 2).
 
 ## Rehearsal checklist
 - [ ] Under three minutes

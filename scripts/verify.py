@@ -65,6 +65,8 @@ def check_schemas():
     except ImportError:
         errors.append("jsonschema is not installed: run python scripts/dev.py setup")
         return
+    if not (ROOT / "schemas").exists():  # before task #1 there are no contracts yet
+        return
     for name in SCHEMA_FILES:
         if not (ROOT / "schemas" / f"{name}.schema.json").exists():
             errors.append(f"missing contract schema: schemas/{name}.schema.json")

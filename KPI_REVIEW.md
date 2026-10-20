@@ -1,6 +1,6 @@
 # KPI_REVIEW.md — validated KPIs for four groups
 
-**Status:** the 13 formulas are merged in `mcp/kpi-solar` ([SPEC.md §3](SPEC.md)); the definitions below are their reference. **No source data is verified yet**, so no KPI is production-ready.
+**Status:** Dev 2 builds the 13 formulas in `mcp/kpi-solar` (task #5, [SPEC.md §3](SPEC.md)); the definitions below are their reference. **No source data is verified yet**, so no KPI is production-ready.
 
 **Verdict key:** KEEP = use as defined · MODIFY = use with the change shown · REMOVE = drop as a separate KPI.
 

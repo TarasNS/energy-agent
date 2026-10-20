@@ -1,30 +1,31 @@
 # SPEC.md: what the team builds
 
-**Owner:** Lead · **Role:** the build contract. [INTENT.md](INTENT.md) says why, [ARCHITECTURE.md](ARCHITECTURE.md) says how the parts connect, this file says exactly what each part must do. Part of the harness is merged (see [ARCHITECTURE.md](ARCHITECTURE.md) §6); the rest is built from this file, in 17 numbered tasks. If two documents disagree, stop and tell the lead.
+**Owner:** Lead · **Role:** the build contract. [INTENT.md](INTENT.md) says why, [ARCHITECTURE.md](ARCHITECTURE.md) says how the parts connect, this file says exactly what each part must do. There is no harness code yet: the team builds every part from this file, in 23 numbered tasks. If two documents disagree, stop and tell the lead.
 
 Names, shapes and limits below are fixed so the parts fit when they meet. Anything not stated here is your choice: keep it simple.
 
 ## 1. Layout
 
 ```text
-model/model_gateway/     run_turn(), recorded replay        Dev 1
-model/recorded/          demo recordings                     Dev 3
-schemas/                 JSON contracts                      Dev 1
-mcp/kpi-solar/           KPI formulas (pure functions)       Dev 2
-data/synthetic/portfolio.py   the portfolio                  Dev 2
-harness/                 registry, nine tools, agent loop    Dev 3
-mcp/actions/             propose, approve, audit             Dev 4
-tools/kpi-lab/server.py  the server                          Dev 1
-tools/kpi-lab/charts.js  chart drawing reference             Dev 4
-Dockerfile, .dockerignore  the container                     Dev 4
-.claude/skills/kpi-advisor/SKILL.md                          Dev 4
-evals/, tests/           golden cases, number check          Dev 2
-energy-agent-ui (Lovable repository)   the chat page         Dev 5 (lead)
+schemas/                 JSON contracts                      Dev 1 (#1)
+model/model_gateway/     run_turn(), offline replay          Dev 1 (#2)
+.claude/skills/kpi-advisor/SKILL.md                          Dev 1 (#3)
+data/synthetic/portfolio.py   the portfolio                  Dev 2 (#4)
+mcp/kpi-solar/           KPI formulas (pure functions)       Dev 2 (#5)
+harness/registry.py, energy_tools.py   nine tools            Dev 2 (#13)
+harness/agent.py         agent loop, number check            Dev 3 (#6, #14)
+scripts/demo-smoke.sh    smoke test                          Dev 3 (#7, #19)
+model/recorded/          demo recordings                     Dev 3 (#20)
+mcp/actions/             propose, approve, audit             Dev 4 (#8)
+tools/kpi-lab/server.py  the server                          Dev 4 (#9, #15)
+Dockerfile, .dockerignore  the container                     Dev 4 (#10)
+evals/, tests/           golden cases (Dev 2), number check (Dev 1)
+energy-agent-ui (Lovable repository)   the chat page         Dev 5 (#11, #16)
 ```
 
 Import roots are set in `pytest.ini`. Never create `mcp/__init__.py`.
 
-## 2. The synthetic portfolio (Dev 2 builds it)
+## 2. The synthetic portfolio (Dev 2, task #4)
 
 Label everything `SYNTHETIC: not Nordic Solar data`. A fixed seed gives the same numbers on every run. No network.
 
@@ -73,7 +74,7 @@ Period: **1 to 30 June 2026**, daily rows (`YYYY-MM-DD`).
 
 Also fixed: a PPA covers **50 % of expected volume** (a demo assumption, say so wherever it is used). Import with `from data.synthetic.portfolio import build` and `from kpi_solar import metrics`. Money and energy leave the data layer as **decimal strings** (`"85.00"`, `"125.592"`): MWh 3 places, EUR/MWh and EUR 2 places, hours 0 places, percentages 1 place.
 
-## 3. The 13 KPIs (Dev 2 builds `mcp/kpi-solar`)
+## 3. The 13 KPIs (Dev 2 builds `mcp/kpi-solar`, task #5)
 
 Pure functions: strings in, `Decimal` or `Unavailable(reason)` out. How the tools feed them (all over the chosen days): `availability` = sum of `availHours` ÷ (days × 24 × number of parks); `capacity_factor` uses the summed capacity of the parks; `merchant_exposure` uses actual MWh × (1 − PPA share); `ppa_delivery` uses actual × share and expected × share; `performance_ratio` is computed per park and simple-averaged for `portfolio`; `downtime` builds one status per hour of each day, `"OUTAGE"` for the first `outageHours` hours and `"OK"` for the rest; `realised_price` uses one (daily portfolio MWh, daily price) pair per day. `portfolio` for a BESS KPI means the battery. Never a float. Refuse zero or missing inputs with `Unavailable`, never divide by zero. Round half up.
 
@@ -107,7 +108,7 @@ bess_cycle_utilisation_pct(throughput_mwh, usable_mwh)
 
 Background on the real-world meaning of these KPIs: [KPI_REVIEW.md](KPI_REVIEW.md).
 
-## 4. Model gateway (Dev 1)
+## 4. Model gateway (Dev 1, task #2)
 
 ```python
 from model.model_gateway import run_turn, ModelTurn, ToolCall, ModelUnavailable
@@ -117,11 +118,11 @@ turn = run_turn(system: str, messages: list[dict], tools: list[dict], max_tokens
 
 - Tool schemas come in OpenAI style (`{"type":"function","function":{name, description, parameters}}`); the gateway converts them.
 - Profiles are chosen by `MODEL_PROFILE` (`default`, `fast`, `offline`) from `model/profiles.json`. Default model: Claude Haiku 5.5 (`claude-haiku-5-5`), also for `fast`. The model id is changed there only. A recording is a JSON list of turns: `[{"text": "...", "tool_calls": [{"id", "name", "input"}]}, ...]`, one file per question.
-- `offline` replays recorded turns from `model/recorded/*.json` in order. No network.
+- `offline` replays recorded turns in order from `MODEL_RECORDED_PATH` (default `model/recorded/`). No network. The smoke test points it at `scripts/smoke_turns.json`.
 - Only `model/model_gateway/` may import a provider SDK. `make check` fails otherwise.
 - The key is `ANTHROPIC_API_KEY`, read from `.env` or the environment. A missing key or a failed call raises `ModelUnavailable`.
 
-## 5. The nine tools (Dev 3)
+## 5. The nine tools (Dev 2, task #13)
 
 Read-only. Each returns a JSON string. Money and energy are decimal strings. A bad call returns `{"error": "..."}`; the registry never raises into the loop. Assets are `portfolio` (default), `north`, `south`, `battery`. Dates are `YYYY-MM-DD` inside June 2026; the default period is the whole month.
 
@@ -153,11 +154,11 @@ Row shapes the page and the schemas rely on:
 
 `metric` is one of `actual_mwh`, `expected_mwh`, `availability_hours`, `outage_hours`, `curtailed_mwh`, `price_eur_mwh`, `bess_charged_mwh`, `bess_discharged_mwh`. `action` is one of `enable_negative_price_curtailment`, `schedule_inspection`, `review_ppa_volume`.
 
-**There is no approval tool.** `approve_action` and token issuing are never in the registry. A test says so.
+The registry has `schemas()` and `call(name, input)`; the agent loop takes any object with those two methods, so its tests use a fake. **There is no approval tool.** `approve_action` and token issuing are never in the registry. A test says so.
 
-## 6. The agent loop and the number check (Dev 3)
+## 6. The agent loop and the number check (Dev 3, task #6)
 
-`harness.agent.run(question) -> AgentResult(text, verified, note, charts, proposals, trace, stopped)`.
+`harness.agent.run(question, model=None, registry=None) -> AgentResult(text, verified, note, charts, proposals, trace, stopped)`.
 
 1. Send the model the system prompt (the skill file when it exists, otherwise a built-in fallback), the question and the nine tool schemas.
 2. Run each requested tool through the registry. At most **8 rounds**; then stop with `stopped = "max_steps"` and a note.
@@ -165,14 +166,14 @@ Row shapes the page and the schemas rely on:
 4. Any unknown number: `text` is withheld (`verified: false`, a note), and charts, proposals and the trace still return.
 5. `stopped` is one of `answered`, `max_steps`, `cap`, `model_error`.
 
-## 7. Approval and audit (Dev 4 owns `mcp/actions`, task #7; Dev 3 adds the `tool_call` lines, task #10)
+## 7. Approval and audit (Dev 4 builds `mcp/actions`, task #8; Dev 3 adds the `tool_call` lines, task #14)
 
 - `propose_action(action, asset, reason) -> proposal_id`.
 - `issue_approval_token(proposal_id)` and `approve_action(proposal_id, token, approver)` exist **only** inside the server's `/api/approve` path.
 - A token is one-time and lives in memory. A missing, wrong or reused token, or a proposal already approved, is **refused and audited**. Approval is simulated: it writes an audit line and does nothing else.
 - The audit log is `artifacts/audit.jsonl`, append-only, one JSON line per event: `{ts, event, proposal_id, action, asset, approver}`. Events: `proposed`, `approved`, `refused`, and `tool_call` (with `tool`, `input`, `ok`). A token never appears in any line. The path comes from `AUDIT_LOG_PATH` (default `./artifacts/audit.jsonl`).
 
-## 8. The server (Dev 1, `tools/kpi-lab/server.py`)
+## 8. The server (Dev 4, `tools/kpi-lab/server.py`, tasks #9 and #15)
 
 Standard library or FastAPI, your choice. Serves on `127.0.0.1:8000` (`KPI_LAB_HOST`, `KPI_LAB_PORT`).
 
@@ -184,11 +185,11 @@ Standard library or FastAPI, your choice. Serves on `127.0.0.1:8000` (`KPI_LAB_H
 
 Daily model-call cap: `KPI_DAILY_CAP`, default 200, stored in `KPI_CAP_FILE`. Allowed origins: `KPI_ALLOWED_ORIGINS` (comma separated), including the Lovable page's address. The server answers the browser's preflight and sends `Access-Control-Allow-Private-Network: true`, so the Lovable page can call a server running on a laptop. The approve route calls `approve_for_server(proposal_id, approver)` in `mcp/actions`, which issues and uses the one-time token inside the module.
 
-## 9. The chat page (Dev 5, the lead, in Lovable)
+## 9. The chat page (Dev 5, the lead, in Lovable, tasks #11 and #16)
 
-Built in Lovable and committed by Lovable to its own repository, `energy-agent-ui`. It calls the server's `/api/chat` and `/api/approve`; the server address is a setting (`API_BASE`, default `http://127.0.0.1:8000`). Render-only: it shows what the server returns and never calculates, adds, rounds or averages; every chart value is the string the server sent. Phone and desktop width. States: loading, verified answer, withheld answer (note, charts and tool results shown), daily limit reached (429), server not reachable, server error, proposal waiting, approved, approval refused. It asks for the approver's name before Approve is sent. It says **SYNTHETIC DATA** on screen. It needs internet; the server and the tests do not. `tools/kpi-lab/charts.js` stays as the reference for how values are drawn.
+Built in Lovable and committed by Lovable to its own repository, `energy-agent-ui`. It calls the server's `/api/chat` and `/api/approve`; the server address is a setting (`API_BASE`, default `http://127.0.0.1:8000`). Render-only: it shows what the server returns and never calculates, adds, rounds or averages; every chart value is the string the server sent. Phone and desktop width. States: loading, verified answer, withheld answer (note, charts and tool results shown), daily limit reached (429), server not reachable, server error, proposal waiting, approved, approval refused. It asks for the approver's name before Approve is sent. It says **SYNTHETIC DATA** on screen. It needs internet; the server and the tests do not.
 
-## 10. The skill (Dev 4, merged)
+## 10. The skill (Dev 1, task #3)
 
 `.claude/skills/kpi-advisor/SKILL.md`, at most 150 lines. It tells the model: the data is synthetic and every answer says so; which of the nine tools fits which question; never calculate, add, average, round or estimate; when a value is unavailable, say so and give the reason; call `make_chart` at most once; propose only when the data clearly justifies it and never say it is approved; answer in at most 120 words.
 

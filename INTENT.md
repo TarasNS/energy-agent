@@ -50,19 +50,15 @@ Also fixed: data tools are read-only, the demo runs on synthetic data, no key is
 
 ## 6. Where we are today
 
-Part of the harness is merged. The rest is 17 numbered tasks in four rounds, shown on the guide's front page.
+The repository holds documents and checks only. The whole harness is 23 numbered tasks in four rounds, shown on the guide's front page.
 
 | Part | Owner | State |
 |---|---|---|
-| Shared contracts, model gateway, replay code | Dev 1 Anna | Done |
-| Synthetic portfolio, 13 KPI formulas | Dev 2 Huiling | Done |
-| Nine tools, agent loop, number check | Dev 3 Raul | Done |
-| Skill file, charts | Dev 4 Søren | Done |
-| Server, five-question run | Dev 1 Anna | To build (#1, #9, #13) |
-| Golden cases, number-check tests, rehearsal | Dev 2 Huiling | To build (#3, #4, #12, #17) |
-| Recordings, smoke test, audit of tool calls | Dev 3 Raul | To build (#5, #6, #10, #14) |
-| Actions and approval, container, Azure release, fixes from the smoke test | Dev 4 Søren | To build (#2, #7, #15, #16) |
-| Chat page in Lovable | Dev 5 Taras (lead) | To build (#8, #11) |
+| Contracts, model gateway, skill, number-check tests, five-question run | Dev 1 Anna | To build (#1, #2, #3, #12, #17) |
+| Synthetic portfolio, 13 KPI formulas, nine tools, golden cases, rehearsal | Dev 2 Huiling | To build (#4, #5, #13, #18, #23) |
+| Agent loop and number check, smoke test, tool-call audit, demo recordings | Dev 3 Raul | To build (#6, #7, #14, #19, #20) |
+| Actions and approval, server, container, Azure release, fixes | Dev 4 Søren | To build (#8, #9, #10, #15, #21, #22) |
+| Chat page in Lovable | Dev 5 Taras (lead) | To build (#11, #16) |
 | Real company data | Lead | **Not available.** See `KPI_REVIEW.md` |
 
 ## 7. What "done" means for the POC
