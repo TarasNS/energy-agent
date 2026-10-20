@@ -63,7 +63,7 @@ The repository starts with documents and checks only. The harness is 24 numbered
 |---|---|---|
 | 1 | #1 contracts, #2 model gateway, #3 skill (Dev 1) · #4 portfolio data source, #5 KPI formulas (Dev 2) · #6 agent loop, #7 smoke script (Dev 3) · #8 actions, #9 server routes, #10 container files (Dev 4) · #11 chat page in Lovable (Dev 5) | nothing |
 | 2 | #12 number-check tests, #13 organizers' API (Dev 1) · #14 nine tools (Dev 2) · #15 audit every tool call (Dev 3) · #16 server on the real loop (Dev 4) · #17 page on the server (Dev 5) | #4, #5, #6, #8, #9, #11 |
-| 3 | #18 five-question run (Dev 1) · #19 golden cases (Dev 2) · #20 run the smoke test, #21 demo recordings (Dev 3) | #2, #7, #14, #15, #16 |
+| 3 | #18 five-question run (Dev 1) · #19 golden cases (Dev 2) · #20 run the smoke test (Dev 3) · #21 demo recordings (Dev 4) | #2, #7, #14, #15, #16 |
 | 4 | #22 release to Azure, #23 fixes (Dev 4) · #24 rehearse the demo (Dev 2) | #10, #17, #20, #21 |
 
 ## 7. Deployment

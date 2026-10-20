@@ -31,8 +31,8 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 |---|---|
 | `schemas/`, `model/` (except `model/recorded/`), `.claude/skills/`, `tests/test_number_check.py`, `data/api_source.py` (and its sample and test), `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke, smoke_turns, test_container), `requirements*.txt`, `pytest.ini`, `.env.example`, `.github/`, `docs/` | Dev 1 |
 | `data/` (except the API files), `mcp/kpi-solar/`, `harness/registry.py`, `harness/energy_tools.py`, `evals/`, `tests/` (rest), `EVALS.md`, `KPI_REVIEW.md` | Dev 2 |
-| `harness/agent.py`, `scripts/demo-smoke.sh`, `scripts/smoke_turns.json`, `model/recorded/`, `.claude/agents/` | Dev 3 |
-| `mcp/actions/`, `tools/kpi-lab/`, `Dockerfile`, `.dockerignore`, `scripts/test_container.py` | Dev 4 |
+| `harness/agent.py`, `scripts/demo-smoke.sh`, `scripts/smoke_turns.json`, `.claude/agents/` | Dev 3 |
+| `mcp/actions/`, `tools/kpi-lab/`, `model/recorded/`, `Dockerfile`, `.dockerignore`, `scripts/test_container.py` | Dev 4 |
 | `INTENT.md`, `SPEC.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py`, `scripts/flow.py`; the chat page in the Lovable repository `energy-agent-ui` | Dev 5 (lead) |
 
 ## Commands

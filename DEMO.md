@@ -2,7 +2,7 @@
 
 **Owner:** Lead · **Role:** the acceptance test for the POC. If this demo works, the POC works.
 
-**Setup:** the chat page, synthetic data (2 parks, 1 battery, June 2026), server running. Offline fallback for the server: `MODEL_PROFILE=offline` once Dev 3's recordings (task #21) are merged. The chat page is built in Lovable and needs internet.
+**Setup:** the chat page, synthetic data (2 parks, 1 battery, June 2026), server running. Offline fallback for the server: `MODEL_PROFILE=offline` once Dev 4's recordings (task #21) are merged. The chat page is built in Lovable and needs internet.
 
 ## One-line pitch
 Ask your portfolio a question, get a number you can trust, and approve the next step yourself.

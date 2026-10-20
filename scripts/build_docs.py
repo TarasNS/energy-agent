@@ -150,7 +150,7 @@ def arch(id_, focus=None):
          part(4, 730, 438, 220, 62, "Audit log", "proposals, approvals, tool calls"),
          '<text class="band" x="10" y="540">Across everything</text>',
          part(1, 10, 552, 225, 62, "Contracts & checks", "schemas · make check"),
-         part(3, 245, 552, 225, 62, "Offline replay", "model/recorded"),
+         part(4, 245, 552, 225, 62, "Offline replay", "model/recorded"),
          part(3, 480, 552, 225, 62, "Smoke test", "make demo-smoke"),
          part(5, 715, 552, 235, 62, "Demo story", "DEMO.md · screenshots"),
          *[f'<circle class="pulse" r="3"><animateMotion dur="2.4s" begin="{b}s" repeatCount="indefinite" path="{d}"/></circle>' for d, b in PULSES],
@@ -430,10 +430,10 @@ DEVS = {
             what="You write the shared contracts, the model gateway and the skill the model reads, then test the number check and run the five questions."),
     2: dict(title="Data, Calculator &amp; Tools", own=["data/synthetic/", "mcp/kpi-solar/", "harness/registry.py", "harness/energy_tools.py", "evals/", "tests/", "EVALS.md", "KPI_REVIEW.md"],
             what="You build the synthetic portfolio, the 13 KPI formulas and the nine tools that serve them, then prove the numbers with golden cases."),
-    3: dict(title="Agent Loop &amp; Smoke", own=["harness/agent.py", "scripts/demo-smoke.sh", "model/recorded/", ".claude/agents/"],
-            what="You build the agent loop with the number check, audit every tool call, write and run the smoke test, and record the demo answers."),
-    4: dict(title="Approval, Server &amp; Release", own=["mcp/actions/", "tools/kpi-lab/", "Dockerfile", ".dockerignore", "scripts/test_container.py"],
-            what="As the team's software developer you build the approval step, the server and the container, and you release to Azure."),
+    3: dict(title="Agent Loop &amp; Smoke", own=["harness/agent.py", "scripts/demo-smoke.sh", ".claude/agents/"],
+            what="You build the agent loop with the number check, audit every tool call, and write and run the smoke test."),
+    4: dict(title="Approval, Server &amp; Release", own=["mcp/actions/", "tools/kpi-lab/", "model/recorded/", "Dockerfile", ".dockerignore", "scripts/test_container.py"],
+            what="As the team's software developer you build the approval step, the server and the container, record the demo answers, and release to Azure."),
     5: dict(title="Chat Page (Lovable)", own=["energy-agent-ui (Lovable repository)"],
             what="You are the lead and Dev 5. You approve and merge pull requests, and you build the chat page in Lovable. Lovable commits it to its own repository."),
 }
@@ -608,8 +608,8 @@ def index_page():
 {sec("Who builds what", "Exact tasks are on each page", tbl(["Person", "Builds", "Page"], [
     ["Dev 1 Anna", "Contracts, model gateway, skill, number-check tests, organizers' API, five-question run (#1, #2, #3, #12, #13, #18)", '<a href="developer-1.html">developer-1</a>'],
     ["Dev 2 Huiling", "Portfolio data source, KPI formulas, nine tools, golden cases, rehearsal (#4, #5, #14, #19, #24)", '<a href="developer-2.html">developer-2</a>'],
-    ["Dev 3 Raul", "Agent loop, smoke script, tool-call audit, smoke run, demo recordings (#6, #7, #15, #20, #21)", '<a href="developer-3.html">developer-3</a>'],
-    ["Dev 4 Søren", "Actions and approval, server, container, release, fixes (#8, #9, #10, #16, #22, #23)", '<a href="developer-4.html">developer-4</a>'],
+    ["Dev 3 Raul", "Agent loop, smoke script, tool-call audit, smoke run (#6, #7, #15, #20)", '<a href="developer-3.html">developer-3</a>'],
+    ["Dev 4 Søren", "Actions and approval, server, container, release, fixes, demo recordings (#8, #9, #10, #16, #21, #22, #23)", '<a href="developer-4.html">developer-4</a>'],
     ["Dev 5 Taras (lead)", "Chat page in Lovable, page on the server (#11, #17); approves and merges", '<a href="developer-5.html">developer-5</a>'],
 ]) + f'<p class="files">Files: {f("TEAM.md")}, {f("ARCHITECTURE.md")}</p>', "who", True)}
 

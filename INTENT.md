@@ -56,8 +56,8 @@ The repository holds documents and checks only. The whole harness is 24 numbered
 |---|---|---|
 | Contracts, model gateway, skill, number-check tests, organizers' API, five-question run | Dev 1 Anna | To build (#1, #2, #3, #12, #13, #18) |
 | Portfolio data source, 13 KPI formulas, nine tools, golden cases, rehearsal | Dev 2 Huiling | To build (#4, #5, #14, #19, #24) |
-| Agent loop and number check, smoke test, tool-call audit, demo recordings | Dev 3 Raul | To build (#6, #7, #15, #20, #21) |
-| Actions and approval, server, container, Azure release, fixes | Dev 4 Søren | To build (#8, #9, #10, #16, #22, #23) |
+| Agent loop and number check, smoke test, tool-call audit | Dev 3 Raul | To build (#6, #7, #15, #20) |
+| Actions and approval, server, container, demo recordings, Azure release, fixes | Dev 4 Søren | To build (#8, #9, #10, #16, #21, #22, #23) |
 | Chat page in Lovable | Dev 5 Taras (lead) | To build (#11, #17) |
 | Real company data | Lead | **Not available.** See `KPI_REVIEW.md` |
 

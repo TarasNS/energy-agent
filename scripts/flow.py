@@ -113,7 +113,7 @@ FLOW = [
          job="Run make demo-smoke with Wi-Fi off and show me the output. For each FAIL, name the file and its owner from TEAM.md. Fix only files you own; for the others, write the bug report.",
          see="<code>make demo-smoke</code> passes with Wi-Fi off.",
          why="Needs the smoke script (task 7), the tools (task 14), the tool-call audit (task 15) and the server on the real loop (task 16).", files=["DEMO.md"]),
-    dict(no=21, dev=3, rnd=3, sub=1, slug="demo-recordings", title="Demo recordings", line2="Record the demo questions", kind="claude",
+    dict(no=21, dev=4, rnd=3, sub=0, slug="demo-recordings", title="Demo recordings", line2="Record the demo questions", kind="claude",
          needs=[2, 6, 14], own="model/recorded/, model/tests/test_recordings.py",
          job="Record each question in the DEMO.md table once with the real model through harness.agent.run, and store each run in model/recorded/ as JSON in the format in SPEC.md section 4. Ask me before any live call: it uses the API key. Add model/tests/test_recordings.py: with MODEL_PROFILE=offline each recording replays with no network and gives the same tool trace and answer twice.",
          see="the replay test passes with Wi-Fi off.",
