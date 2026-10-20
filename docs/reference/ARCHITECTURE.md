@@ -64,7 +64,7 @@ Already merged: contracts, model gateway and replay code, synthetic portfolio, 1
 | 1 | #1 server routes (Dev 1), #2 container files (Dev 4), #3 golden cases (Dev 2), #4 number-check tests (Dev 2), #5 demo recordings (Dev 3), #6 smoke script (Dev 3), #7 actions and approval (Dev 4), #8 chat page in Lovable (Dev 5) | nothing |
 | 2 | #9 server on the real loop (Dev 1), #10 audit every tool call (Dev 3), #11 page on the server (Dev 5) | #1, #7, #8 |
 | 3 | #12 golden through the server (Dev 2), #13 five-question run (Dev 1), #14 run the smoke test (Dev 3) | #9, #10, #6 |
-| 4 | #15 release to Azure (Dev 4), #16 fixes (Dev 3), #17 rehearse the demo (Dev 2) | #2, #11, #14 |
+| 4 | #15 release to Azure (Dev 4), #16 fixes (Dev 4), #17 rehearse the demo (Dev 2) | #2, #11, #14 |
 
 ## 7. Deployment
 

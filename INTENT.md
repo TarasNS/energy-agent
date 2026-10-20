@@ -60,8 +60,8 @@ Part of the harness is merged. The rest is 17 numbered tasks in four rounds, sho
 | Skill file, charts | Dev 4 Søren | Done |
 | Server, five-question run | Dev 1 Anna | To build (#1, #9, #13) |
 | Golden cases, number-check tests, rehearsal | Dev 2 Huiling | To build (#3, #4, #12, #17) |
-| Recordings, smoke test, audit of tool calls | Dev 3 Raul | To build (#5, #6, #10, #14, #16) |
-| Actions and approval, container, Azure release | Dev 4 Søren | To build (#2, #7, #15) |
+| Recordings, smoke test, audit of tool calls | Dev 3 Raul | To build (#5, #6, #10, #14) |
+| Actions and approval, container, Azure release, fixes from the smoke test | Dev 4 Søren | To build (#2, #7, #15, #16) |
 | Chat page in Lovable | Dev 5 Taras (lead) | To build (#8, #11) |
 | Real company data | Lead | **Not available.** See `KPI_REVIEW.md` |
 

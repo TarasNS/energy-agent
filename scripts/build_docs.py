@@ -607,8 +607,8 @@ def index_page():
 {sec("Who builds what", "Exact tasks are on each page", tbl(["Person", "Builds now", "Page"], [
     ["Dev 1 Anna", "Server routes, server on the real loop, the five-question run (#1, #9, #13)", '<a href="developer-1.html">developer-1</a>'],
     ["Dev 2 Huiling", "Golden cases, number-check tests, golden through the server, rehearsal (#3, #4, #12, #17)", '<a href="developer-2.html">developer-2</a>'],
-    ["Dev 3 Raul", "Demo recordings, smoke script, tool-call audit, smoke run, fixes (#5, #6, #10, #14, #16)", '<a href="developer-3.html">developer-3</a>'],
-    ["Dev 4 Søren", "Container files, actions and approval, release to Azure (#2, #7, #15)", '<a href="developer-4.html">developer-4</a>'],
+    ["Dev 3 Raul", "Demo recordings, smoke script, tool-call audit, smoke run (#5, #6, #10, #14)", '<a href="developer-3.html">developer-3</a>'],
+    ["Dev 4 Søren", "Container files, actions and approval, release to Azure, fixes from the smoke test (#2, #7, #15, #16)", '<a href="developer-4.html">developer-4</a>'],
     ["Dev 5 Taras (lead)", "Chat page in Lovable, page on the server (#8, #11); approves and merges", '<a href="developer-5.html">developer-5</a>'],
 ]) + f'<p class="files">Files: {f("TEAM.md")}, {f("ARCHITECTURE.md")}</p>', "who", True)}
 

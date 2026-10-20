@@ -83,7 +83,7 @@ FLOW = [
          see="/health on Azure answers 200, and the Lovable page gets an answer from it.",
          finish_text="Tell the lead the /health result and the live address.",
          why="Needs the container files (task 2), the page on the server (task 11) and a green smoke test (task 14).", files=[("docs/index.html#deploy", "Deploying to Azure")]),
-    dict(no=16, dev=3, rnd=4, sub=0, slug="fixes", title="Fix what smoke finds", line2="Reserve", size="", kind="reserve",
+    dict(no=16, dev=4, rnd=4, sub=1, slug="fixes", title="Fix what smoke finds", line2="Reserve", size="", kind="reserve",
          needs=[14], own="", job="Time kept free for whatever the smoke test shows.", see="", why="", files=[]),
     dict(no=17, dev=2, rnd=4, sub=0, slug="rehearse", title="Rehearse the demo", line2="Twice, once offline server", size="", kind="reserve",
          needs=[11, 14], own="", job="Run DEMO.md twice in the Lovable page, once with the server on MODEL_PROFILE=offline. Time it and save one screenshot per step.", see="", why="", files=[]),
