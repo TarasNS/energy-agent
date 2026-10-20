@@ -8,14 +8,18 @@ Names, shapes and limits below are fixed so the parts fit when they meet. Anythi
 
 ```text
 model/model_gateway/     run_turn(), recorded replay        Dev 1
+model/recorded/          demo recordings                     Dev 3
 schemas/                 JSON contracts                      Dev 1
 mcp/kpi-solar/           KPI formulas (pure functions)       Dev 2
-data/synthetic/portfolio.py   the portfolio                       Dev 2
+data/synthetic/portfolio.py   the portfolio                  Dev 2
 harness/                 registry, nine tools, agent loop    Dev 3
-mcp/actions/             propose, approve, audit             Dev 3
-tools/kpi-lab/           server.py (Dev 3), page (Dev 4)
+mcp/actions/             propose, approve, audit             Dev 4
+tools/kpi-lab/server.py  the server                          Dev 1
+tools/kpi-lab/charts.js  chart drawing reference             Dev 4
+Dockerfile, .dockerignore  the container                     Dev 4
 .claude/skills/kpi-advisor/SKILL.md                          Dev 4
 evals/, tests/           golden cases, number check          Dev 2
+energy-agent-ui (Lovable repository)   the chat page         Dev 5 (lead)
 ```
 
 Import roots are set in `pytest.ini`. Never create `mcp/__init__.py`.
@@ -168,24 +172,23 @@ Row shapes the page and the schemas rely on:
 - A token is one-time and lives in memory. A missing, wrong or reused token, or a proposal already approved, is **refused and audited**. Approval is simulated: it writes an audit line and does nothing else.
 - The audit log is `artifacts/audit.jsonl`, append-only, one JSON line per event: `{ts, event, proposal_id, action, asset, approver}`. Events: `proposed`, `approved`, `refused`, and `tool_call` (with `tool`, `input`, `ok`). A token never appears in any line. The path comes from `AUDIT_LOG_PATH` (default `./artifacts/audit.jsonl`).
 
-## 8. The server (Dev 3, `tools/kpi-lab/server.py`)
+## 8. The server (Dev 1, `tools/kpi-lab/server.py`)
 
 Standard library or FastAPI, your choice. Serves on `127.0.0.1:8000` (`KPI_LAB_HOST`, `KPI_LAB_PORT`).
 
 | Route | Body → answer |
 |---|---|
-| `GET /` | the chat page; only `index.html`, `charts.js`, `config.js` are served |
 | `POST /api/chat` | `{question}` → `{text, verified, note, charts, proposals, trace, stopped}`; **429** after the daily cap |
 | `POST /api/approve` | `{proposal_id, approver}` → `{status}`; the server issues the token itself, the browser never sees it |
 | `GET /health` | `{status: "ok", calls_left_today}` |
 
-Daily model-call cap: `KPI_DAILY_CAP`, default 200, stored in `KPI_CAP_FILE`. Allowed origins: `KPI_ALLOWED_ORIGINS`.
+Daily model-call cap: `KPI_DAILY_CAP`, default 200, stored in `KPI_CAP_FILE`. Allowed origins: `KPI_ALLOWED_ORIGINS` (comma separated), including the Lovable page's address. The server answers the browser's preflight and sends `Access-Control-Allow-Private-Network: true`, so the Lovable page can call a server running on a laptop. The approve route calls `approve_for_server(proposal_id, approver)` in `mcp/actions`, which issues and uses the one-time token inside the module.
 
-## 9. The chat page (Dev 4, `tools/kpi-lab/`)
+## 9. The chat page (Dev 5, the lead, in Lovable)
 
-Render-only: it shows what the server returns and never calculates. Phone and desktop width. States: loading, verified answer, withheld answer (note, charts and tool results shown), cap reached, server not reachable, proposal waiting, approved, approval refused. It asks for the approver's name before Approve is sent. It says **SYNTHETIC DATA** on screen. Charts: line, bar, area and table, in plain SVG or HTML, no libraries.
+Built in Lovable and committed by Lovable to its own repository, `energy-agent-ui`. It calls the server's `/api/chat` and `/api/approve`; the server address is a setting (`API_BASE`, default `http://127.0.0.1:8000`). Render-only: it shows what the server returns and never calculates, adds, rounds or averages; every chart value is the string the server sent. Phone and desktop width. States: loading, verified answer, withheld answer (note, charts and tool results shown), daily limit reached (429), server not reachable, server error, proposal waiting, approved, approval refused. It asks for the approver's name before Approve is sent. It says **SYNTHETIC DATA** on screen. It needs internet; the server and the tests do not. `tools/kpi-lab/charts.js` stays as the reference for how values are drawn.
 
-## 10. The skill (Dev 4)
+## 10. The skill (Dev 4, merged)
 
 `.claude/skills/kpi-advisor/SKILL.md`, at most 150 lines. It tells the model: the data is synthetic and every answer says so; which of the nine tools fits which question; never calculate, add, average, round or estimate; when a value is unavailable, say so and give the reason; call `make_chart` at most once; propose only when the data clearly justifies it and never say it is approved; answer in at most 120 words.
 

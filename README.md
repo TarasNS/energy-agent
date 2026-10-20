@@ -16,10 +16,11 @@ A chat assistant for a solar and battery portfolio. The model picks tools, deter
 | Role | Your page |
 |---|---|
 | Lead | [docs/lead.html](docs/lead.html) |
-| Dev 1 · Model, contracts & health | [docs/developer-1.html](docs/developer-1.html) |
+| Dev 1 · Model & server | [docs/developer-1.html](docs/developer-1.html) |
 | Dev 2 · Calculator & evals | [docs/developer-2.html](docs/developer-2.html) |
-| Dev 3 · Harness, approval & audit | [docs/developer-3.html](docs/developer-3.html) |
-| Dev 4 · Skill & chat page | [docs/developer-4.html](docs/developer-4.html) |
+| Dev 3 · Harness & audit | [docs/developer-3.html](docs/developer-3.html) |
+| Dev 4 · Approval & release | [docs/developer-4.html](docs/developer-4.html) |
+| Dev 5 · Chat page in Lovable (lead) | [docs/developer-5.html](docs/developer-5.html) |
 
 Reference, only when a task links to it: [SPEC.md](SPEC.md), [ARCHITECTURE.md](ARCHITECTURE.md), [TEAM.md](TEAM.md), [EVALS.md](EVALS.md), [DEMO.md](DEMO.md), [KPI_REVIEW.md](KPI_REVIEW.md), [CLAUDE.md](CLAUDE.md).
 
@@ -30,7 +31,7 @@ The repository starts with documents and checks only. **The team builds the harn
 - the synthetic portfolio and 13 KPI formulas (`mcp/kpi-solar`, `data/synthetic`)
 - nine read-only tools, the agent loop and the number check (`harness/`)
 - propose, approve once, audit (`mcp/actions`)
-- the chat page and server (`tools/kpi-lab`)
+- the server (`tools/kpi-lab/server.py`) and the chat page, built in Lovable (repository `energy-agent-ui`)
 - the model gateway with Claude Haiku 5.5 and offline replay (`model/`)
 
 ## Repository map

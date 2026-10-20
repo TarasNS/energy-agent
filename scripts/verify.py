@@ -20,7 +20,7 @@ errors: list[str] = []
 REQUIRED = """README.md INTENT.md TEAM.md ARCHITECTURE.md
 SPEC.md EVALS.md DEMO.md CLAUDE.md Makefile .env.example .gitignore requirements-dev.txt pytest.ini
 index.html docs/index.html docs/lead.html .claude/brand-voice-guidelines.md
-docs/developer-4.html docs/developer-3.html docs/developer-1.html docs/developer-2.html docs/presentation.html
+docs/developer-4.html docs/developer-3.html docs/developer-1.html docs/developer-2.html docs/developer-5.html docs/presentation.html
 docs/css/style.css docs/js/app.js scripts/build_docs.py model/README.md requirements.txt
 .claude/agents/researcher.md .claude/agents/verifier.md .claude/agents/simplifier.md
 .github/PULL_REQUEST_TEMPLATE.md
@@ -107,7 +107,7 @@ def check_links():
 
 
 def check_dev_pages():
-    for n in range(1, 5):
+    for n in range(1, 6):
         p = ROOT / f"docs/developer-{n}.html"
         if not p.exists():
             continue

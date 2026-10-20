@@ -63,3 +63,41 @@
     document.querySelectorAll(".reveal").forEach(function (el) { el.classList.add("visible"); });
   }
 })();
+
+/* Build flow (index.html#combine): point at or tap a task to light up what it waits for and what waits for it. */
+(function () {
+  "use strict";
+  var svg = document.getElementById("flow");
+  if (!svg) return;
+  var edges = [].slice.call(svg.querySelectorAll(".fe"));
+  var nodes = [].slice.call(svg.querySelectorAll(".fn"));
+  function walk(id, from, to, seen) {
+    edges.forEach(function (ed) {
+      if (ed.getAttribute(from) !== id) return;
+      ed.classList.add("hot");
+      var next = ed.getAttribute(to);
+      if (!seen[next]) { seen[next] = 1; walk(next, from, to, seen); }
+    });
+  }
+  function clear() {
+    svg.classList.remove("focus");
+    edges.concat(nodes).forEach(function (x) { x.classList.remove("hot"); });
+  }
+  function show(id) {
+    clear();
+    svg.classList.add("focus");
+    var seen = {}; seen[id] = 1;
+    walk(id, "data-from", "data-to", seen);
+    walk(id, "data-to", "data-from", seen);
+    nodes.forEach(function (n) { if (seen[n.getAttribute("data-id")]) n.classList.add("hot"); });
+  }
+  nodes.forEach(function (n) {
+    var id = n.getAttribute("data-id");
+    n.addEventListener("mouseenter", function () { show(id); });
+    n.addEventListener("mouseleave", clear);
+    n.addEventListener("focus", function () { show(id); });
+    n.addEventListener("blur", clear);
+    n.addEventListener("click", function (ev) { ev.stopPropagation(); show(id); });
+  });
+  document.addEventListener("click", clear);
+})();
