@@ -309,3 +309,122 @@ def test_all_thirteen_functions_exist():
     assert len(names) == 13
     for name in names:
         assert callable(getattr(metrics, name))
+
+
+# --- robustness (verifier P2 items) -----------------------------------------
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda: metrics.availability_pct("1e30", "1e-30"),
+        lambda: metrics.capacity_factor_pct("1e30", "1e-30", "1e-30"),
+        lambda: metrics.performance_ratio_pct("1e30", "1e-30", "1e-30"),
+        lambda: metrics.bess_cycle_utilisation_pct("1e30", "1e-30"),
+        lambda: metrics.merchant_exposure_eur("1e30", "1e30"),
+        lambda: metrics.energy_loss_mwh("1e30", "0"),
+        lambda: metrics.realised_price_eur_mwh([("1e30", "1e30")]),
+    ],
+)
+def test_extreme_values_give_unavailable_not_an_exception(call):
+    result = call()
+    assert isinstance(result, (Decimal, Unavailable))
+
+
+def test_extreme_overflow_is_unavailable():
+    assert_unavailable(metrics.availability_pct("1e30", "1e-30"))
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        metrics.availability_pct("-0", "720"),
+        metrics.merchant_exposure_eur("0", "-10"),
+        metrics.energy_loss_mwh("100", "100.0004"),
+        metrics.realised_price_eur_mwh([("10", "-0.001")]),
+        metrics.energy_loss_mwh("0", "0.0004"),
+    ],
+)
+def test_negative_zero_is_normalised(result):
+    assert result.is_zero()
+    assert not result.is_signed()
+    assert not str(result).startswith("-")
+
+
+def test_small_negative_value_that_rounds_to_zero_has_no_sign():
+    assert str(metrics.merchant_exposure_eur("0", "-10")) == "0.00"
+    assert str(metrics.energy_loss_mwh("100", "100.0004")) == "0.000"
+
+
+def test_empty_generator_statuses_are_refused_like_an_empty_list():
+    assert_unavailable(metrics.downtime_hours((s for s in []), "1"))
+
+
+@pytest.mark.parametrize("bad", [(s for s in ["OUTAGE"]), {"OUTAGE"}, 5, "OUTAGE", {"OUTAGE": 1}])
+def test_downtime_refuses_anything_but_a_list_or_tuple(bad):
+    assert_unavailable(metrics.downtime_hours(bad, "1"))
+
+
+def test_downtime_accepts_list_and_tuple_alike():
+    assert metrics.downtime_hours(["OUTAGE", "OK"], "1") == D("1")
+    assert metrics.downtime_hours(("OUTAGE", "OK"), "1") == D("1")
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [5, {"10": "40"}, ["12"], "12", {("10", "40")}, (p for p in [("10", "40")]), [("10", "40", "1")], [5]],
+)
+def test_realised_price_refuses_odd_containers(bad):
+    assert_unavailable(metrics.realised_price_eur_mwh(bad))
+
+
+def test_realised_price_accepts_list_and_tuple_alike():
+    assert metrics.realised_price_eur_mwh([("10", "40"), ("30", "60")]) == D("55.00")
+    assert metrics.realised_price_eur_mwh((["10", "40"], ["30", "60"])) == D("55.00")
+
+
+@pytest.mark.parametrize("bad", ["1_000", "\uff11\uff12", "\u0661\u0662", "LONG", "1 2", "0x10", "--1", "1.2.3"])
+def test_lenient_decimal_strings_are_refused(bad):
+    if bad == "LONG":
+        bad = "0." + "1" * 100000  # too long to use as a parameter id on Windows
+    assert_unavailable(metrics.availability_pct(bad, "720"))
+
+
+@pytest.mark.parametrize("good", ["85", "85.00", "+85.5", ".5", "5.", " 85 ", "1.5e2", "125.592"])
+def test_plain_decimal_strings_still_work(good):
+    assert isinstance(metrics.availability_pct(good, "720"), Decimal)
+
+
+@pytest.mark.parametrize("bad", [Decimal("NaN"), Decimal("sNaN"), Decimal("Infinity"), Decimal("-Infinity")])
+def test_non_finite_decimal_objects_are_refused(bad):
+    assert_unavailable(metrics.availability_pct(bad, "720"))
+    assert_unavailable(metrics.merchant_exposure_eur("1", bad))
+
+
+def test_callers_decimal_context_does_not_matter():
+    import decimal
+
+    with decimal.localcontext() as ctx:
+        ctx.traps[decimal.Inexact] = True
+        ctx.prec = 3
+        ctx.rounding = decimal.ROUND_DOWN
+        assert metrics.availability_pct("696", "720") == D("96.7")
+        assert metrics.realised_price_eur_mwh([("10", "40"), ("30", "60")]) == D("55.00")
+        assert metrics.energy_loss_mwh("130.000", "125.592") == D("4.408")
+
+
+def test_energy_loss_is_negative_when_actual_exceeds_expected():
+    # documented behaviour: the sign is kept, the caller decides what to say
+    assert metrics.energy_loss_mwh("100", "110") == D("-10.000")
+
+
+def test_unavailable_reason_does_not_echo_the_bad_status():
+    huge = metrics.downtime_hours(["OK", "X" * 1_000_000], "1")
+    assert_unavailable(huge)
+    assert len(huge.reason) < 100
+
+
+def test_deeply_nested_status_does_not_blow_the_stack():
+    nested = []
+    for _ in range(100_000):
+        nested = [nested]
+    assert_unavailable(metrics.downtime_hours([nested], "1"))
