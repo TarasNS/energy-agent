@@ -7,7 +7,7 @@ Curated by Dev 1. Keep it short and true: only stable rules, real commands and a
 ## Project
 Energy 4.0 Harness: a chat assistant for a solar and battery portfolio, **built from scratch by the team from `SPEC.md`**. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
 
-**Scope: first proof of concept (POC).** **Current state:** documents and checks only. No harness code exists yet; the team builds it in the order in `ARCHITECTURE.md` §6. Do not look for or copy code from tag `reference-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
+**Scope: first proof of concept (POC).** **Current state:** documents, checks and the shared contracts in `schemas/` (chat result, chart, proposal, audit line; tests in `schemas/test_schemas.py`). No harness code exists yet; the team builds it in the order in `ARCHITECTURE.md` §6. Do not look for or copy code from tag `reference-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
 
 ## Read before working
 `INTENT.md` (why, scope, done) → `SPEC.md` (exact contracts) → `ARCHITECTURE.md` (how) → `TEAM.md` (who) → your page in `docs/` (your tasks and prompts).

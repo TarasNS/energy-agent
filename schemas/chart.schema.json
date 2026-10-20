@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "chart.schema.json",
+  "title": "Chart",
+  "description": "A chart made by make_chart (SPEC.md §5). Every y value is a string copied from a tool result.",
+  "type": "object",
+  "required": ["id", "kind", "title", "series"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "pattern": "^chart_[0-9]+$"},
+    "kind": {"enum": ["line", "bar", "area", "table"]},
+    "title": {"type": "string"},
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "points"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["x", "y"],
+              "additionalProperties": false,
+              "properties": {
+                "x": {"type": "string"},
+                "y": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

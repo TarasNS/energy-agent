@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "audit-line.schema.json",
+  "title": "Audit line",
+  "description": "One line of artifacts/audit.jsonl (SPEC.md §7). A token never appears in any line.",
+  "type": "object",
+  "required": ["ts", "event"],
+  "additionalProperties": false,
+  "properties": {
+    "ts": {"type": "string"},
+    "event": {"enum": ["proposed", "approved", "refused", "tool_call"]},
+    "proposal_id": {"type": ["string", "null"], "pattern": "^prop_[0-9a-f]{12}$"},
+    "action": {"type": ["string", "null"]},
+    "asset": {"type": ["string", "null"]},
+    "approver": {"type": ["string", "null"]},
+    "tool": {"type": "string"},
+    "input": {"type": "object", "not": {"required": ["token"]}},
+    "ok": {"type": "boolean"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"event": {"const": "tool_call"}}, "required": ["event"]},
+      "then": {"required": ["tool", "input", "ok"]}
+    },
+    {
+      "if": {"properties": {"event": {"enum": ["approved", "refused"]}}, "required": ["event"]},
+      "then": {
+        "required": ["proposal_id", "approver"],
+        "properties": {
+          "proposal_id": {"type": "string", "pattern": "^prop_[0-9a-f]{12}$"},
+          "approver": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ]
+}
