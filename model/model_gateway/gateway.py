@@ -87,6 +87,8 @@ def load_profile(name: str | None = None) -> dict:
     """The profile named by MODEL_PROFILE (default: "default") from model/profiles.json."""
     name = name or os.environ.get("MODEL_PROFILE") or "default"
     profiles = json.loads(PROFILES_PATH.read_text(encoding="utf-8"))
+    if not isinstance(profiles, dict) or not all(isinstance(p, dict) for p in profiles.values()):
+        raise ValueError("model/profiles.json must be an object of profile objects")
     if name not in profiles:
         raise ValueError(f"unknown MODEL_PROFILE {name!r}; choose one of {sorted(profiles)}")
     return profiles[name]
@@ -104,6 +106,61 @@ def read_key(env_file: Path) -> str | None:
     return key or None
 
 
+class Recording:
+    """Recorded turns from one JSON file, replayed in order. A recording is one question's turns."""
+
+    def __init__(self, path: Path):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8-sig"))
+        except OSError as e:
+            raise ModelUnavailable(f"recording not readable: {path}: {e}") from e
+        except ValueError as e:
+            raise ModelUnavailable(f"recording is not JSON: {path}") from e
+        if not isinstance(data, list):
+            raise ModelUnavailable(f"recording must be a list of turns: {path}")
+        try:
+            self._turns = [_parse_recorded_turn(t) for t in data]
+        except (KeyError, TypeError, AttributeError) as e:
+            raise ModelUnavailable(f"malformed recording {path}: {e!r}") from e
+        self._next = 0
+
+    def next_turn(self) -> ModelTurn:
+        if self._next >= len(self._turns):
+            raise ModelUnavailable("the recording has no more turns")
+        turn = self._turns[self._next]
+        self._next += 1
+        return turn
+
+
+def _parse_recorded_turn(t: dict) -> ModelTurn:
+    text = t["text"]
+    if text is not None and not isinstance(text, str):
+        raise TypeError("turn text must be a string or null")
+    calls = [ToolCall(id=c["id"], name=c["name"], input=c["input"]) for c in t["tool_calls"]]
+    for call in calls:
+        if not isinstance(call.input, dict):
+            raise TypeError("tool call input must be an object")
+    return ModelTurn(text=text, tool_calls=calls)
+
+
+_RECORDINGS: dict[str, Recording] = {}
+
+
+def _current_recording() -> Recording:
+    """The recording named by MODEL_RECORDING. Its position is kept until reset_recordings()."""
+    path = os.environ.get("MODEL_RECORDING", "").strip()
+    if not path:
+        raise ModelUnavailable("the offline profile needs MODEL_RECORDING set to a recording file")
+    if path not in _RECORDINGS:
+        _RECORDINGS[path] = Recording(Path(path))
+    return _RECORDINGS[path]
+
+
+def reset_recordings() -> None:
+    """Start every recording again from its first turn (call before each replayed question)."""
+    _RECORDINGS.clear()
+
+
 def _http_post(url: str, headers: dict, body: bytes, timeout: float) -> str:
     request = urllib.request.Request(url, data=body, headers=headers, method="POST")
     with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -118,8 +175,11 @@ def run_turn(system: str, messages: list[dict], tools: list[dict], max_tokens: i
         profile = load_profile()
     except (OSError, ValueError) as e:  # unknown MODEL_PROFILE, missing or malformed profiles.json
         raise ModelUnavailable(f"model profile is unusable: {e}") from e
+    if profile.get("provider") is None:
+        raise ModelUnavailable("the model profile has no provider")
     if profile["provider"] == "offline":
-        raise ModelUnavailable("the offline replay profile is not built yet")
+        # Replay: no key, no network. The messages and tools are not sent; the next recorded turn is returned.
+        return _current_recording().next_turn()
 
     key = read_key(env_file or DEFAULT_ENV_FILE)
     if not key:
