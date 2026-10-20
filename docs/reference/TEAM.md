@@ -1,14 +1,14 @@
 # TEAM.md: who owns what
 
-**Role:** the *who*. What to build is in [SPEC.md](SPEC.md). Exact tasks and prompts are on each person's page in [docs/](docs/index.html). Replace `Dev N` with names when you kick off.
+**Role:** the *who*. What to build is in [SPEC.md](SPEC.md). Exact tasks and prompts are on each person's page in [docs/](docs/index.html).
 
 | Person | Owns | Paths | Branches |
 |---|---|---|---|
-| **Dev 1** | Model gateway, contracts, repo health, docs | `CLAUDE.md`, `Makefile`, `scripts/`, `requirements*.txt`, `pytest.ini`, `.env.example`, `.github/`, `model/`, `schemas/`, `docs/`, `Dockerfile`, `.dockerignore` | `dev1/<task>` |
-| **Dev 2** | KPI calculator, golden cases, evals | `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md` | `dev2/<task>` |
-| **Dev 3** | Agent loop, approval, audit, smoke test | `harness/`, `mcp/actions/`, `tools/kpi-lab/server.py`, `scripts/demo-smoke.sh`, `.claude/agents/` | `dev3/<task>` |
-| **Dev 4** | The model's skill file and the chat page | `.claude/skills/`, `.claude/hooks/`, `tools/kpi-lab/` (page, charts, config) | `dev4/<task>` |
-| **Lead** | Decisions, the presentation, merges to `main`, deploy | `INTENT.md`, `ARCHITECTURE.md`, `SPEC.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py` | none |
+| **Dev 1**: Anna | Model gateway, contracts, repo health, docs | `CLAUDE.md`, `Makefile`, `scripts/`, `requirements*.txt`, `pytest.ini`, `.env.example`, `.github/`, `model/`, `schemas/`, `docs/`, `Dockerfile`, `.dockerignore` | `dev1/<task>` |
+| **Dev 2**: Huiling | KPI calculator, golden cases, evals | `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md` | `dev2/<task>` |
+| **Dev 3**: Raul | Agent loop, approval, audit, smoke test | `harness/`, `mcp/actions/`, `tools/kpi-lab/server.py`, `scripts/demo-smoke.sh`, `.claude/agents/` | `dev3/<task>` |
+| **Dev 4**: Søren | The model's skill file and the chat page | `.claude/skills/`, `.claude/hooks/`, `tools/kpi-lab/` (page, charts, config) | `dev4/<task>` |
+| **Lead**: Taras | Decisions, the presentation, merges to `main`, deploy | `INTENT.md`, `ARCHITECTURE.md`, `SPEC.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py` | none |
 
 ## Shared paths
 - `schemas/`: Dev 1 owns it. Dev 2 and Dev 3 review changes. A change to a contract needs the lead's approval.
