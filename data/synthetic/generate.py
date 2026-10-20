@@ -143,7 +143,7 @@ def summary():
                 by[r["curtailment_reason"]] = by.get(r["curtailment_reason"], Decimal(0)) + Decimal(r["available_mwh"]) - Decimal(r["actual_mwh"])
         at_neg = sum(Decimal(r["actual_mwh"]) for r in rs if prices[r["interval_start"]] < 0)
         print(f"{aid}: available {av} MWh · actual {ac} MWh · curtailed {av - ac} MWh {dict((k, str(v)) for k, v in by.items())} · produced at negative prices {at_neg} MWh")
-    print("MWh and counts only. EUR values come from energy-calc and hand-worked golden cases.")
+    print("MWh and counts only. KPI values come from mcp/kpi-solar and hand-worked golden cases.")
 
 
 if __name__ == "__main__":

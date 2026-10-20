@@ -16,7 +16,7 @@ else
   fail "python3 >= 3.11"
 fi
 command -v claude >/dev/null && ok "claude (Claude Code)" || echo "  note  claude CLI not found — install Claude Code before Phase 3"
-command -v node >/dev/null && ok "node (optional)" || echo "  note  node not found — only needed if Dev 5 picks a JS stack"
+command -v node >/dev/null && ok "node (optional)" || echo "  note  node not found — only needed for the chart test"
 
 [ "$missing" -eq 0 ] || { echo "Install the missing tools and re-run make setup."; exit 1; }
 

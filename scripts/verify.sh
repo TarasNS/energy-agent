@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Owner: Dev 3. Full local verification with a one-screen summary.
-# Used by `make verify`, by developers before a PR, and after each merge into dev.
+# Used by `make verify`, by developers before a PR, and after each merge into main.
 # A step that reports NOT IMPLEMENTED counts as a failure, on purpose.
 set -uo pipefail
 cd "$(dirname "$0")/.."

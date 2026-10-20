@@ -1,8 +1,6 @@
 ## Task
 <!-- One task per PR. Branch devN/<task>. Which step on your developer page is this? -->
 
-Reviewer: <!-- your review partner: Dev 1 ↔ Dev 4, Dev 2 ↔ Dev 3, Dev 5 → Dev 2 -->
-
 ## Changed files
 <!-- Should be inside your owned paths (TEAM.md). Explain any exception. -->
 
@@ -11,7 +9,7 @@ Reviewer: <!-- your review partner: Dev 1 ↔ Dev 4, Dev 2 ↔ Dev 3, Dev 5 → 
 
 ## Tests run
 ```text
-<!-- exact commands, e.g. pytest mcp/energy-calc -q ; make check ; make demo-smoke -->
+<!-- exact commands, e.g. pytest mcp/kpi-solar -q ; make check ; make demo-smoke -->
 ```
 
 ## Evidence
@@ -25,4 +23,4 @@ Reviewer: <!-- your review partner: Dev 1 ↔ Dev 4, Dev 2 ↔ Dev 3, Dev 5 → 
 ## Known limitations
 
 ## Plan deviations
-<!-- "None", or what differs from SPEC/ARCHITECTURE/PLAN and who approved it. Schema changes need coordination. -->
+<!-- "None", or what differs from intent.md or ARCHITECTURE.md and who approved it. Schema changes need coordination. -->

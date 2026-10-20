@@ -27,7 +27,7 @@ from urllib.parse import urlsplit
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-# Same import roots as PYTHONPATH on Azure (see the deploy notes in PLAN.md, Task 9).
+# Same import roots as PYTHONPATH on Azure.
 for _root in (ROOT, ROOT / "mcp" / "kpi-solar", ROOT / "mcp" / "actions"):
     if str(_root) not in sys.path:
         sys.path.insert(0, str(_root))

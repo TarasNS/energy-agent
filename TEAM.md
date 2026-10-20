@@ -1,51 +1,23 @@
-# TEAM.md — Five-Person Split
+# TEAM.md: who owns what
 
-**Role in the chain:** the *who*. Each person owns a **playbook responsibility and a piece of the energy product**, so the team cannot finish with excellent Claude configuration and no energy demo.
+**Role:** the *who*. Exact tasks and prompts are on each person's page in [docs/](docs/index.html). Replace `Dev N` with names when you kick off.
 
-Replace `Dev N` with names at kickoff. Detailed instructions per person live on the developer pages in [`docs/`](docs/index.html).
+| Person | Owns | Paths | Branches |
+|---|---|---|---|
+| **Dev 1** | The model's skill file, the chat page and the price reader | `.claude/skills/`, `.claude/hooks/`, `mcp/energy-data/`, `tools/kpi-lab/` (page, charts, config) | `dev1/<task>` |
+| **Dev 2** | Agent loop, approval, audit, smoke test | `harness/`, `mcp/actions/`, `tools/kpi-lab/server.py`, `scripts/demo-smoke.sh`, `.claude/agents/` | `dev2/<task>` |
+| **Dev 3** | Model gateway, contracts, repo health, docs | `CLAUDE.md`, `Makefile`, `scripts/`, `requirements*.txt`, `pytest.ini`, `.env.example`, `.github/`, `model/`, `schemas/`, `docs/`, `Dockerfile`, `.dockerignore` | `dev3/<task>` |
+| **Dev 4** | KPI calculator, golden cases, evals | `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md`, `config/` | `dev4/<task>` |
+| **Lead** | Decisions, the presentation, merges to `main`, deploy | `INTENT.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py` | none |
 
-| Person | Playbook responsibility | Product responsibility | Primary paths | Branches |
-|---|---|---|---|---|
-| **Dev 1** — _name_ | Skills + hooks | `curtailment-advisor` skill + read-only energy data | `.claude/skills/`, `.claude/hooks/`, `mcp/energy-data/` | `dev1/<task>` |
-| **Dev 2** — _name_ | Subagents + feedback loop | Agent loop (`harness/`) + action approval + audit | `.claude/agents/`, `mcp/actions/`, `harness/`, `scripts/demo-smoke.sh` | `dev2/<task>` |
-| **Dev 3** — _name_ | `CLAUDE.md` curator | Integration, model gateway, portfolio interface, schemas | `CLAUDE.md`, `Makefile`, `scripts/setup.sh`, `scripts/verify.sh`, `scripts/verify.py`, `requirements.txt`, `requirements-dev.txt`, `pytest.ini`, `.env.example`, `.gitignore`, `.github/`, `model/`, `mcp/portfolio/`, `schemas/`, `docs/` | `dev3/<task>` |
-| **Dev 4** — _name_ | Evals | Deterministic `energy-calc`, golden fixtures, EnergyBench-Lite | `mcp/energy-calc/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md` | `dev4/<task>` |
-| **Dev 5** — _name_ | Presentation | Lovable screen, local API, storyline, fallback assets | `apps/web/` (page + local API), `presentation/`, `DEMO.md` | `dev5/<task>` |
-| **Lead** — _name_ | Decisions | Scope, approvals, merge to `main` | `intent.md`, `SPEC.md`, `ARCHITECTURE.md`, `PLAN.md`, `TEAM.md`, `WORKFLOW.md`, `README.md`, `INIT.md` | — |
+## Shared paths
+- `schemas/`: Dev 3 owns it. Dev 4 and Dev 2 review changes. A change to a contract needs the lead's approval.
+- `tools/kpi-lab/`: Dev 2 owns `server.py`, Dev 1 owns everything else in it. `test_server.py` follows `server.py`.
 
-Shared-ownership exceptions:
-- `schemas/` fixture schemas: Dev 3 + Dev 4. `action-proposal.schema.json`: Dev 2 + Dev 3. After the Milestone A freeze, any schema change needs lead approval.
-- `prompts/`: each developer may tune their own prompt; Dev 3 keeps `00`, `06`, `07`.
-
-## Lead responsibilities
-- approve `intent.md`, `SPEC.md`, `ARCHITECTURE.md`, `PLAN.md`;
-- close the open questions in `intent.md`;
-- decide scope trade-offs and say "no" to late stretch features;
-- resolve shared-contract conflicts;
-- final merge to `main`.
-
-The lead is not the only integrator. Dev 3 owns integration mechanics; the lead owns decisions.
-
-## Done when (summary)
-
+## Done when
 | Person | Done when |
 |---|---|
-| Dev 1 | Prices load offline; the skill names the five tools, makes calc mandatory and never invents EUR |
-| Dev 2 | The agent loop returns the golden EUR within the step budget; no approval tool in the registry; bad tokens refused; tool calls and approval audited; `make demo-smoke` is real |
-| Dev 3 | Portfolio loads and rejects bad rows; `run_turn` works with `default` and replays with `offline`; dev stays green |
-| Dev 4 | G-01 to G-03 and G-07 pass exactly in `make test`; the agent trace never states a EUR value the calc did not return |
-| Dev 5 | The Lovable screen shows the full story and tool trace from real results; the local page works offline; demo rehearsed |
-
-Full acceptance criteria are on each developer page and in [TASKS.md](TASKS.md).
-
-## Shared review pairing
-
-| Reviewer | Reviews | Why |
-|---|---|---|
-| Dev 1 | Dev 4's calc contract | The skill quotes it |
-| Dev 4 | Dev 1's numeric claims | No invented numbers |
-| Dev 2 | Dev 3's integration commands | The smoke test depends on them |
-| Dev 3 | Dev 2's runtime assumptions | Config lives with Dev 3 |
-| Dev 5 | Everyone's output | Demo comprehensibility |
-
-The lead resolves scope, not style preferences.
+| Dev 1 | The skill names all nine tools and its test is green; every chat page state is clear; prices load offline |
+| Dev 2 | Every tool call, proposal and approval is audited; the smoke test passes offline |
+| Dev 3 | Offline replay matches live answers; schemas match the code; container files are on main; checks are green |
+| Dev 4 | 13 golden cases pass exactly; a made-up number is withheld, with a test |

@@ -17,13 +17,13 @@ from urllib.parse import unquote, urlparse
 ROOT = Path(__file__).resolve().parent.parent
 errors: list[str] = []
 
-REQUIRED = """README.md INIT.md intent.md SPEC.md PLAN.md TEAM.md ARCHITECTURE.md WORKFLOW.md
+REQUIRED = """README.md INTENT.md TEAM.md ARCHITECTURE.md
 EVALS.md DEMO.md CLAUDE.md Makefile .env.example .gitignore requirements-dev.txt pytest.ini
 index.html docs/index.html docs/lead.html .claude/brand-voice-guidelines.md
-docs/developer-1.html docs/developer-2.html docs/developer-3.html docs/developer-4.html docs/developer-5.html
+docs/developer-1.html docs/developer-2.html docs/developer-3.html docs/developer-4.html docs/presentation.html
 docs/css/style.css docs/js/app.js scripts/build_docs.py model/README.md model/profiles.json requirements.txt
 .claude/agents/researcher.md .claude/agents/verifier.md .claude/agents/simplifier.md
-.github/PULL_REQUEST_TEMPLATE.md .github/workflows/verify.yml
+.github/PULL_REQUEST_TEMPLATE.md
 scripts/setup.sh scripts/verify.sh scripts/demo-smoke.sh""".split()
 
 DEV_SECTIONS = ["setup", "loop", "tasks", "done"]
@@ -98,7 +98,7 @@ def check_links():
 
 
 def check_dev_pages():
-    for n in range(1, 6):
+    for n in range(1, 5):
         p = ROOT / f"docs/developer-{n}.html"
         if not p.exists():
             continue
@@ -134,7 +134,7 @@ def check_model_agnostic():
         if allowed in p.resolve().parents or p.resolve() == Path(__file__).resolve():
             continue
         if SDK_IMPORT.search(p.read_text(encoding="utf-8", errors="ignore")):
-            errors.append(f"{rel(p)}: imports a model SDK directly; use model_gateway.get_client()")
+            errors.append(f"{rel(p)}: imports a model SDK directly; use model_gateway.run_turn()")
 
 
 def check_misc():

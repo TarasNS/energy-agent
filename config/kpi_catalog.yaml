@@ -1,6 +1,6 @@
 # KPI catalog for the energy harness. KPI definitions only: no company figures.
 # status: poc (implemented on synthetic data) | planned | reference_only
-# verdict and rationale are in KPI_AUDIT.md. A KPI is not production-ready until its data source is validated and its owner confirmed.
+# verdict and rationale are in KPI_REVIEW.md. A KPI is not production-ready until its data source is validated and its owner confirmed.
 # owner_role values marked ASSUMPTION are suggestions to confirm with Nordic Solar.
 
 kpis:

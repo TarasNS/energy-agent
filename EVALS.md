@@ -1,68 +1,32 @@
-# EVALS.md — Golden Truth
+# EVALS.md: what "correct" means
 
-**Owner:** Dev 4 · **Status:** formula v1 proposed; confirm with an energy colleague before the hackathon
-**Role in the chain:** defines what "correct" means and how the POC proves it. Code lives in [`mcp/energy-calc/`](mcp/energy-calc/).
+**Owner:** Dev 4 · **Role:** defines how we prove the numbers are right. The calculator is `mcp/kpi-solar`; the model is never the calculator of record.
 
-> Claude may explain the calculation. Claude is not the calculator of record.
-> **No golden EUR value may ever be produced by an LLM.** Golden values are computed by hand or in a spreadsheet, then frozen.
+## 1. Three layers of proof
 
-## 1. Principles
-1. Exact equality on decimal strings. No tolerance for EUR.
-2. Every golden case has a stable ID, a small fixture, an expected output and its hand working.
-3. In the POC, golden cases run as plain pytest tests in `mcp/energy-calc/tests/` via `make test`. No separate eval runner.
+| Layer | Question it answers | Where | Status |
+|---|---|---|---|
+| Formula tests | Does each KPI function return the hand-worked value, and refuse bad input? | `mcp/kpi-solar/tests/` | Done (31 tests) |
+| Golden cases | Does each tool, with no model, return the hand-worked value for the demo data? | `evals/cases/golden.json`, `tests/test_golden.py` | Dev 4, task 1 |
+| Number check | Is a number the tools never returned always withheld? | `tests/test_number_check.py` | Dev 4, task 2 |
 
-## 2. Formula v1
+## 2. Rules for a golden case
 
-Per asset, per market interval `i` (15 minutes for DK1 since 1 October 2025; read `interval_minutes` from the row, never assume 60):
+1. One case per KPI (13 in `harness/energy_tools.py`).
+2. Fields: `id`, `question`, `tool`, `arguments`, `expected` (decimal string), `unit`, `note`.
+3. The expected value is worked out **by hand** from `harness/dataset.py`. The `note` shows the working. At least three are checked by hand before anyone trusts the code output.
+4. Compared exactly, as strings. No tolerance.
+5. A golden value changes only with the lead's approval.
 
-```text
-curtailed_i = curtailed_mwh                      if present
-            = max(available_mwh − actual_mwh, 0)  otherwise
+## 3. Rules for the number check
 
-lost_revenue_eur            = Σ curtailed_i × price_i     where price_i > 0 and reason ≠ grid_operator
-grid_operator_lost_eur      = Σ curtailed_i × price_i     where price_i > 0 and reason = grid_operator   (may be compensated by the TSO)
-avoided_negative_cost_eur   = Σ curtailed_i × |price_i|   where price_i < 0   (self-curtailment saved this)
-negative_price_exposure_eur = Σ actual_i × |price_i|      where price_i < 0   (paid to produce — the decision metric)
-```
+- A number in the answer must appear in the question or in a tool result.
+- The same value written differently (`12.5` and `12.50`) passes.
+- Years, dates and small counts must not cause false alarms.
+- A failed check withholds the text. Charts and tool results still show.
 
-The **headline** (`economic_value_eur`) is `negative_price_exposure_eur` for the portfolio. Results are also returned per asset, so the recommendation can name the asset. `threshold_exceeded` is true when an asset's exposure is above `threshold_eur`.
+## 4. After the POC
 
-Rounding: `Decimal` throughout, round once at the end, ROUND_HALF_UP; 2 decimals for EUR, 3 for MWh.
-
-Why this shape: the three causes have different economics. Self-curtailment at negative prices *saves* money, grid-operator curtailment *may be compensated*, and producing into negative prices *costs* money. One blended number would be challenged by any energy expert.
-
-Hand-worked illustration (not a golden case):
-
-| Interval | Situation | MWh | Price EUR/MWh | Result |
-|---|---|---:|---:|---|
-| 1 | grid operator curtails | 0.500 curtailed | 50.00 | grid_operator_lost 25.00 |
-| 2 | self-curtails at negative price | 0.400 curtailed | −10.00 | avoided 4.00 |
-| 3 | produces into negative price | 0.300 actual | −20.00 | exposure 6.00 |
-
-## 3. Golden cases for the POC
-
-Work these out by hand **before the hackathon**. Turn them into case files and tests during the session.
-
-| ID | Scenario | Proves |
-|---|---|---|
-| G-01 | One asset, all four situations above, a handful of intervals | Every bucket and its sign |
-| G-02 | `curtailed_mwh` missing; derived from available − actual, clamped at 0 | Derivation path |
-| G-03 | Malformed row (missing price) | Clear error, no number |
-| G-07 | Demo fixture: `demo-solar-dk`, DK1, 2026-06 | The exact numbers the presenter says |
-
-G-07 needs a spreadsheet over the fixture files (sum the 15-minute rows per bucket). Do it once, before the hackathon, and freeze it.
-
-## 4. After the POC: EnergyBench-Lite
-
-Not built in the hackathon session. When the POC works, extend in this order:
-
-| # | Eval | Checks |
-|---|---|---|
-| 1 | `action-without-approval` | Missing, wrong or reused token executes nothing (already covered by Dev 2's unit tests in the POC) |
-| 2 | `approved-action-audit` | Approval writes the audit lines |
-| 3 | `offline-fallback` | The agent loop completes with the network off |
-| 3b | `calc-is-called` | A review where the model skips the calculator fails |
-| 4 | `no-invented-number` | Every number in the explanation appears in the calc result (POC version on the offline trace: T4.3) |
-| 5 | `model-switch-invariance` | Two profiles → identical calc result |
-
-Runner: `evals/run.py` behind `make eval`.
+- An eval runner (`evals/run.py`, `make eval`) with a score per question set.
+- Scripted-model tests for every standard question: right tool, right KPI.
+- Real data: a KPI is production-ready only with trusted data, a validated formula and a named owner. See [KPI_REVIEW.md](KPI_REVIEW.md).

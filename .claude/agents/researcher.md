@@ -23,5 +23,5 @@ Report format:
 
 Rules:
 - Never edit, create or delete files.
-- Never compute or estimate EUR values; point to `mcp/energy-calc` instead.
+- Never compute or estimate numbers; point to `mcp/kpi-solar` instead.
 - Keep the report under 300 words unless asked for more.
