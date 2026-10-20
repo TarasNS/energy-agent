@@ -61,18 +61,18 @@ The harness does not exist yet. The exact contracts are in [SPEC.md](SPEC.md).
 
 | Step | What | Owner |
 |---|---|---|
-| 1 | Shared schemas, model gateway, import guard and checks | Dev 3 |
-| 1 | Synthetic portfolio and the 13 KPI formulas (no other part needed) | Dev 4 |
-| 2 | Registry, nine tools, agent loop and number check (a scripted model stands in until the gateway lands) | Dev 2 |
-| 2 | Propose, approve once, audit | Dev 2 |
-| 3 | Server and chat page against the `/api/chat` contract | Dev 2, Dev 1 |
-| 3 | Skill file, golden cases, number-check tests | Dev 1, Dev 4 |
-| 4 | Offline replay, smoke test, demo rehearsal | Dev 3, Dev 2, Lead |
-| 5 | Container and Azure release | Dev 3, Lead |
+| 1 | Shared schemas, model gateway, import guard and checks | Dev 1 |
+| 1 | Synthetic portfolio and the 13 KPI formulas (no other part needed) | Dev 2 |
+| 2 | Registry, nine tools, agent loop and number check (a scripted model stands in until the gateway lands) | Dev 3 |
+| 2 | Propose, approve once, audit | Dev 3 |
+| 3 | Server and chat page against the `/api/chat` contract | Dev 3, Dev 4 |
+| 3 | Skill file, golden cases, number-check tests | Dev 4, Dev 2 |
+| 4 | Offline replay, smoke test, demo rehearsal | Dev 1, Dev 3, Lead |
+| 5 | Container and Azure release | Dev 1, Lead |
 
 ## 7. Deployment
 
-The chat runs as one container on Azure App Service. Dev 3 writes the `Dockerfile` and `.dockerignore` in step 5.
+The chat runs as one container on Azure App Service. Dev 1 writes the `Dockerfile` and `.dockerignore` in step 5.
 
 | Part | Detail |
 |---|---|

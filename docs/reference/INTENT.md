@@ -54,10 +54,10 @@ The repository holds the documents and the checks only. **No harness code exists
 
 | Part | Owner | State |
 |---|---|---|
-| Shared contracts, model gateway, repo checks | Dev 3 | Not built |
-| Synthetic portfolio, 13 KPI formulas, golden cases | Dev 4 | Not built |
-| Nine tools, agent loop, number check, approval, audit, server | Dev 2 | Not built |
-| Skill file, chat page | Dev 1 | Not built |
+| Shared contracts, model gateway, repo checks | Dev 1 | Not built |
+| Synthetic portfolio, 13 KPI formulas, golden cases | Dev 2 | Not built |
+| Nine tools, agent loop, number check, approval, audit, server | Dev 3 | Not built |
+| Skill file, chat page | Dev 4 | Not built |
 | Offline model replay, smoke test, demo | All | Not built |
 | Real company data | Lead | **Not available.** See `KPI_REVIEW.md` |
 
@@ -89,5 +89,5 @@ Real Nordic Solar data or adapters · live market prices · production SCADA or 
 ## 10. Open questions for the lead
 
 1. Which real data source do we validate first? Without one, no KPI is production-ready.
-2. Who owns `mcp/kpi-solar`? It is a new path that [TEAM.md](TEAM.md) assigns to Dev 4; confirm.
+2. Who owns `mcp/kpi-solar`? It is a new path that [TEAM.md](TEAM.md) assigns to Dev 2; confirm.
 3. Is the Azure server the demo host, or do we run locally?

@@ -16,10 +16,10 @@ A chat assistant for a solar and battery portfolio. The model picks tools, deter
 | Role | Your page |
 |---|---|
 | Lead | [docs/lead.html](docs/lead.html) |
-| Dev 1 · Skill & chat page | [docs/developer-1.html](docs/developer-1.html) |
-| Dev 2 · Harness, approval & audit | [docs/developer-2.html](docs/developer-2.html) |
-| Dev 3 · Model, contracts & health | [docs/developer-3.html](docs/developer-3.html) |
-| Dev 4 · Calculator & evals | [docs/developer-4.html](docs/developer-4.html) |
+| Dev 1 · Model, contracts & health | [docs/developer-1.html](docs/developer-1.html) |
+| Dev 2 · Calculator & evals | [docs/developer-2.html](docs/developer-2.html) |
+| Dev 3 · Harness, approval & audit | [docs/developer-3.html](docs/developer-3.html) |
+| Dev 4 · Skill & chat page | [docs/developer-4.html](docs/developer-4.html) |
 
 Reference, only when a task links to it: [SPEC.md](SPEC.md), [ARCHITECTURE.md](ARCHITECTURE.md), [TEAM.md](TEAM.md), [EVALS.md](EVALS.md), [DEMO.md](DEMO.md), [KPI_REVIEW.md](KPI_REVIEW.md), [CLAUDE.md](CLAUDE.md).
 

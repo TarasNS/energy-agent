@@ -2,7 +2,7 @@
 
 **Owner:** Lead · **Role:** the acceptance test for the POC. If this demo works, the POC works.
 
-**Setup:** the chat page, synthetic data (2 parks, 1 battery, June 2026), server running. Offline fallback: `MODEL_PROFILE=offline` once Dev 3's replay is merged.
+**Setup:** the chat page, synthetic data (2 parks, 1 battery, June 2026), server running. Offline fallback: `MODEL_PROFILE=offline` once Dev 1's replay is merged.
 
 ## One-line pitch
 Ask your portfolio a question, get a number you can trust, and approve the next step yourself.
@@ -23,7 +23,7 @@ Managers have the data, but a generic AI assistant raises three questions: *Can 
 | 2:40 | Show the audit line | "Every step is traceable." |
 | 2:50 | Close | "First proof of concept on synthetic data. Next: a real data source and a second workflow." |
 
-The exact numbers on screen come from the golden cases in [EVALS.md](EVALS.md). Fill them in here after Dev 4's first task.
+The exact numbers on screen come from the golden cases in [EVALS.md](EVALS.md). Fill them in here after Dev 2's first task.
 
 ## Fallback ladder
 1. **No internet:** run with `MODEL_PROFILE=offline`. Same loop, recorded model turns, same numbers.

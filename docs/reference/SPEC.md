@@ -7,20 +7,20 @@ Names, shapes and limits below are fixed so the parts fit when they meet. Anythi
 ## 1. Layout
 
 ```text
-model/model_gateway/     run_turn(), recorded replay        Dev 3
-schemas/                 JSON contracts                      Dev 3
-mcp/kpi-solar/           KPI formulas (pure functions)       Dev 4
-data/synthetic/portfolio.py   the portfolio                       Dev 4
-harness/                 registry, nine tools, agent loop    Dev 2
-mcp/actions/             propose, approve, audit             Dev 2
-tools/kpi-lab/           server.py (Dev 2), page (Dev 1)
-.claude/skills/kpi-advisor/SKILL.md                          Dev 1
-evals/, tests/           golden cases, number check          Dev 4
+model/model_gateway/     run_turn(), recorded replay        Dev 1
+schemas/                 JSON contracts                      Dev 1
+mcp/kpi-solar/           KPI formulas (pure functions)       Dev 2
+data/synthetic/portfolio.py   the portfolio                       Dev 2
+harness/                 registry, nine tools, agent loop    Dev 3
+mcp/actions/             propose, approve, audit             Dev 3
+tools/kpi-lab/           server.py (Dev 3), page (Dev 4)
+.claude/skills/kpi-advisor/SKILL.md                          Dev 4
+evals/, tests/           golden cases, number check          Dev 2
 ```
 
 Import roots are set in `pytest.ini`. Never create `mcp/__init__.py`.
 
-## 2. The synthetic portfolio (Dev 4 builds it)
+## 2. The synthetic portfolio (Dev 2 builds it)
 
 Label everything `SYNTHETIC: not Nordic Solar data`. A fixed seed gives the same numbers on every run. No network.
 
@@ -51,7 +51,7 @@ Period: **1 to 30 June 2026**, daily rows (`YYYY-MM-DD`).
 |---|---|
 | Mean day-ahead price (EUR/MWh) | 38 to 68; about 15 % of days negative, −4 to −16 |
 
-`data/synthetic/portfolio.py` exposes `build(seed=20260601) -> dict`. Dev 2 and Dev 4 both rely on this shape:
+`data/synthetic/portfolio.py` exposes `build(seed=20260601) -> dict`. Dev 3 and Dev 2 both rely on this shape:
 
 ```python
 {"label": "SYNTHETIC: not Nordic Solar data",
@@ -69,7 +69,7 @@ Period: **1 to 30 June 2026**, daily rows (`YYYY-MM-DD`).
 
 Also fixed: a PPA covers **50 % of expected volume** (a demo assumption, say so wherever it is used). Import with `from data.synthetic.portfolio import build` and `from kpi_solar import metrics`. Money and energy leave the data layer as **decimal strings** (`"85.00"`, `"125.592"`): MWh 3 places, EUR/MWh and EUR 2 places, hours 0 places, percentages 1 place.
 
-## 3. The 13 KPIs (Dev 4 builds `mcp/kpi-solar`)
+## 3. The 13 KPIs (Dev 2 builds `mcp/kpi-solar`)
 
 Pure functions: strings in, `Decimal` or `Unavailable(reason)` out. How the tools feed them (all over the chosen days): `availability` = sum of `availHours` ÷ (days × 24 × number of parks); `capacity_factor` uses the summed capacity of the parks; `merchant_exposure` uses actual MWh × (1 − PPA share); `ppa_delivery` uses actual × share and expected × share; `performance_ratio` is computed per park and simple-averaged for `portfolio`; `downtime` builds one status per hour of each day, `"OUTAGE"` for the first `outageHours` hours and `"OK"` for the rest; `realised_price` uses one (daily portfolio MWh, daily price) pair per day. `portfolio` for a BESS KPI means the battery. Never a float. Refuse zero or missing inputs with `Unavailable`, never divide by zero. Round half up.
 
@@ -103,7 +103,7 @@ bess_cycle_utilisation_pct(throughput_mwh, usable_mwh)
 
 Background on the real-world meaning of these KPIs: [KPI_REVIEW.md](KPI_REVIEW.md).
 
-## 4. Model gateway (Dev 3)
+## 4. Model gateway (Dev 1)
 
 ```python
 from model.model_gateway import run_turn, ModelTurn, ToolCall, ModelUnavailable
@@ -117,7 +117,7 @@ turn = run_turn(system: str, messages: list[dict], tools: list[dict], max_tokens
 - Only `model/model_gateway/` may import a provider SDK. `make check` fails otherwise.
 - The key is `ANTHROPIC_API_KEY`, read from `.env` or the environment. A missing key or a failed call raises `ModelUnavailable`.
 
-## 5. The nine tools (Dev 2)
+## 5. The nine tools (Dev 3)
 
 Read-only. Each returns a JSON string. Money and energy are decimal strings. A bad call returns `{"error": "..."}`; the registry never raises into the loop. Assets are `portfolio` (default), `north`, `south`, `battery`. Dates are `YYYY-MM-DD` inside June 2026; the default period is the whole month.
 
@@ -151,7 +151,7 @@ Row shapes the page and the schemas rely on:
 
 **There is no approval tool.** `approve_action` and token issuing are never in the registry. A test says so.
 
-## 6. The agent loop and the number check (Dev 2)
+## 6. The agent loop and the number check (Dev 3)
 
 `harness.agent.run(question) -> AgentResult(text, verified, note, charts, proposals, trace, stopped)`.
 
@@ -161,14 +161,14 @@ Row shapes the page and the schemas rely on:
 4. Any unknown number: `text` is withheld (`verified: false`, a note), and charts, proposals and the trace still return.
 5. `stopped` is one of `answered`, `max_steps`, `cap`, `model_error`.
 
-## 7. Approval and audit (Dev 2, `mcp/actions`)
+## 7. Approval and audit (Dev 3, `mcp/actions`)
 
 - `propose_action(action, asset, reason) -> proposal_id`.
 - `issue_approval_token(proposal_id)` and `approve_action(proposal_id, token, approver)` exist **only** inside the server's `/api/approve` path.
 - A token is one-time and lives in memory. A missing, wrong or reused token, or a proposal already approved, is **refused and audited**. Approval is simulated: it writes an audit line and does nothing else.
 - The audit log is `artifacts/audit.jsonl`, append-only, one JSON line per event: `{ts, event, proposal_id, action, asset, approver}`. Events: `proposed`, `approved`, `refused`, and `tool_call` (with `tool`, `input`, `ok`). A token never appears in any line. The path comes from `AUDIT_LOG_PATH` (default `./artifacts/audit.jsonl`).
 
-## 8. The server (Dev 2, `tools/kpi-lab/server.py`)
+## 8. The server (Dev 3, `tools/kpi-lab/server.py`)
 
 Standard library or FastAPI, your choice. Serves on `127.0.0.1:8000` (`KPI_LAB_HOST`, `KPI_LAB_PORT`).
 
@@ -181,15 +181,15 @@ Standard library or FastAPI, your choice. Serves on `127.0.0.1:8000` (`KPI_LAB_H
 
 Daily model-call cap: `KPI_DAILY_CAP`, default 200, stored in `KPI_CAP_FILE`. Allowed origins: `KPI_ALLOWED_ORIGINS`.
 
-## 9. The chat page (Dev 1, `tools/kpi-lab/`)
+## 9. The chat page (Dev 4, `tools/kpi-lab/`)
 
 Render-only: it shows what the server returns and never calculates. Phone and desktop width. States: loading, verified answer, withheld answer (note, charts and tool results shown), cap reached, server not reachable, proposal waiting, approved, approval refused. It asks for the approver's name before Approve is sent. It says **SYNTHETIC DATA** on screen. Charts: line, bar, area and table, in plain SVG or HTML, no libraries.
 
-## 10. The skill (Dev 1)
+## 10. The skill (Dev 4)
 
 `.claude/skills/kpi-advisor/SKILL.md`, at most 150 lines. It tells the model: the data is synthetic and every answer says so; which of the nine tools fits which question; never calculate, add, average, round or estimate; when a value is unavailable, say so and give the reason; call `make_chart` at most once; propose only when the data clearly justifies it and never say it is approved; answer in at most 120 words.
 
-Changing a schema or a shape in this file needs the lead's approval; Dev 4 and Dev 2 review changes to `schemas/`.
+Changing a schema or a shape in this file needs the lead's approval; Dev 2 and Dev 3 review changes to `schemas/`.
 
 ## 11. Done
 

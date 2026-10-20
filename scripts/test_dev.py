@@ -1,4 +1,4 @@
-"""Tests for scripts/dev.py, the make-free command runner (owner: Dev 3)."""
+"""Tests for scripts/dev.py, the make-free command runner (owner: Dev 1)."""
 import subprocess
 import sys
 from pathlib import Path

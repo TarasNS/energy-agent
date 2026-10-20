@@ -1,4 +1,4 @@
-# Runtime dependencies (owner: Dev 3). Pin exact versions before the hackathon.
+# Runtime dependencies (owner: Dev 1). Pin exact versions before the hackathon.
 anthropic
 fastapi
 uvicorn

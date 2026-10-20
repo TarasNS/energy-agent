@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Builds the docs/ portal (owner: Dev 3). Run: make docs
+"""Builds the docs/ portal (owner: Dev 1). Run: make docs
 
 Edit this file, not the generated HTML. Standard library only.
 Writing rules: .claude/brand-voice-guidelines.md (one action per step, link every file).
@@ -69,9 +69,9 @@ def done(items):
 COL = {1: "var(--d1)", 2: "var(--d2)", 3: "var(--d3)", 4: "var(--d4)", "L": "var(--lead)"}
 SUN = ('<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="#1a5c00" stroke-width="1.8"/>'
        '<g stroke="#1a5c00" stroke-width="1.6" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>')
-NAV = [("index.html", "Guide", "L"), ("lead.html", "Lead", "L"), ("developer-1.html", "Dev 1 · Skill & chat page", 1),
-       ("developer-2.html", "Dev 2 · Harness & approval", 2), ("developer-3.html", "Dev 3 · Model & contracts", 3),
-       ("developer-4.html", "Dev 4 · Calculator & evals", 4),
+NAV = [("index.html", "Guide", "L"), ("lead.html", "Lead", "L"), ("developer-1.html", "Dev 1 · Model & contracts", 1),
+       ("developer-2.html", "Dev 2 · Calculator & data", 2), ("developer-3.html", "Dev 3 · Harness & approval", 3),
+       ("developer-4.html", "Dev 4 · Skill & chat page", 4),
        ("presentation.html", "Presentation", "L")]
 def foot(base=""):
     docs = ["INTENT.md", "SPEC.md", "ARCHITECTURE.md", "TEAM.md", "EVALS.md", "DEMO.md", "KPI_REVIEW.md", "CLAUDE.md"]
@@ -135,30 +135,30 @@ def arch(id_, focus=None):
          '<path class="wire plain" d="M480 184V300"/>', '<path class="wire plain" d="M115 300H840"/>',
          '<path class="wire" d="M115 300V328"/>', '<path class="wire" d="M355 300V328"/>', '<path class="wire" d="M595 300V328"/>', '<path class="wire" d="M840 300V328"/>',
          '<path class="wire" d="M115 396V436"/>', '<path class="wire" d="M355 396V436"/>', '<path class="wire" d="M595 396V436"/>', '<path class="wire" d="M840 396V436"/>',
-         part(1, 370, 20, 220, 64, "Chat page", "tools/kpi-lab · charts, approve"),
-         part(2, 370, 120, 220, 64, "Agent loop + server", "number check · harness/"),
-         part(1, 100, 220, 230, 64, "KPI advisor skill", "the model's instructions"),
-         part(3, 630, 220, 230, 64, "Model gateway", "Claude Haiku 5.5 · swappable"),
-         part(2, 10, 330, 210, 66, "Server", "/api/chat · /api/approve"),
-         part(2, 250, 330, 210, 66, "Energy tools", "nine tools · harness/"),
-         part(4, 490, 330, 210, 66, "KPI calculator", "mcp/kpi-solar · every number"),
-         part(2, 730, 330, 220, 66, "Actions", "propose → approve"),
-         part(4, 10, 438, 210, 62, "Day-ahead prices", "daily · synthetic"),
-         part(4, 250, 438, 210, 62, "Synthetic portfolio", "2 parks + 1 battery"),
-         part(4, 490, 438, 210, 62, "Golden cases", "hand-worked values"),
-         part(2, 730, 438, 220, 62, "Audit log", "proposals, approvals, tool calls"),
+         part(4, 370, 20, 220, 64, "Chat page", "tools/kpi-lab · charts, approve"),
+         part(3, 370, 120, 220, 64, "Agent loop + server", "number check · harness/"),
+         part(4, 100, 220, 230, 64, "KPI advisor skill", "the model's instructions"),
+         part(1, 630, 220, 230, 64, "Model gateway", "Claude Haiku 5.5 · swappable"),
+         part(3, 10, 330, 210, 66, "Server", "/api/chat · /api/approve"),
+         part(3, 250, 330, 210, 66, "Energy tools", "nine tools · harness/"),
+         part(2, 490, 330, 210, 66, "KPI calculator", "mcp/kpi-solar · every number"),
+         part(3, 730, 330, 220, 66, "Actions", "propose → approve"),
+         part(2, 10, 438, 210, 62, "Day-ahead prices", "daily · synthetic"),
+         part(2, 250, 438, 210, 62, "Synthetic portfolio", "2 parks + 1 battery"),
+         part(2, 490, 438, 210, 62, "Golden cases", "hand-worked values"),
+         part(3, 730, 438, 220, 62, "Audit log", "proposals, approvals, tool calls"),
          '<text class="band" x="10" y="540">Across everything</text>',
-         part(3, 10, 552, 225, 62, "Contracts & checks", "schemas · make check"),
-         part(3, 245, 552, 225, 62, "Offline replay", "model/recorded"),
-         part(2, 480, 552, 225, 62, "Smoke test", "make demo-smoke"),
-         part(2, 715, 552, 235, 62, "Demo story", "DEMO.md · screenshots"),
+         part(1, 10, 552, 225, 62, "Contracts & checks", "schemas · make check"),
+         part(1, 245, 552, 225, 62, "Offline replay", "model/recorded"),
+         part(3, 480, 552, 225, 62, "Smoke test", "make demo-smoke"),
+         part(3, 715, 552, 235, 62, "Demo story", "DEMO.md · screenshots"),
          *[f'<circle class="pulse" r="3"><animateMotion dur="2.4s" begin="{b}s" repeatCount="indefinite" path="{d}"/></circle>' for d, b in PULSES],
          "</svg></div>"]
     return "".join(g)
 
 
 def legend(target):
-    names = {1: "Dev 1 · Skill & chat page", 2: "Dev 2 · Harness & approval", 3: "Dev 3 · Model & contracts", 4: "Dev 4 · Calculator & evals"}
+    names = {1: "Dev 1 · Model & contracts", 2: "Dev 2 · Calculator & data", 3: "Dev 3 · Harness & approval", 4: "Dev 4 · Skill & chat page"}
     return (f'<ul class="legend" data-legend="{target}">'
             + "".join(f'<li><button type="button" data-d="{d}" aria-pressed="false"><i>{d}</i>{n}</button></li>' for d, n in names.items())
             + "</ul>")
@@ -312,102 +312,105 @@ def setup(extra=()):
 # ───────────────────────── developer content ─────────────────────────
 
 DEVS = {
-    1: dict(title="Skill &amp; Chat Page", own=[".claude/skills/", "tools/kpi-lab/index.html", "tools/kpi-lab/charts.js", "tools/kpi-lab/config.js"],
+    4: dict(title="Skill &amp; Chat Page", own=[".claude/skills/", "tools/kpi-lab/index.html", "tools/kpi-lab/charts.js", "tools/kpi-lab/config.js"],
             what="You write the instructions the model reads and build the chat page a manager uses. You start with the skill, then the page against the server contract in SPEC.md.",
             tasks=[
-                task(1, "Write the skill the model reads", "skill", ".claude/skills/ only",
+                task(4, "Write the skill the model reads", "skill", ".claude/skills/ only",
                      "Write .claude/skills/kpi-advisor/SKILL.md, at most 150 lines, from SPEC.md section 10 and the nine tools in section 5. It tells the model: the data is synthetic and every answer must say so; which of the nine tools to use for which kind of question; never calculate, add, average, round or estimate a number; when a tool says a value is unavailable, say so and give the reason; call make_chart at most once; propose an action only when the data clearly justifies it, and never say it is approved; answer in at most 120 words. Put a test next to it (.claude/skills/kpi-advisor/test_skill.py) that fails if any of the nine tool names is missing or the never-calculate rule is gone.",
                      "the test passes, and the skill names all nine tools.",
-                     why="No code is needed from anyone else. Dev 2 loads the skill as the system prompt.",
+                     why="No code is needed from anyone else. Dev 3 loads the skill as the system prompt.",
                      files=["SPEC.md", ".claude/skills/README.md"]),
-                task(1, "Draw the charts", "charts", "tools/kpi-lab/charts.js and tools/kpi-lab/charts.test.js only",
+                task(4, "Draw the charts", "charts", "tools/kpi-lab/charts.js and tools/kpi-lab/charts.test.js only",
                      "Write tools/kpi-lab/charts.js with one function renderChart(chart) that returns an SVG or HTML string for the kinds line, bar, area and table. A chart is {id, kind, title, series: [{name, points: [{x, y}]}]} where every y is a decimal string. The code only draws: it never adds, averages or rounds, and it prints each y exactly as given. Use the Nordic Solar colours from .claude/brand-voice-guidelines.md only if it names them, otherwise plain dark and green. Write tools/kpi-lab/charts.test.js, run with node, covering each kind, an empty series and a negative value.",
                      "the node test passes for every chart kind.",
                      why="Independent of the server. The page in the next task calls this function.",
                      files=["SPEC.md"]),
-                task(1, "Every state of the chat page", "chat-page", "tools/kpi-lab/index.html and tools/kpi-lab/config.js only",
-                     "Build tools/kpi-lab/index.html: one page, no libraries, that posts {question} to /api/chat and renders {text, verified, note, charts, proposals, trace, stopped} as in SPEC.md sections 8 and 9. It must handle loading, a verified answer, a withheld answer (show the note, the charts and the tool results), daily cap reached (429), server not reachable, a proposal waiting, approved, and approval refused. Ask for the approver's name before Approve is sent, then post {proposal_id, approver} to /api/approve. Show SYNTHETIC DATA on screen. The page only renders what the server returns and never calculates. Until Dev 2's server is merged, test against a small stub that returns each state. Check it in the browser at phone width and desktop and show me screenshots.",
+                task(4, "Every state of the chat page", "chat-page", "tools/kpi-lab/index.html and tools/kpi-lab/config.js only",
+                     "Build tools/kpi-lab/index.html: one page, no libraries, that posts {question} to /api/chat and renders {text, verified, note, charts, proposals, trace, stopped} as in SPEC.md sections 8 and 9. It must handle loading, a verified answer, a withheld answer (show the note, the charts and the tool results), daily cap reached (429), server not reachable, a proposal waiting, approved, and approval refused. Ask for the approver's name before Approve is sent, then post {proposal_id, approver} to /api/approve. Show SYNTHETIC DATA on screen. The page only renders what the server returns and never calculates. Until Dev 3's server is merged, test against a small stub that returns each state. Check it in the browser at phone width and desktop and show me screenshots.",
                      "all states are visible in the browser at both widths.",
-                     why="Needs the chart function from the previous task and the contract in SPEC.md. Dev 2's server arrives later; use a stub.",
+                     why="Needs the chart function from the previous task and the contract in SPEC.md. Dev 3's server arrives later; use a stub.",
                      files=["SPEC.md", "tools/kpi-lab/charts.js"]),
             ],
-            done=["The skill names all nine tools, forbids model arithmetic and says the data is synthetic; its test is green.", "Charts draw all four kinds exactly as given; the node test is green.", "Every state of the chat page is clear and checked at phone width.", "The page works against Dev 2's real server once it is merged.", "All tasks merged through green pull requests."]),
-    2: dict(title="Harness &amp; Approval", own=["harness/", "mcp/actions/", "tools/kpi-lab/server.py", "scripts/demo-smoke.sh", ".claude/agents/"],
-            what="You build the nine tools, the agent loop with the number check, the approval step, the audit log and the server. It is the middle of the harness: Dev 4 gives you data and formulas, Dev 3 the model.",
+            done=["The skill names all nine tools, forbids model arithmetic and says the data is synthetic; its test is green.", "Charts draw all four kinds exactly as given; the node test is green.", "Every state of the chat page is clear and checked at phone width.", "The page works against Dev 3's real server once it is merged.", "All tasks merged through green pull requests."]),
+    3: dict(title="Harness &amp; Approval", own=["harness/", "mcp/actions/", "tools/kpi-lab/server.py", "scripts/demo-smoke.sh", ".claude/agents/"],
+            what="You build the nine tools, the agent loop with the number check, the approval step, the audit log and the server. It is the middle of the harness: Dev 2 gives you data and formulas, Dev 1 the model.",
             tasks=[
-                task(2, "The registry and the nine tools", "tools", "harness/ only",
-                     "Build harness/registry.py (a ToolRegistry that runs a tool by name and never raises: a bad call becomes {\"error\": ...}) and harness/energy_tools.py with the nine tools in SPEC.md section 5, over the portfolio from data/synthetic/portfolio.py and the KPI functions in mcp/kpi-solar. Every tool returns a JSON string and every money or energy value is a decimal string. Tool descriptions say when to use the tool. Write tests first: each tool on a tiny hand-made portfolio, an unknown kpi, an unknown asset, a date outside June 2026, and a test that no tool called approve exists. Until Dev 4's portfolio and formulas are merged, use a small stand-in with the same shape as in SPEC.md section 2 and section 3.",
+                task(3, "The registry and the nine tools", "tools", "harness/ only",
+                     "Build harness/registry.py (a ToolRegistry that runs a tool by name and never raises: a bad call becomes {\"error\": ...}) and harness/energy_tools.py with the nine tools in SPEC.md section 5, over the portfolio from data/synthetic/portfolio.py and the KPI functions in mcp/kpi-solar. Every tool returns a JSON string and every money or energy value is a decimal string. Tool descriptions say when to use the tool. Write tests first: each tool on a tiny hand-made portfolio, an unknown kpi, an unknown asset, a date outside June 2026, and a test that no tool called approve exists. Until Dev 2's portfolio and formulas are merged, use a small stand-in with the same shape as in SPEC.md section 2 and section 3.",
                      "the tool tests pass and the registry has exactly nine tools.",
-                     why="Needs Dev 4's portfolio and formulas for the real numbers; the shapes are fixed in SPEC.md so you can start now.",
+                     why="Needs Dev 2's portfolio and formulas for the real numbers; the shapes are fixed in SPEC.md so you can start now.",
                      files=["SPEC.md", "ARCHITECTURE.md"]),
-                task(2, "The agent loop and the number check", "agent-loop", "harness/ only",
-                     "Build harness/agent.py: run(question) -> AgentResult(text, verified, note, charts, proposals, trace, stopped) as in SPEC.md section 6. It calls the model only through model.model_gateway.run_turn, runs the tools through the registry, stops after 8 rounds, and calls check_numbers(reply, tool_results, question) before returning text. Withhold the text when any number is unknown. The system prompt is .claude/skills/kpi-advisor/SKILL.md when it exists, otherwise a short built-in fallback. Write the tests first with a scripted model (a function that returns ModelTurns): a correct answer passes, a made-up number is withheld with charts still returned, 12.5 equals 12.50, a year or a count does not raise a false alarm, 9 rounds stop with max_steps. Until Dev 3's gateway is merged, define ModelTurn and ToolCall in a stand-in with the same names.",
+                task(3, "The agent loop and the number check", "agent-loop", "harness/ only",
+                     "Build harness/agent.py: run(question) -> AgentResult(text, verified, note, charts, proposals, trace, stopped) as in SPEC.md section 6. It calls the model only through model.model_gateway.run_turn, runs the tools through the registry, stops after 8 rounds, and calls check_numbers(reply, tool_results, question) before returning text. Withhold the text when any number is unknown. The system prompt is .claude/skills/kpi-advisor/SKILL.md when it exists, otherwise a short built-in fallback. Write the tests first with a scripted model (a function that returns ModelTurns): a correct answer passes, a made-up number is withheld with charts still returned, 12.5 equals 12.50, a year or a count does not raise a false alarm, 9 rounds stop with max_steps. Until Dev 1's gateway is merged, define ModelTurn and ToolCall in a stand-in with the same names.",
                      "the loop tests pass with a scripted model and no network.",
-                     why="This is the check that keeps a wrong number off the screen. Dev 4 writes extra tests for it later.",
+                     why="This is the check that keeps a wrong number off the screen. Dev 2 writes extra tests for it later.",
                      files=["SPEC.md"]),
-                task(2, "Propose, approve once, audit", "actions", "mcp/actions/ and the audit part of harness/ only",
+                task(3, "Propose, approve once, audit", "actions", "mcp/actions/ and the audit part of harness/ only",
                      "Build mcp/actions with propose_action, issue_approval_token and approve_action as in SPEC.md section 7, and write every proposal, approval, refusal and tool call as one JSON line in artifacts/audit.jsonl (path from AUDIT_LOG_PATH). Tokens are one-time, live in memory and never appear in any line. Tests first: approving twice is refused and audited, a wrong token is refused and audited, a token never appears in the file, a scripted run with two tool calls writes two tool_call lines, and the registry holds neither approve_action nor issue_approval_token. Make the agent loop write the tool_call lines.",
                      "the new tests pass and the audit file shows one line per event.",
                      why="Approval is enforced in code, never only in a prompt.",
                      files=["SPEC.md", "INTENT.md"]),
-                task(2, "The server and the smoke test", "server-smoke", "tools/kpi-lab/server.py, scripts/demo-smoke.sh",
+                task(3, "The server and the smoke test", "server-smoke", "tools/kpi-lab/server.py, scripts/demo-smoke.sh",
                      "Build tools/kpi-lab/server.py as in SPEC.md section 8: GET /, POST /api/chat, POST /api/approve, GET /health, a daily cap (KPI_DAILY_CAP, 200, stored in KPI_CAP_FILE), allowed origins and the 429 answer. /api/approve issues the one-time token itself and the browser never sees it. Add tools/kpi-lab/test_server.py. Then make scripts/demo-smoke.sh real: start the server with a scripted model that needs no network, ask the questions in the DEMO.md table (park losses, round-trip efficiency, incident resolution, negative prices), approve one proposal, and check the answer, the chart, the audit lines and the refusal of a second approval. make demo-smoke must pass offline.",
                      "<code>make demo-smoke</code> passes with Wi-Fi off.",
-                     why="Needs the loop, the actions and, for the offline version, Dev 3's recorded replay or your own scripted model.",
+                     why="Needs the loop, the actions and, for the offline version, Dev 1's recorded replay or your own scripted model.",
                      files=["DEMO.md", "SPEC.md"]),
             ],
             done=["Nine tools, no approval tool, and a test says so.", "A made-up number is withheld; charts and tool results still show.", "Every tool call, proposal and approval is one line in the audit log. No token is in it.", "The server answers /api/chat, /api/approve and /health as in SPEC.md.", "<code>make demo-smoke</code> passes offline."]),
-    3: dict(title="Model &amp; Contracts", own=["model/", "schemas/", "CLAUDE.md", "Makefile", "scripts/", ".github/", "docs/", "Dockerfile", ".dockerignore"],
+    1: dict(title="Model &amp; Contracts", own=["model/", "schemas/", "CLAUDE.md", "Makefile", "scripts/", ".github/", "docs/", "Dockerfile", ".dockerignore"],
             what="You go first: the shared contracts and the model gateway are what the other three build against. Then offline replay and the container.",
             tasks=[
-                task(3, "The shared contracts", "contracts", "schemas/ (tests live in schemas/), scripts/verify.py, CLAUDE.md",
-                     "Write the JSON schemas in schemas/ for what the parts exchange, from SPEC.md: chat-result.schema.json (text, verified, note, charts, proposals, trace, stopped), chart.schema.json, proposal.schema.json and audit-line.schema.json (events proposed, approved, refused, tool_call). Add schemas/test_schemas.py with one valid and one invalid example for each schema. Make sure make check validates every schema file. Update the Current state line in CLAUDE.md. Dev 4 and Dev 2 review it before the merge, and any later change needs the lead's approval. Merge this one first: everyone waits for it.",
+                task(1, "The shared contracts", "contracts", "schemas/ (tests live in schemas/), scripts/verify.py, CLAUDE.md",
+                     "Write the JSON schemas in schemas/ for what the parts exchange, from SPEC.md: chat-result.schema.json (text, verified, note, charts, proposals, trace, stopped), chart.schema.json, proposal.schema.json and audit-line.schema.json (events proposed, approved, refused, tool_call). Add schemas/test_schemas.py with one valid and one invalid example for each schema. Make sure make check validates every schema file. Update the Current state line in CLAUDE.md. Dev 2 and Dev 3 review it before the merge, and any later change needs the lead's approval. Merge this one first: everyone waits for it.",
                      "<code>make check</code> and <code>make test</code> are green, and each schema has a failing example.",
                      why="Do this in the first half hour. The other three developers read these files.",
                      files=["SPEC.md", "CLAUDE.md"]),
-                task(3, "The model gateway", "gateway", "model/ only",
+                task(1, "The model gateway", "gateway", "model/ only",
                      "Build model/model_gateway as in SPEC.md section 4: run_turn(system, messages, tools, max_tokens) returns ModelTurn(text, tool_calls) with ToolCall(id, name, input), and raises ModelUnavailable on a missing key or a failed call. Convert OpenAI-style tool schemas to the provider format. Use the standard library for HTTP so no provider SDK is imported anywhere. Write model/profiles.json with default, fast and offline profiles (Claude Haiku 5.5 for the first two) and read MODEL_PROFILE. Tests first, with no network: tool schema conversion, a text reply, a tool-call reply, a missing key, and a test that no file outside model/model_gateway imports a provider SDK. Update model/README.md to match. Ask me before any live call.",
                      "the gateway tests pass with Wi-Fi off.",
-                     why="Dev 2's loop calls this. Publish the names ModelTurn, ToolCall, ModelUnavailable and run_turn early.",
+                     why="Dev 3's loop calls this. Publish the names ModelTurn, ToolCall, ModelUnavailable and run_turn early.",
                      files=["SPEC.md", "model/README.md"]),
-                task(3, "Offline model replay", "offline-replay", "model/ only",
-                     "Add the offline profile. A recorded client replays recorded turns from model/recorded/*.json in order, and run_turn uses it when MODEL_PROFILE=offline. Record the questions in the DEMO.md table once with the real model once Dev 2's loop is merged, but ask me before any live call, and store them as JSON. Add a test that runs the agent loop (harness/agent.py) on a recording with no network and gets the same tool trace and answer twice.",
+                task(1, "Offline model replay", "offline-replay", "model/ only",
+                     "Add the offline profile. A recorded client replays recorded turns from model/recorded/*.json in order, and run_turn uses it when MODEL_PROFILE=offline. Record the questions in the DEMO.md table once with the real model once Dev 3's loop is merged, but ask me before any live call, and store them as JSON. Add a test that runs the agent loop (harness/agent.py) on a recording with no network and gets the same tool trace and answer twice.",
                      "the test passes with Wi-Fi off, and the answers match the recordings.",
-                     why="Without it the demo needs internet. Needs Dev 2's agent loop for the recording.",
+                     why="Without it the demo needs internet. Needs Dev 3's agent loop for the recording.",
                      files=["DEMO.md", "model/README.md"]),
-                task(3, "The container files", "container", "Dockerfile, .dockerignore, scripts/test_container.py",
+                task(1, "The container files", "container", "Dockerfile, .dockerignore, scripts/test_container.py",
                      "Write a Dockerfile (python:3.11-slim, runtime code only, listens on KPI_LAB_HOST and KPI_LAB_PORT) and an allowlist .dockerignore so .env, tests and docs never enter the image, as described in ARCHITECTURE.md section 7. Add scripts/test_container.py: every path the Dockerfile copies exists. If the settings in ARCHITECTURE.md section 7 need to change, tell the lead. Do not run any Azure command and do not build an image.",
                      "the test passes, and <code>make check</code> is green.",
                      why="The chat is deployed as a container on Azure. Do this last, once the server exists.",
                      files=["ARCHITECTURE.md"]),
             ],
             done=["Schemas match the real chat answer and audit line, with a failing example each.", "Only <code>model/model_gateway/</code> imports a model SDK, and <code>make check</code> proves it.", "<code>MODEL_PROFILE=offline</code> gives the same answers with no network.", "The container files are on <code>main</code> and every path they copy exists.", "<code>make check</code> and <code>make test</code> are green on main."]),
-    4: dict(title="Calculator &amp; Evals", own=["mcp/kpi-solar/", "evals/", "tests/", "data/synthetic/", "EVALS.md", "KPI_REVIEW.md"],
+    2: dict(title="Calculator &amp; Evals", own=["mcp/kpi-solar/", "evals/", "tests/", "data/synthetic/", "EVALS.md", "KPI_REVIEW.md"],
             what="You build the data and the numbers, and prove they are right. Everyone else's answers depend on your work, so start with the data and the formulas.",
             tasks=[
-                task(4, "The synthetic portfolio", "portfolio", "data/synthetic/ only",
+                task(2, "The synthetic portfolio", "portfolio", "data/synthetic/ only",
                      "Build data/synthetic/portfolio.py with build(seed=20260601) as in SPEC.md section 2: two parks and a battery, 30 days of June 2026, day-ahead prices, a PPA share of 50 percent, the exact dict shape from the spec, label SYNTHETIC. The same seed must give identical output on every run and no network is used. Write the test first: shape, 30 days, same seed same data, a different seed different data, values inside the ranges in the spec, outage days on the right parks. Add data/synthetic/README.md saying everything is synthetic.",
                      "the tests pass, and two runs print identical data.",
-                     why="Dev 2's tools and your golden cases both read this. Merge it early.",
+                     why="Dev 3's tools and your golden cases both read this. Merge it early.",
                      files=["SPEC.md"]),
-                task(4, "The 13 KPI formulas", "kpi-formulas", "mcp/kpi-solar/ only",
+                task(2, "The 13 KPI formulas", "kpi-formulas", "mcp/kpi-solar/ only",
                      "Build mcp/kpi-solar/kpi_solar/metrics.py with the 13 functions in SPEC.md section 3: strings or Decimals in, Decimal or Unavailable(reason) out, never a float, never a division by zero, round half up. incident_resolution_hours is always Unavailable because no tickets are loaded. Do not create mcp/__init__.py. Write the tests first with hand-worked values, at least two per formula (a normal case and a missing or zero input).",
                      "all formula tests pass, with hand-worked values.",
-                     why="Every number in the product comes from here. Dev 2's tools call these functions.",
+                     why="Every number in the product comes from here. Dev 3's tools call these functions.",
                      files=["SPEC.md", "KPI_REVIEW.md"]),
-                task(4, "Golden cases for every KPI", "golden-cases", "evals/, tests/, EVALS.md",
+                task(2, "Golden cases for every KPI", "golden-cases", "evals/, tests/, EVALS.md",
                      "Create evals/cases/golden.json with one case per KPI (the 13 in SPEC.md): the question, the tool, the date window and the expected value worked out by hand from the portfolio in data/synthetic/portfolio.py. Show the working in a note field. Add tests/test_golden.py that runs every case through the tool registry in harness/ with no model and compares exactly as strings. Check at least three expected values by hand before you trust the code output. Update EVALS.md to describe these cases.",
                      "13 golden cases pass exactly, and EVALS.md describes them.",
-                     why="A tool that only agrees with itself proves nothing. Hand-worked values are the truth. Needs Dev 2's tools.",
+                     why="A tool that only agrees with itself proves nothing. Hand-worked values are the truth. Needs Dev 3's tools.",
                      files=["EVALS.md", "SPEC.md"]),
-                task(4, "Prove a made-up number is withheld", "number-check", "tests/ only",
-                     "Write tests/test_number_check.py for check_numbers in harness/agent.py (SPEC.md section 6). Cases: a made-up number is found; the same number written differently (12.5 and 12.50, 85 and 85.0) is accepted; years, dates and counts such as '2 parks' do not cause false alarms; a number that appears only in the question is accepted. If a test shows a real bug, report it to Dev 2 and do not edit harness/.",
-                     "the tests pass, or each failure is a written bug report for Dev 2.",
-                     why="This check is the one thing that keeps the model from stating a wrong number. Needs Dev 2's loop.",
+                task(2, "Prove a made-up number is withheld", "number-check", "tests/ only",
+                     "Write tests/test_number_check.py for check_numbers in harness/agent.py (SPEC.md section 6). Cases: a made-up number is found; the same number written differently (12.5 and 12.50, 85 and 85.0) is accepted; years, dates and counts such as '2 parks' do not cause false alarms; a number that appears only in the question is accepted. If a test shows a real bug, report it to Dev 3 and do not edit harness/.",
+                     "the tests pass, or each failure is a written bug report for Dev 3.",
+                     why="This check is the one thing that keeps the model from stating a wrong number. Needs Dev 3's loop.",
                      files=["EVALS.md", "SPEC.md"]),
             ],
             done=["The portfolio is the same on every run and matches the ranges in SPEC.md.", "13 formulas pass hand-worked tests and never return a float.", "13 golden cases pass exactly; three were checked by hand.", "A made-up number is withheld, and a test proves it.", "<code>make test</code> is green."]),
 }
+
+
+DEVS = dict(sorted(DEVS.items()))
 
 
 def dev_page(n, d):
@@ -432,8 +435,8 @@ def lead_page():
 {block("The whole picture", "The number on each box is its developer. Point at a name to see their part.", arch("arch-lead") + legend("arch-lead"), "part")}
 {block("Decide first", "Three open questions in INTENT.md, section 10", route(
         step("Pick the first real data source", "Without a validated source no KPI is production-ready. Name one source and one owner, or confirm the POC stays synthetic.", files=[("INTENT.md", "INTENT.md (§10)"), "KPI_REVIEW.md"]),
-        step("Confirm who owns the calculator", "<code>mcp/kpi-solar</code> is assigned to Dev 4 in TEAM.md. Say yes or name someone else.", files=["TEAM.md"]),
-        step("Choose the demo host", "The Azure container, or the presenter's laptop. Offline replay (Dev 3) is the fallback either way. Make sure you have access to the Azure registry and web app.", files=[("docs/index.html#deploy", "Deploying to Azure")]),
+        step("Confirm who owns the calculator", "<code>mcp/kpi-solar</code> is assigned to Dev 2 in TEAM.md. Say yes or name someone else.", files=["TEAM.md"]),
+        step("Choose the demo host", "The Azure container, or the presenter's laptop. Offline replay (Dev 1) is the fallback either way. Make sure you have access to the Azure registry and web app.", files=[("docs/index.html#deploy", "Deploying to Azure")]),
     ), "decide")}
 {block("Before the build", "Four prompts, each takes a minute", route(
         step("Add names to the team file", claude="Open TEAM.md and replace Dev 1 to Dev 4 and Lead with these names: <names>. Change nothing else.", files=["TEAM.md"]),
@@ -444,7 +447,7 @@ def lead_page():
     ), "before")}
 {block("The loop", "How every task reaches main", LOOP, "loop")}
 {block("During the build", None, route(
-        step("Merge in build order", "Dev 3 contracts first, then Dev 4 portfolio and formulas, then Dev 2 tools and loop, then the rest. The order is in ARCHITECTURE.md section 6.", files=["ARCHITECTURE.md", "SPEC.md"]),
+        step("Merge in build order", "Dev 1 contracts first, then Dev 2 portfolio and formulas, then Dev 3 tools and loop, then the rest. The order is in ARCHITECTURE.md section 6.", files=["ARCHITECTURE.md", "SPEC.md"]),
         step("Check main after every merge", claude="Update main from GitHub, run make verify and tell me in plain words what is red and who owns it."),
         step("Say no to new scope", "If it is not on someone's page, it is after the POC. See INTENT.md section 8.", files=["INTENT.md"]),
         step("Never add an approval tool to the registry", "Nine tools. Approval is never one of them."),
@@ -480,15 +483,15 @@ def tbl(head, rows):
 
 def index_page():
     tiles = (tile("lead.html", "L", "Lead", "Decisions, slides &amp; merges")
-             + tile("developer-1.html", 1, "Dev 1", "Skill &amp; chat page")
-             + tile("developer-2.html", 2, "Dev 2", "Harness, approval &amp; audit")
-             + tile("developer-3.html", 3, "Dev 3", "Model, contracts &amp; health")
-             + tile("developer-4.html", 4, "Dev 4", "Calculator &amp; evals")
+             + tile("developer-1.html", 1, "Dev 1", "Model &amp; contracts")
+             + tile("developer-2.html", 2, "Dev 2", "Calculator &amp; data")
+             + tile("developer-3.html", 3, "Dev 3", "Harness &amp; approval")
+             + tile("developer-4.html", 4, "Dev 4", "Skill &amp; chat page")
 )
     process = route(
         step("The lead settles the idea", "Read " + f("INTENT.md") + " (five minutes). The lead answers its three open questions.", files=[("docs/lead.html", "Lead page")]),
         step("Everyone sets up once", "Open your page from the tiles above and paste the setup prompt. Claude installs the tools and runs the checks."),
-        step("Each person takes their tasks", "Four developers, three or four tasks each, in build order. The shared contracts and the data come first: Dev 3 and Dev 4 start, the others read the spec and start the parts that need nothing from anyone."),
+        step("Each person takes their tasks", "Four developers, three or four tasks each, in build order. The shared contracts and the data come first: Dev 1 and Dev 2 start, the others read the spec and start the parts that need nothing from anyone."),
         step("Build each task with Claude", "One prompt to start, one to finish. Test first, then the verifier, then a pull request. <a href=\"#loop\">See the loop</a>."),
         step("The parts meet on GitHub", "One pull request per task into <code>main</code>. The lead merges in build order. <a href=\"#combine\">See how</a>."),
         step("The lead prepares the presentation", "Five slides and the three-minute demo.", files=[("docs/presentation.html", "Presentation"), "DEMO.md"]),
@@ -528,7 +531,7 @@ def index_page():
 
 <section class="sec" id="deploy">
   <h2 class="reveal">Deploying to Azure</h2>
-  <p class="intro reveal">The chat runs as one container on Azure App Service. Azure builds the image, so nobody needs Docker on a laptop. Dev 3 writes the container files in the last task.</p>
+  <p class="intro reveal">The chat runs as one container on Azure App Service. Azure builds the image, so nobody needs Docker on a laptop. Dev 1 writes the container files in the last task.</p>
   <div class="reveal">{deploy_svg()}</div>
   <div class="reveal">{tbl(["Part", "How it works"], [
     ["Image", "<code>python:3.11-slim</code> with only the runtime code. <code>.dockerignore</code> is an allowlist, so <code>.env</code>, tests and docs never enter the image."],
@@ -569,10 +572,10 @@ def index_page():
 </section>
 
 {sec("Who builds what", "Exact tasks are on each page", tbl(["Person", "Builds", "Page"], [
-    ["Dev 1", "Skill file for the model, charts, every state of the chat page", '<a href="developer-1.html">developer-1</a>'],
-    ["Dev 2", "Nine tools, agent loop and number check, approval and audit, server, smoke test", '<a href="developer-2.html">developer-2</a>'],
-    ["Dev 3", "Contracts, model gateway, offline replay, container files", '<a href="developer-3.html">developer-3</a>'],
-    ["Dev 4", "Synthetic portfolio, 13 KPI formulas, golden cases, number-check tests", '<a href="developer-4.html">developer-4</a>'],
+    ["Dev 1", "Contracts, model gateway, offline replay, container files", '<a href="developer-1.html">developer-1</a>'],
+    ["Dev 2", "Synthetic portfolio, 13 KPI formulas, golden cases, number-check tests", '<a href="developer-2.html">developer-2</a>'],
+    ["Dev 3", "Nine tools, agent loop and number check, approval and audit, server, smoke test", '<a href="developer-3.html">developer-3</a>'],
+    ["Dev 4", "Skill file for the model, charts, every state of the chat page", '<a href="developer-4.html">developer-4</a>'],
     ["Lead", "Decisions, the presentation, merges, deploy", '<a href="lead.html">lead</a>'],
 ]) + f'<p class="files">Files: {f("TEAM.md")}, {f("ARCHITECTURE.md")}</p>', "who", True)}
 
