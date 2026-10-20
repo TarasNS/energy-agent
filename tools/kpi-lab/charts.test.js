@@ -97,6 +97,26 @@ test('table: several series line up by x', () => {
   assert.ok(/d1<\/td><td[^>]*>1\.00<\/td><td[^>]*><\/td>/.test(out));
 });
 
+for (const kind of ['line', 'bar', 'area', 'table']) {
+  test(kind + ': missing series or missing points shows no data', () => {
+    assert.ok(/No data/.test(renderChart({ id: 'c1', kind, title: 'T' })));
+    assert.ok(/No data/.test(renderChart(chart(kind, [{ name: 'A' }]))));
+  });
+}
+
+for (const kind of ['line', 'bar', 'area', 'table']) {
+  test(kind + ': "Infinity" y is printed as given and never plotted', () => {
+    const out = renderChart(chart(kind, [
+      { name: 'A', points: [{ x: 'a', y: '5.00' }, { x: 'b', y: 'Infinity' }] },
+    ]));
+    assert.ok(out.includes('Infinity'));
+    assert.ok(out.includes('5.00'));
+    assert.ok(!/NaN/.test(out));
+    // the only "Infinity" is the printed text, never a coordinate
+    assert.strictEqual((out.match(/Infinity/g) || []).length, 1);
+  });
+}
+
 test('unknown kind throws', () => {
   assert.throws(() => renderChart(chart('pie', data)), /Unknown chart kind/);
 });
