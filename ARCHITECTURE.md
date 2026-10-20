@@ -41,7 +41,7 @@ Agent loop (harness/agent.py)                          model picks tools · numb
 | Tool results | `harness/registry.py` | JSON string. Money and energy values are decimal strings |
 | Model turn | `model/model_gateway` | `ModelTurn(text, tool_calls[])` from `run_turn(system, messages, tools)` |
 | Chat answer | `/api/chat` | `{text, verified, note, charts, proposals, trace, stopped}` |
-| Audit line | `artifacts/audit.jsonl` | `{ts, event, proposal_id, action, asset, approver}` |
+| Audit line | `artifacts/audit.jsonl` | `{ts, event, proposal_id, action, asset, approver}`; a `tool_call` line has `{ts, event, tool, input, ok}` |
 | Data schemas | `schemas/*.schema.json` | Checked by `make check` |
 
 ## 5. Rules in code

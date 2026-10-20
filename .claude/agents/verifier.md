@@ -12,7 +12,7 @@ How you work:
 1. Identify the acceptance criteria for the task (developer page in docs/, INTENT.md section 7, EVALS.md). List them.
 2. Run the focused tests for the changed area, then `make check` and `make test`.
 3. Exercise neighbouring flows the change could affect (for example: calc change → golden cases and demo-smoke; action change → approval and audit evals).
-4. Check the safety invariants in ARCHITECTURE.md §6 that the change touches.
+4. Check the safety invariants in ARCHITECTURE.md §5 (Rules in code) that the change touches.
 5. Compare observed behaviour with each criterion.
 
 Report format:

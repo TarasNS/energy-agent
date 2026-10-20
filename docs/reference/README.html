@@ -16,13 +16,13 @@
 <article class="mdbody"><p class="mdnote"><a href="../index.html">Back to the guide</a> · source <code>README.md</code> · <a href="README.md">raw Markdown</a></p><h1>Energy 4.0 Harness</h1>
 <p><b>Ask your portfolio. Get checked numbers. Approve the action.</b></p>
 <p>A chat assistant for a solar and battery portfolio. The model picks tools, deterministic code makes every number, the server checks each number in the answer, and a person approves any action. Everything is audited.</p>
-<blockquote><b>Status:</b> first proof of concept on synthetic data. <b>Team:</b> 4 developers + lead.</blockquote>
+<blockquote><b>Status:</b> first proof of concept on synthetic data. <b>Team:</b> five people, Dev 1 to Dev 5; Dev 5 is the lead.</blockquote>
 <h2>Start here</h2>
 <ol><li>Read <a href="INTENT.html">INTENT.md</a> (five minutes): why, scope and what "done" means.</li><li>Read <a href="SPEC.html">SPEC.md</a>, the build contract.</li><li>Open <a href="../index.html">docs/index.html</a> in a browser.</li><li>Click your role and follow your page. Each task is one prompt you paste into Claude Code.</li></ol>
 <div class="tbl"><table><thead><tr><th>Role</th><th>Your page</th></tr></thead><tbody><tr><td>Lead</td><td><a href="../lead.html">docs/lead.html</a></td></tr><tr><td>Dev 1 · Model &amp; server</td><td><a href="../developer-1.html">docs/developer-1.html</a></td></tr><tr><td>Dev 2 · Calculator &amp; evals</td><td><a href="../developer-2.html">docs/developer-2.html</a></td></tr><tr><td>Dev 3 · Harness &amp; audit</td><td><a href="../developer-3.html">docs/developer-3.html</a></td></tr><tr><td>Dev 4 · Approval &amp; release</td><td><a href="../developer-4.html">docs/developer-4.html</a></td></tr><tr><td>Dev 5 · Chat page in Lovable (lead)</td><td><a href="../developer-5.html">docs/developer-5.html</a></td></tr></tbody></table></div>
 <p>Reference, only when a task links to it: <a href="SPEC.html">SPEC.md</a>, <a href="ARCHITECTURE.html">ARCHITECTURE.md</a>, <a href="TEAM.html">TEAM.md</a>, <a href="EVALS.html">EVALS.md</a>, <a href="DEMO.html">DEMO.md</a>, <a href="KPI_REVIEW.html">KPI_REVIEW.md</a>, <a href="CLAUDE.html">CLAUDE.md</a>.</p>
 <h2>What the team builds</h2>
-<p>The repository starts with documents and checks only. <b>The team builds the harness together, from scratch</b>, following <a href="SPEC.html">SPEC.md</a>:</p>
+<p>Already merged: contracts, model gateway and replay, synthetic portfolio, 13 KPI formulas, skill, charts, nine tools and the agent loop. The rest is 17 numbered tasks in four rounds, following <a href="SPEC.html">SPEC.md</a>. The harness is made of:</p>
 <ul><li>the synthetic portfolio and 13 KPI formulas (<code>mcp/kpi-solar</code>, <code>data/synthetic</code>)</li><li>nine read-only tools, the agent loop and the number check (<code>harness/</code>)</li><li>propose, approve once, audit (<code>mcp/actions</code>)</li><li>the server (<code>tools/kpi-lab/server.py</code>) and the chat page, built in Lovable (repository <code>energy-agent-ui</code>)</li><li>the model gateway with Claude Haiku 5.5 and offline replay (<code>model/</code>)</li></ul>
 <h2>Repository map</h2>
 <pre><code>energy-agent/

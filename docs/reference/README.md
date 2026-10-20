@@ -4,7 +4,7 @@
 
 A chat assistant for a solar and battery portfolio. The model picks tools, deterministic code makes every number, the server checks each number in the answer, and a person approves any action. Everything is audited.
 
-> **Status:** first proof of concept on synthetic data. **Team:** 4 developers + lead.
+> **Status:** first proof of concept on synthetic data. **Team:** five people, Dev 1 to Dev 5; Dev 5 is the lead.
 
 ## Start here
 
@@ -26,7 +26,7 @@ Reference, only when a task links to it: [SPEC.md](SPEC.md), [ARCHITECTURE.md](A
 
 ## What the team builds
 
-The repository starts with documents and checks only. **The team builds the harness together, from scratch**, following [SPEC.md](SPEC.md):
+Already merged: contracts, model gateway and replay, synthetic portfolio, 13 KPI formulas, skill, charts, nine tools and the agent loop. The rest is 17 numbered tasks in four rounds, following [SPEC.md](SPEC.md). The harness is made of:
 
 - the synthetic portfolio and 13 KPI formulas (`mcp/kpi-solar`, `data/synthetic`)
 - nine read-only tools, the agent loop and the number check (`harness/`)

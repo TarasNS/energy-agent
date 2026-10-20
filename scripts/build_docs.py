@@ -460,9 +460,8 @@ def lead_page():
 <h1>Lead</h1>
 <p>You decide scope, approve and merge pull requests, and build the chat page in Lovable as Dev 5 (<a href="developer-5.html">your Dev 5 page</a>). You own: {", ".join(f(x) for x in ["INTENT.md", "ARCHITECTURE.md", "TEAM.md", "README.md", "DEMO.md", "scripts/slides.py"])}</p></div></header>
 {block("The whole picture", "The number on each box is its developer. Point at a name to see their part.", arch("arch-lead") + legend("arch-lead"), "part")}
-{block("Decide first", "Three open questions in INTENT.md, section 10", route(
+{block("Decide first", "Two open questions in INTENT.md, section 10", route(
         step("Pick the first real data source", "Without a validated source no KPI is production-ready. Name one source and one owner, or confirm the POC stays synthetic.", files=[("INTENT.md", "INTENT.md (§10)"), "KPI_REVIEW.md"]),
-        step("Confirm who owns the calculator", "<code>mcp/kpi-solar</code> is assigned to Dev 2 in TEAM.md. Say yes or name someone else.", files=["TEAM.md"]),
         step("Choose the demo host", "The Azure container, or the presenter's laptop. Offline replay (Dev 1) is the fallback either way. Make sure you have access to the Azure registry and web app.", files=[("docs/index.html#deploy", "Deploying to Azure")]),
     ), "decide")}
 {block("Before the build", "Four prompts, each takes a minute", route(
@@ -516,7 +515,7 @@ def index_page():
              + tile("developer-5.html", 5, "Dev 5", "Chat page in Lovable")
 )
     process = route(
-        step("The lead settles the idea", "Read " + f("INTENT.md") + " (five minutes). The lead answers its three open questions.", files=[("docs/lead.html", "Lead page")]),
+        step("The lead settles the idea", "Read " + f("INTENT.md") + " (five minutes). The lead answers its two open questions.", files=[("docs/lead.html", "Lead page")]),
         step("Everyone sets up once", "Open your page from the tiles above and paste the setup prompt. Claude installs the tools and runs the checks."),
         step("Each person takes their tasks", "Five people, seventeen numbered tasks in four rounds. Every task in round 1 needs nothing, so everyone starts at once. <a href=\"#combine\">See the flow</a>."),
         step("Build each task with Claude", "One prompt to start, one to finish. Test first, then the verifier, then a pull request. <a href=\"#loop\">See the loop</a>."),

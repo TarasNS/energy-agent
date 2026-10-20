@@ -2,7 +2,7 @@
 
 **Read this first.** Every person and every Claude Code session starts here. It says why we build this, what "done" means and what we will not do. If another file disagrees with this one, stop and tell the lead.
 
-**Scope:** a first proof of concept (POC) on synthetic data, built from scratch by the team together, following [SPEC.md](SPEC.md). Nothing here touches real company systems.
+**Scope:** a first proof of concept (POC) on synthetic data, built by the team together, following [SPEC.md](SPEC.md). Nothing here touches real company systems.
 
 ## 1. The problem
 
@@ -44,13 +44,13 @@ Example action: *enable negative-price curtailment on a park*. It is simulated; 
 |---|---|
 | **Numbers come from code** | Only `mcp/kpi-solar` calculates. The server rejects answers with a number the tools did not return. Money crosses boundaries as decimal strings. |
 | **Actions need a person** | The model can propose, never approve. Approval is a separate server call with a one-time token the browser never sees. |
-| **Everything is traceable** | Proposals, approvals and refusals are appended to `artifacts/audit.jsonl`. The model sits behind one gateway (`model/model_gateway`), so the vendor can change. |
+| **Everything is traceable** | Every tool call, proposal, approval and refusal is appended to `artifacts/audit.jsonl`. The model sits behind one gateway (`model/model_gateway`), so the vendor can change. |
 
 Also fixed: data tools are read-only, the demo runs on synthetic data, no key is ever in git, no real SCADA or ERP write exists, and only `model/model_gateway/` may import a model SDK.
 
 ## 6. Where we are today
 
-The team builds the harness from scratch, following [SPEC.md](SPEC.md). The rest is 17 numbered tasks in four rounds, shown on the guide's front page.
+Part of the harness is merged. The rest is 17 numbered tasks in four rounds, shown on the guide's front page.
 
 | Part | Owner | State |
 |---|---|---|
@@ -94,5 +94,4 @@ Real Nordic Solar data or adapters · live market prices · production SCADA or 
 ## 10. Open questions for the lead
 
 1. Which real data source do we validate first? Without one, no KPI is production-ready.
-2. Who owns `mcp/kpi-solar`? It is a new path that [TEAM.md](TEAM.md) assigns to Dev 2; confirm.
-3. Is the Azure server the demo host, or do we run locally?
+2. Is the Azure server the demo host, or do we run locally?

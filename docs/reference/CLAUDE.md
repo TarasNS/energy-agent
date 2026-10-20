@@ -5,7 +5,7 @@ This file guides Claude Code (claude.ai/code) in this repository.
 Curated by Dev 1. Keep it short and true: only stable rules, real commands and architecture the repo actually implements. Propose changes via PR.
 
 ## Project
-Energy 4.0 Harness: a chat assistant for a solar and battery portfolio, **built from scratch by the team from `SPEC.md`**. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
+Energy 4.0 Harness: a chat assistant for a solar and battery portfolio, **built by the team from `SPEC.md`**. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
 
 **Scope: first proof of concept (POC).** **Current state:** contracts, model gateway and replay code, synthetic portfolio, 13 KPI formulas, skill, charts, nine tools and the agent loop with the number check are merged. Still to build, in 17 numbered tasks over four rounds (the flow on `docs/index.html`): server, actions and approval, audit of tool calls, recordings, golden and number-check tests, container, smoke test, the Lovable chat page, release. Builders use Claude Haiku 5.5: keep each pull request to one file and its test. Do not look for or copy code from tag `reference-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
 
@@ -17,7 +17,7 @@ If documents conflict: stop, report the conflict, do not resolve it yourself.
 1. **Numbers come only from `mcp/kpi-solar`.** Never compute, estimate, round or restate a number yourself. Quote tool output exactly.
 2. Money and energy cross boundaries as decimal strings (`"85.00"`), never floats.
 3. Data tools are read-only.
-4. Actions go through `propose_action` → server `/api/approve` → `approve_action(token)`. Approval is enforced in code, never only in a prompt. Approval functions are never in the agent's tool registry.
+4. Actions go through `propose_action` → server `/api/approve` → `approve_for_server(proposal_id, approver)` in `mcp/actions`, which issues and uses the one-time token inside the module. Approval is enforced in code, never only in a prompt. Approval functions are never in the agent's tool registry.
 5. Every proposal, approval and refusal is appended to the audit log. Tool calls join them (Dev 3's task).
 6. Synthetic data is the default. The server, the tests and the smoke test run offline; only the Lovable chat page needs internet.
 7. Never put credentials in source, prompts, fixtures or logs. Use `.env` (git-ignored).
@@ -51,7 +51,7 @@ No `make` (common on Windows)? Every row works as `python scripts/dev.py <comman
 Single test: `python -m pytest path/to/test_x.py::test_name`. `demo-smoke` needs bash (Git Bash or WSL on Windows).
 
 ## Architecture (big picture)
-Target design: `tools/kpi-lab` (chat page + local server) → `harness/agent.py` (loop, number check) → model via `model/model_gateway` and tools in `harness/energy_tools.py` → `mcp/kpi-solar` (numbers), `mcp/actions` (propose, approve, audit), `data/synthetic/portfolio.py` (synthetic portfolio). Models explain; they are never the calculator of record or the permission system. Full detail: [ARCHITECTURE.md](ARCHITECTURE.md).
+Chat page (Lovable, repository `energy-agent-ui`) → `tools/kpi-lab/server.py` (local server) → `harness/agent.py` (loop, number check) → model via `model/model_gateway` and tools in `harness/energy_tools.py` → `mcp/kpi-solar` (numbers), `mcp/actions` (propose, approve, audit), `data/synthetic/portfolio.py` (synthetic portfolio). Models explain; they are never the calculator of record or the permission system. Full detail: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Code conventions
 - Python 3.11+. Pure functions in `mcp/<tool>/<pkg>/`, tests in `mcp/<tool>/tests/`.
@@ -62,7 +62,7 @@ Target design: `tools/kpi-lab` (chat page + local server) → `harness/agent.py`
 ## Working loop (one task = one branch = one PR)
 1. Before editing, report: goal, owned files, dependencies, acceptance criteria, file-level plan. Wait for the developer's "go".
 2. Work on the task branch `devN/<task>` created from `main`. Write the test first.
-3. Run the task's test. If red, fix the code (never weaken the test) and run again until green. Show the output.
+3. Run the task's test. If red, fix the code (never weaken the test) and run again. Show the output. After two red runs, stop and tell the developer what fails.
 4. Use the `verifier` subagent. It reports; it does not fix. Fix every P0 and P1 it reports.
 5. Run `make check` and `make test`. When both pass, commit, push and open the pull request into `main` only when the developer asks.
 6. Done = evidence (command + output), not a claim.

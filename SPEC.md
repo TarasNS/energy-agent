@@ -1,6 +1,6 @@
 # SPEC.md: what the team builds
 
-**Owner:** Lead · **Role:** the build contract. [INTENT.md](INTENT.md) says why, [ARCHITECTURE.md](ARCHITECTURE.md) says how the parts connect, this file says exactly what each part must do. There is no existing code to copy: the team builds the harness together from this file. If two documents disagree, stop and tell the lead.
+**Owner:** Lead · **Role:** the build contract. [INTENT.md](INTENT.md) says why, [ARCHITECTURE.md](ARCHITECTURE.md) says how the parts connect, this file says exactly what each part must do. Part of the harness is merged (see [ARCHITECTURE.md](ARCHITECTURE.md) §6); the rest is built from this file, in 17 numbered tasks. If two documents disagree, stop and tell the lead.
 
 Names, shapes and limits below are fixed so the parts fit when they meet. Anything not stated here is your choice: keep it simple.
 
@@ -165,7 +165,7 @@ Row shapes the page and the schemas rely on:
 4. Any unknown number: `text` is withheld (`verified: false`, a note), and charts, proposals and the trace still return.
 5. `stopped` is one of `answered`, `max_steps`, `cap`, `model_error`.
 
-## 7. Approval and audit (Dev 3, `mcp/actions`)
+## 7. Approval and audit (Dev 4 owns `mcp/actions`, task #7; Dev 3 adds the `tool_call` lines, task #10)
 
 - `propose_action(action, asset, reason) -> proposal_id`.
 - `issue_approval_token(proposal_id)` and `approve_action(proposal_id, token, approver)` exist **only** inside the server's `/api/approve` path.
