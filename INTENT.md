@@ -50,15 +50,15 @@ Also fixed: data tools are read-only, the demo runs on synthetic data, no key is
 
 ## 6. Where we are today
 
-The repository holds documents and checks only. The whole harness is 23 numbered tasks in four rounds, shown on the guide's front page.
+The repository holds documents and checks only. The whole harness is 24 numbered tasks in four rounds, shown on the guide's front page.
 
 | Part | Owner | State |
 |---|---|---|
-| Contracts, model gateway, skill, number-check tests, five-question run | Dev 1 Anna | To build (#1, #2, #3, #12, #17) |
-| Synthetic portfolio, 13 KPI formulas, nine tools, golden cases, rehearsal | Dev 2 Huiling | To build (#4, #5, #13, #18, #23) |
-| Agent loop and number check, smoke test, tool-call audit, demo recordings | Dev 3 Raul | To build (#6, #7, #14, #19, #20) |
-| Actions and approval, server, container, Azure release, fixes | Dev 4 Søren | To build (#8, #9, #10, #15, #21, #22) |
-| Chat page in Lovable | Dev 5 Taras (lead) | To build (#11, #16) |
+| Contracts, model gateway, skill, number-check tests, organizers' API, five-question run | Dev 1 Anna | To build (#1, #2, #3, #12, #13, #18) |
+| Portfolio data source, 13 KPI formulas, nine tools, golden cases, rehearsal | Dev 2 Huiling | To build (#4, #5, #14, #19, #24) |
+| Agent loop and number check, smoke test, tool-call audit, demo recordings | Dev 3 Raul | To build (#6, #7, #15, #20, #21) |
+| Actions and approval, server, container, Azure release, fixes | Dev 4 Søren | To build (#8, #9, #10, #16, #22, #23) |
+| Chat page in Lovable | Dev 5 Taras (lead) | To build (#11, #17) |
 | Real company data | Lead | **Not available.** See `KPI_REVIEW.md` |
 
 ## 7. What "done" means for the POC
@@ -75,7 +75,9 @@ The POC is done when all of these are true and shown with evidence:
 
 ## 8. Not in this POC
 
-Real Nordic Solar data or adapters · live market prices · production SCADA or ERP writes · login and roles · more than one model vendor in use · multi-agent systems · a full eval suite · battery optimisation.
+The organizers may provide an energy data API. If they do, it plugs in behind `load()` (task #13); synthetic data stays the default and the test data.
+
+Real Nordic Solar data or company adapters · live market prices · production SCADA or ERP writes · login and roles · more than one model vendor in use · multi-agent systems · a full eval suite · battery optimisation.
 
 ## 9. Decisions already made
 
@@ -85,9 +87,10 @@ Real Nordic Solar data or adapters · live market prices · production SCADA or 
 | Where does the number come from? | `mcp/kpi-solar`. Never from the model. |
 | What does an approved action do? | Writes an audit line. It is simulated. |
 | Who builds what? | Everyone builds with Claude Code on Claude Haiku 5.5, one file and its test per pull request. The lead builds the chat page in Lovable. |
-| How do we ship? | Only `main`. One branch and one pull request per task, merged by the lead as soon as it is green. No `dev` branch, no CI/CD. Checks run locally; Azure is released by hand. |
+| How do we ship? | Only `main`. One branch and one pull request per task, approved and merged by Taras (the lead) as soon as it is green. No `dev` branch, no CI/CD. Checks run locally; Azure is released by hand. |
 
 ## 10. Open questions for the lead
 
 1. Which real data source do we validate first? Without one, no KPI is production-ready.
 2. Is the Azure server the demo host, or do we run locally?
+3. Do we demo on the synthetic data or on the organizers' API (task #13)? The tests and golden cases always use the synthetic data.

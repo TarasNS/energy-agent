@@ -7,7 +7,7 @@
 | Layer | Question it answers | Where | Status |
 |---|---|---|---|
 | Formula tests | Does each KPI function return the hand-worked value, and refuse bad input? | `mcp/kpi-solar/tests/` | Task #5 (Dev 2) |
-| Golden cases | Does each tool, with no model, return the hand-worked value for the demo data? | `evals/cases/golden.json`, `tests/test_golden.py` | Task #18 (Dev 2), also through the live server |
+| Golden cases | Does each tool, with no model, return the hand-worked value for the demo data? | `evals/cases/golden.json`, `tests/test_golden.py` | Task #19 (Dev 2), also through the live server |
 | Number check | Is a number the tools never returned always withheld? | `tests/test_number_check.py` | Task #12 (Dev 1) |
 
 ## 2. Rules for a golden case

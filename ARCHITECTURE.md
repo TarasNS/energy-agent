@@ -57,18 +57,18 @@ Agent loop (harness/agent.py)                          model picks tools · numb
 
 ## 6. Build order
 
-The repository starts with documents and checks only. The harness is 23 numbered tasks in four rounds; the flow diagram is on the guide's front page ([docs/index.html#combine](docs/index.html#combine)). Every task in round 1 needs nothing, because [SPEC.md](SPEC.md) fixes every shape the parts share, so all five people start at once.
+The repository starts with documents and checks only. The harness is 24 numbered tasks in four rounds; the flow diagram is on the guide's front page ([docs/index.html#combine](docs/index.html#combine)). Every task in round 1 needs nothing, because [SPEC.md](SPEC.md) fixes every shape the parts share, so all five people start at once.
 
 | Round | Tasks | Waits for |
 |---|---|---|
-| 1 | #1 contracts, #2 model gateway, #3 skill (Dev 1) · #4 portfolio, #5 KPI formulas (Dev 2) · #6 agent loop, #7 smoke script (Dev 3) · #8 actions, #9 server routes, #10 container files (Dev 4) · #11 chat page in Lovable (Dev 5) | nothing |
-| 2 | #12 number-check tests (Dev 1) · #13 nine tools (Dev 2) · #14 audit every tool call (Dev 3) · #15 server on the real loop (Dev 4) · #16 page on the server (Dev 5) | #4, #5, #6, #8, #9, #11 |
-| 3 | #17 five-question run (Dev 1) · #18 golden cases (Dev 2) · #19 run the smoke test, #20 demo recordings (Dev 3) | #2, #7, #13, #14, #15 |
-| 4 | #21 release to Azure, #22 fixes (Dev 4) · #23 rehearse the demo (Dev 2) | #10, #16, #19, #20 |
+| 1 | #1 contracts, #2 model gateway, #3 skill (Dev 1) · #4 portfolio data source, #5 KPI formulas (Dev 2) · #6 agent loop, #7 smoke script (Dev 3) · #8 actions, #9 server routes, #10 container files (Dev 4) · #11 chat page in Lovable (Dev 5) | nothing |
+| 2 | #12 number-check tests, #13 organizers' API (Dev 1) · #14 nine tools (Dev 2) · #15 audit every tool call (Dev 3) · #16 server on the real loop (Dev 4) · #17 page on the server (Dev 5) | #4, #5, #6, #8, #9, #11 |
+| 3 | #18 five-question run (Dev 1) · #19 golden cases (Dev 2) · #20 run the smoke test, #21 demo recordings (Dev 3) | #2, #7, #14, #15, #16 |
+| 4 | #22 release to Azure, #23 fixes (Dev 4) · #24 rehearse the demo (Dev 2) | #10, #17, #20, #21 |
 
 ## 7. Deployment
 
-The server runs as one container on Azure App Service. Dev 4 writes the `Dockerfile` and `.dockerignore` (task #10) and releases (task #21); the lead approves each change in Azure. The chat page is not in the container: it is built in Lovable and calls the server from the internet, so its address must be in `KPI_ALLOWED_ORIGINS`.
+The server runs as one container on Azure App Service. Dev 4 writes the `Dockerfile` and `.dockerignore` (task #10) and releases (task #22); the lead approves each change in Azure. The chat page is not in the container: it is built in Lovable and calls the server from the internet, so its address must be in `KPI_ALLOWED_ORIGINS`.
 
 | Part | Detail |
 |---|---|

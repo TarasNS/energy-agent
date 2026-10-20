@@ -7,7 +7,7 @@ Curated by Dev 1. Keep it short and true: only stable rules, real commands and a
 ## Project
 Energy 4.0 Harness: a chat assistant for a solar and battery portfolio, **built by the team from `SPEC.md`**. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
 
-**Scope: first proof of concept (POC).** **Current state:** documents, checks and the guide only. No harness code exists yet: the team builds it in 23 numbered tasks over four rounds (the flow on `docs/index.html`, defined in `scripts/flow.py`). Builders use Claude Haiku 5.5: keep each pull request to one file and its test. Do not look for or copy code from tags `reference-v1` or `team-build-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
+**Scope: first proof of concept (POC).** **Current state:** documents, checks and the guide only. No harness code exists yet: the team builds it in 24 numbered tasks over four rounds (the flow on `docs/index.html`, defined in `scripts/flow.py`). Builders use Claude Haiku 5.5: keep each pull request to one file and its test. Do not look for or copy code from tags `reference-v1` or `team-build-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
 
 ## Read before working
 `INTENT.md` (why, scope, done) → `SPEC.md` (exact contracts) → `ARCHITECTURE.md` (how) → `TEAM.md` (who) → your page in `docs/` (your tasks and prompts).
@@ -29,8 +29,8 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 
 | Path | Owner |
 |---|---|
-| `schemas/`, `model/` (except `model/recorded/`), `.claude/skills/`, `tests/test_number_check.py`, `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke, smoke_turns, test_container), `requirements*.txt`, `pytest.ini`, `.env.example`, `.github/`, `docs/` | Dev 1 |
-| `data/synthetic/`, `mcp/kpi-solar/`, `harness/registry.py`, `harness/energy_tools.py`, `evals/`, `tests/` (rest), `EVALS.md`, `KPI_REVIEW.md` | Dev 2 |
+| `schemas/`, `model/` (except `model/recorded/`), `.claude/skills/`, `tests/test_number_check.py`, `data/api_source.py` (and its sample and test), `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke, smoke_turns, test_container), `requirements*.txt`, `pytest.ini`, `.env.example`, `.github/`, `docs/` | Dev 1 |
+| `data/` (except the API files), `mcp/kpi-solar/`, `harness/registry.py`, `harness/energy_tools.py`, `evals/`, `tests/` (rest), `EVALS.md`, `KPI_REVIEW.md` | Dev 2 |
 | `harness/agent.py`, `scripts/demo-smoke.sh`, `scripts/smoke_turns.json`, `model/recorded/`, `.claude/agents/` | Dev 3 |
 | `mcp/actions/`, `tools/kpi-lab/`, `Dockerfile`, `.dockerignore`, `scripts/test_container.py` | Dev 4 |
 | `INTENT.md`, `SPEC.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py`, `scripts/flow.py`; the chat page in the Lovable repository `energy-agent-ui` | Dev 5 (lead) |
@@ -64,7 +64,7 @@ Chat page (Lovable, repository `energy-agent-ui`) → `tools/kpi-lab/server.py` 
 2. Work on the task branch `devN/<task>` created from `main`. Write the test first.
 3. Run the task's test. If red, fix the code (never weaken the test) and run again. Show the output. After two red runs, stop and tell the developer what fails.
 4. Use the `verifier` subagent. It reports; it does not fix. Fix every P0 and P1 it reports.
-5. Run `make check` and `make test`. When both pass, commit, push and open the pull request into `main` only when the developer asks.
+5. Run `make check` and `make test`. When both pass, commit, push and open the pull request into `main` only when the developer asks. Taras (Dev 5, the lead) approves and merges every pull request.
 6. Done = evidence (command + output), not a claim.
 
 ## Docs

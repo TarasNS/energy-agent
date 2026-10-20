@@ -1,6 +1,6 @@
 # SPEC.md: what the team builds
 
-**Owner:** Lead · **Role:** the build contract. [INTENT.md](INTENT.md) says why, [ARCHITECTURE.md](ARCHITECTURE.md) says how the parts connect, this file says exactly what each part must do. There is no harness code yet: the team builds every part from this file, in 23 numbered tasks. If two documents disagree, stop and tell the lead.
+**Owner:** Lead · **Role:** the build contract. [INTENT.md](INTENT.md) says why, [ARCHITECTURE.md](ARCHITECTURE.md) says how the parts connect, this file says exactly what each part must do. There is no harness code yet: the team builds every part from this file, in 24 numbered tasks. If two documents disagree, stop and tell the lead.
 
 Names, shapes and limits below are fixed so the parts fit when they meet. Anything not stated here is your choice: keep it simple.
 
@@ -10,22 +10,23 @@ Names, shapes and limits below are fixed so the parts fit when they meet. Anythi
 schemas/                 JSON contracts                      Dev 1 (#1)
 model/model_gateway/     run_turn(), offline replay          Dev 1 (#2)
 .claude/skills/kpi-advisor/SKILL.md                          Dev 1 (#3)
-data/synthetic/portfolio.py   the portfolio                  Dev 2 (#4)
+data/source.py, data/synthetic/portfolio.py   load(), the synthetic portfolio   Dev 2 (#4)
+data/api_source.py       the organizers' API (optional)    Dev 1 (#13)
 mcp/kpi-solar/           KPI formulas (pure functions)       Dev 2 (#5)
-harness/registry.py, energy_tools.py   nine tools            Dev 2 (#13)
-harness/agent.py         agent loop, number check            Dev 3 (#6, #14)
-scripts/demo-smoke.sh    smoke test                          Dev 3 (#7, #19)
-model/recorded/          demo recordings                     Dev 3 (#20)
+harness/registry.py, energy_tools.py   nine tools            Dev 2 (#14)
+harness/agent.py         agent loop, number check            Dev 3 (#6, #15)
+scripts/demo-smoke.sh    smoke test                          Dev 3 (#7, #20)
+model/recorded/          demo recordings                     Dev 3 (#21)
 mcp/actions/             propose, approve, audit             Dev 4 (#8)
-tools/kpi-lab/server.py  the server                          Dev 4 (#9, #15)
+tools/kpi-lab/server.py  the server                          Dev 4 (#9, #16)
 Dockerfile, .dockerignore  the container                     Dev 4 (#10)
 evals/, tests/           golden cases (Dev 2), number check (Dev 1)
-energy-agent-ui (Lovable repository)   the chat page         Dev 5 (#11, #16)
+energy-agent-ui (Lovable repository)   the chat page         Dev 5 (#11, #17)
 ```
 
 Import roots are set in `pytest.ini`. Never create `mcp/__init__.py`.
 
-## 2. The synthetic portfolio (Dev 2, task #4)
+## 2. The portfolio data (Dev 2, task #4; the organizers' API, Dev 1, task #13)
 
 Label everything `SYNTHETIC: not Nordic Solar data`. A fixed seed gives the same numbers on every run. No network.
 
@@ -34,6 +35,8 @@ Label everything `SYNTHETIC: not Nordic Solar data`. A fixed seed gives the same
 | `north` | PV park | 10 MW, 10 000 kWp | 3 outage days |
 | `south` | PV park | 8 MW, 8 000 kWp | 1 outage day |
 | `battery` | BESS | 5 MW, 20 MWh usable | |
+
+Every part gets the portfolio from `load()` in `data/source.py`, never from a file or an API directly. `ENERGY_DATA_MODE` picks the source: `synthetic` (the default, and always used by the tests and the golden cases) or `api`, the organizers' energy data API through `load_api()` in `data/api_source.py` (address and key in `ORGANIZER_API_URL` and `ORGANIZER_API_KEY`). Both return the same shape. If the API is missing or fails, `load()` falls back to the synthetic data and says so in the label.
 
 Period: **1 to 30 June 2026**, daily rows (`YYYY-MM-DD`).
 
@@ -72,7 +75,7 @@ Period: **1 to 30 June 2026**, daily rows (`YYYY-MM-DD`).
  "ppa": {"shareOfExpected": 0.5}}
 ```
 
-Also fixed: a PPA covers **50 % of expected volume** (a demo assumption, say so wherever it is used). Import with `from data.synthetic.portfolio import build` and `from kpi_solar import metrics`. Money and energy leave the data layer as **decimal strings** (`"85.00"`, `"125.592"`): MWh 3 places, EUR/MWh and EUR 2 places, hours 0 places, percentages 1 place.
+Also fixed: a PPA covers **50 % of expected volume** (a demo assumption, say so wherever it is used). Import with `from data.source import load` and `from kpi_solar import metrics`. Money and energy leave the data layer as **decimal strings** (`"85.00"`, `"125.592"`): MWh 3 places, EUR/MWh and EUR 2 places, hours 0 places, percentages 1 place.
 
 ## 3. The 13 KPIs (Dev 2 builds `mcp/kpi-solar`, task #5)
 
@@ -122,7 +125,7 @@ turn = run_turn(system: str, messages: list[dict], tools: list[dict], max_tokens
 - Only `model/model_gateway/` may import a provider SDK. `make check` fails otherwise.
 - The key is `ANTHROPIC_API_KEY`, read from `.env` or the environment. A missing key or a failed call raises `ModelUnavailable`.
 
-## 5. The nine tools (Dev 2, task #13)
+## 5. The nine tools (Dev 2, task #14)
 
 Read-only. Each returns a JSON string. Money and energy are decimal strings. A bad call returns `{"error": "..."}`; the registry never raises into the loop. Assets are `portfolio` (default), `north`, `south`, `battery`. Dates are `YYYY-MM-DD` inside June 2026; the default period is the whole month.
 
@@ -166,14 +169,14 @@ The registry has `schemas()` and `call(name, input)`; the agent loop takes any o
 4. Any unknown number: `text` is withheld (`verified: false`, a note), and charts, proposals and the trace still return.
 5. `stopped` is one of `answered`, `max_steps`, `cap`, `model_error`.
 
-## 7. Approval and audit (Dev 4 builds `mcp/actions`, task #8; Dev 3 adds the `tool_call` lines, task #14)
+## 7. Approval and audit (Dev 4 builds `mcp/actions`, task #8; Dev 3 adds the `tool_call` lines, task #15)
 
 - `propose_action(action, asset, reason) -> proposal_id`.
 - `issue_approval_token(proposal_id)` and `approve_action(proposal_id, token, approver)` exist **only** inside the server's `/api/approve` path.
 - A token is one-time and lives in memory. A missing, wrong or reused token, or a proposal already approved, is **refused and audited**. Approval is simulated: it writes an audit line and does nothing else.
 - The audit log is `artifacts/audit.jsonl`, append-only, one JSON line per event: `{ts, event, proposal_id, action, asset, approver}`. Events: `proposed`, `approved`, `refused`, and `tool_call` (with `tool`, `input`, `ok`). A token never appears in any line. The path comes from `AUDIT_LOG_PATH` (default `./artifacts/audit.jsonl`).
 
-## 8. The server (Dev 4, `tools/kpi-lab/server.py`, tasks #9 and #15)
+## 8. The server (Dev 4, `tools/kpi-lab/server.py`, tasks #9 and #16)
 
 Standard library or FastAPI, your choice. Serves on `127.0.0.1:8000` (`KPI_LAB_HOST`, `KPI_LAB_PORT`).
 
@@ -185,7 +188,7 @@ Standard library or FastAPI, your choice. Serves on `127.0.0.1:8000` (`KPI_LAB_H
 
 Daily model-call cap: `KPI_DAILY_CAP`, default 200, stored in `KPI_CAP_FILE`. Allowed origins: `KPI_ALLOWED_ORIGINS` (comma separated), including the Lovable page's address. The server answers the browser's preflight and sends `Access-Control-Allow-Private-Network: true`, so the Lovable page can call a server running on a laptop. The approve route calls `approve_for_server(proposal_id, approver)` in `mcp/actions`, which issues and uses the one-time token inside the module.
 
-## 9. The chat page (Dev 5, the lead, in Lovable, tasks #11 and #16)
+## 9. The chat page (Dev 5, the lead, in Lovable, tasks #11 and #17)
 
 Built in Lovable and committed by Lovable to its own repository, `energy-agent-ui`. It calls the server's `/api/chat` and `/api/approve`; the server address is a setting (`API_BASE`, default `http://127.0.0.1:8000`). Render-only: it shows what the server returns and never calculates, adds, rounds or averages; every chart value is the string the server sent. Phone and desktop width. States: loading, verified answer, withheld answer (note, charts and tool results shown), daily limit reached (429), server not reachable, server error, proposal waiting, approved, approval refused. It asks for the approver's name before Approve is sent. It says **SYNTHETIC DATA** on screen. It needs internet; the server and the tests do not.
 

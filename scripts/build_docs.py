@@ -376,7 +376,7 @@ def finish(t):
         f"Use the verifier subagent to check this task against task #{t['no']} on docs/developer-{t['dev']}.html and report what it finds. "
         "Fix every P0 and P1 it reports. Then run make check and make test and show me the output.\n"
         f"If both are green, commit on branch dev{t['dev']}/{t['slug']}, push it and open a pull request into main named "
-        f"\"#{t['no']} {t['title']}\", using .github/PULL_REQUEST_TEMPLATE.md."
+        f"\"#{t['no']} {t['title']}\", using .github/PULL_REQUEST_TEMPLATE.md. Taras (Dev 5) approves and merges it."
     )
 
 
@@ -485,9 +485,9 @@ def lead_page():
     ), "presentation")}
 {block("Before presenting", None, route(
         step("Compare with the earlier build", "Only you may open tags <code>reference-v1</code> and <code>team-build-v1</code>. Ask the same five questions on the new build and on them, and judge how close they are. Differences are fine; wrong numbers are not.", claude="Run the new harness and the build on tag reference-v1 side by side in separate folders. Ask both: Which park lost most energy in June? / What is our battery round-trip efficiency? / Should we change anything about negative prices? / What was the total revenue of park A in 2031? / Add up the energy of both parks and give me the average. Show a table: tools used, chart yes or no, verified yes or no, and the first 200 characters of each answer. Do not edit any file."),
-        step("Check the smoke test", "Dev 3 runs it in task #19. Ask for the output before you approve the release."),
+        step("Check the smoke test", "Dev 3 runs it in task #20. Ask for the output before you approve the release."),
         step("Rehearse twice, once with Wi-Fi off", "Time it. It must be under three minutes. Save one screenshot per step as the fallback.", files=["DEMO.md"]),
-        step("Approve the release", "Dev 4 runs the release (task #21) and asks you before every change in Azure.", files=[("docs/index.html#deploy", "Deploying to Azure")]),
+        step("Approve the release", "Dev 4 runs the release (task #22) and asks you before every change in Azure.", files=[("docs/index.html#deploy", "Deploying to Azure")]),
     ), "present")}
 """
     return page("lead.html", "Lead", body, "var(--lead)")
@@ -518,7 +518,7 @@ def index_page():
     process = route(
         step("The lead settles the idea", "Read " + f("INTENT.md") + " (five minutes). The lead answers its two open questions.", files=[("docs/lead.html", "Lead page")]),
         step("Everyone sets up once", "Open your page from the tiles above and paste the setup prompt. Claude installs the tools and runs the checks."),
-        step("Each person takes their tasks", "Five people, 23 numbered tasks in four rounds. Every task in round 1 needs nothing, so everyone starts at once. <a href=\"#combine\">See the flow</a>."),
+        step("Each person takes their tasks", "Five people, 24 numbered tasks in four rounds. Every task in round 1 needs nothing, so everyone starts at once. <a href=\"#combine\">See the flow</a>."),
         step("Build each task with Claude", "One prompt to start, one to finish. Test first, then the verifier, then a pull request. <a href=\"#loop\">See the loop</a>."),
         step("The parts meet on GitHub", "One pull request per task into <code>main</code>, named with its task number. The lead merges each one as soon as it is green. <a href=\"#combine\">See how</a>."),
         step("The lead prepares the presentation", "Five slides and the three-minute demo.", files=[("docs/presentation.html", "Presentation"), "DEMO.md"]),
@@ -545,7 +545,7 @@ def index_page():
 
 <section class="sec alt" id="combine">
   <h2 class="reveal">How we put our parts together</h2>
-  <p class="intro reveal">Nobody sends files by chat or e-mail, and there is no shared folder. GitHub is the one place where our parts meet. Every part arrives as a pull request, and the lead merges each one as soon as it is green. The flow below has 23 numbered tasks in four rounds, one row per person; an arrow points from a task to each task that needs it. Point at or tap a task to light up its chain.</p>
+  <p class="intro reveal">Nobody sends files by chat or e-mail, and there is no shared folder. GitHub is the one place where our parts meet. Every part arrives as a pull request, and Taras (Dev 5, the lead) approves and merges each one as soon as it is green. The flow below has 24 numbered tasks in four rounds, one row per person; an arrow points from a task to each task that needs it. Point at or tap a task to light up its chain.</p>
   <div class="reveal">{flow_svg()}<p class="files">The number on a task is the same on its developer page and in its pull request name. Dashed grey boxes are reserve time. Everyone builds with Claude Haiku 5.5 in Claude Code; Dev 5 builds the chat page in Lovable.</p></div>
   <div class="reveal">{route(
     step("Work on your own branch", "The brief prompt on your page makes branch <code>devN/&lt;task&gt;</code> from <code>main</code>. You never edit <code>main</code> directly."),
@@ -565,7 +565,7 @@ def index_page():
 
 <section class="sec" id="deploy">
   <h2 class="reveal">Deploying to Azure</h2>
-  <p class="intro reveal">The chat runs as one container on Azure App Service. Azure builds the image, so nobody needs Docker on a laptop. Dev 4 writes the container files (task #10) and releases (task #21). The chat page is not in the container: Dev 5 builds it in Lovable, and its address goes into <code>KPI_ALLOWED_ORIGINS</code>.</p>
+  <p class="intro reveal">The chat runs as one container on Azure App Service. Azure builds the image, so nobody needs Docker on a laptop. Dev 4 writes the container files (task #10) and releases (task #22). The chat page is not in the container: Dev 5 builds it in Lovable, and its address goes into <code>KPI_ALLOWED_ORIGINS</code>.</p>
   <div class="reveal">{deploy_svg()}</div>
   <div class="reveal">{tbl(["Part", "How it works"], [
     ["Image", "<code>python:3.11-slim</code> with only the runtime code. <code>.dockerignore</code> is an allowlist, so <code>.env</code>, tests and docs never enter the image."],
@@ -578,7 +578,7 @@ def index_page():
   <p class="intro reveal" style="margin-top:1.5rem">Not confirmed yet: the Azure names (registry, web app, resource group) and who has access. They are not in the repo. The lead confirms them before the first release.</p>
   <div class="reveal">{route(
     step("Pull main first", "Only deploy <code>main</code>, after <code>make verify</code> is green."),
-    step("Release", "Dev 4 pastes this into Claude Code (task #21). Claude asks for the names, and the lead approves each change in Azure.", claude="Build the container image from main in Azure Container Registry, update the web app to the new image, then call /health and tell me the result. Ask me for the registry, web app and resource group names, and ask before every az command that changes Azure. Never print the API key."),
+    step("Release", "Dev 4 pastes this into Claude Code (task #22). Claude asks for the names, and the lead approves each change in Azure.", claude="Build the container image from main in Azure Container Registry, update the web app to the new image, then call /health and tell me the result. Ask me for the registry, web app and resource group names, and ask before every az command that changes Azure. Never print the API key."),
     step("Check the live page", "Open the page, ask one question, and confirm an answer and a chart come back. Then press Approve on a proposal and check the audit line."),
   )}</div>
 </section>
@@ -606,11 +606,11 @@ def index_page():
 </section>
 
 {sec("Who builds what", "Exact tasks are on each page", tbl(["Person", "Builds", "Page"], [
-    ["Dev 1 Anna", "Contracts, model gateway, skill, number-check tests, five-question run (#1, #2, #3, #12, #17)", '<a href="developer-1.html">developer-1</a>'],
-    ["Dev 2 Huiling", "Synthetic portfolio, KPI formulas, nine tools, golden cases, rehearsal (#4, #5, #13, #18, #23)", '<a href="developer-2.html">developer-2</a>'],
-    ["Dev 3 Raul", "Agent loop, smoke script, tool-call audit, smoke run, demo recordings (#6, #7, #14, #19, #20)", '<a href="developer-3.html">developer-3</a>'],
-    ["Dev 4 Søren", "Actions and approval, server, container, release, fixes (#8, #9, #10, #15, #21, #22)", '<a href="developer-4.html">developer-4</a>'],
-    ["Dev 5 Taras (lead)", "Chat page in Lovable, page on the server (#11, #16); approves and merges", '<a href="developer-5.html">developer-5</a>'],
+    ["Dev 1 Anna", "Contracts, model gateway, skill, number-check tests, organizers' API, five-question run (#1, #2, #3, #12, #13, #18)", '<a href="developer-1.html">developer-1</a>'],
+    ["Dev 2 Huiling", "Portfolio data source, KPI formulas, nine tools, golden cases, rehearsal (#4, #5, #14, #19, #24)", '<a href="developer-2.html">developer-2</a>'],
+    ["Dev 3 Raul", "Agent loop, smoke script, tool-call audit, smoke run, demo recordings (#6, #7, #15, #20, #21)", '<a href="developer-3.html">developer-3</a>'],
+    ["Dev 4 Søren", "Actions and approval, server, container, release, fixes (#8, #9, #10, #16, #22, #23)", '<a href="developer-4.html">developer-4</a>'],
+    ["Dev 5 Taras (lead)", "Chat page in Lovable, page on the server (#11, #17); approves and merges", '<a href="developer-5.html">developer-5</a>'],
 ]) + f'<p class="files">Files: {f("TEAM.md")}, {f("ARCHITECTURE.md")}</p>', "who", True)}
 
 """

@@ -26,7 +26,7 @@ Reference, only when a task links to it: [SPEC.md](SPEC.md), [ARCHITECTURE.md](A
 
 ## What the team builds
 
-The repository starts with documents and checks only. The team builds the whole harness in 23 numbered tasks over four rounds, following [SPEC.md](SPEC.md). The harness is made of:
+The repository starts with documents and checks only. The team builds the whole harness in 24 numbered tasks over four rounds, following [SPEC.md](SPEC.md). The harness is made of:
 
 - the synthetic portfolio and 13 KPI formulas (`mcp/kpi-solar`, `data/synthetic`)
 - nine read-only tools, the agent loop and the number check (`harness/`)
