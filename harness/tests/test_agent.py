@@ -139,6 +139,27 @@ def test_values_with_units_are_always_checked(reply, unknown):
     assert check_numbers(reply, ['{"value": "19.8"}'], "q") == unknown
 
 
+@pytest.mark.parametrize("reply,unknown", [
+    ("Availability was 20,7 %.", ["20,7"]),          # a decimal comma is one number
+    ("Round trip was 12,5 MWh.", ["12,5"]),
+    ("Values 90.6,91.7 were seen.", ["91.7"]),         # no space after a comma
+    ("Revenue lost was 2000 euros.", ["2000"]),
+    ("It produced 1950 kilowatt-hours.", ["1950"]),
+    ("It produced 2050 megawatt hours.", ["2050"]),
+    ("Capacity was 12 MWp.", ["12"]),
+    ("Prices moved 12 percentage points.", ["12"]),
+    ("Prices rose 20 per cent.", ["20"]),
+    ("It cost $12.", ["12"]),
+    ("It cost USD 12.", ["12"]),
+])
+def test_decimal_comma_and_more_units_are_checked(reply, unknown):
+    assert check_numbers(reply, ['{"value": "90.6"}'], "q") == unknown
+
+
+def test_decimal_comma_matches_the_same_tool_value():
+    assert check_numbers("Availability was 90,6 %.", ['{"value": "90.6"}'], "q") == []
+
+
 def test_counts_and_years_without_units_still_pass():
     assert check_numbers("Over 3 days in 2026 there were 2 outages on 1 park.", [], "q") == []
 
@@ -235,6 +256,16 @@ def test_system_prompt_falls_back(tmp_path):
     assert prompt == FALLBACK_PROMPT
     for word in ("synthetic", "never calculate", "propose"):
         assert word in prompt.lower()
+
+
+def test_unreadable_or_unclosed_skill_falls_back(tmp_path):
+    unclosed = tmp_path / "unclosed.md"
+    unclosed.write_text("---\nname: x\nno closing line", encoding="utf-8")
+    assert load_system_prompt(unclosed) == FALLBACK_PROMPT
+    binary = tmp_path / "binary.md"
+    binary.write_bytes(b"\xff\xfe\x00bad")
+    assert load_system_prompt(binary) == FALLBACK_PROMPT
+    assert load_system_prompt(tmp_path) == FALLBACK_PROMPT  # a folder, not a file
 
 
 def test_agent_imports_no_provider_sdk():

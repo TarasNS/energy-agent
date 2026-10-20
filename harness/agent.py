@@ -25,11 +25,15 @@ FALLBACK_PROMPT = (
 
 _DATE = re.compile(r"\b\d{4}-\d{2}-\d{2}\b")
 # A number not glued to a word before it (skips m2, chart_1, prop_3f...). 2,610.00 is one number.
-_NUMBER = re.compile(r"(?<![A-Za-z_\d.,])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?!\d)")
+# A comma followed by 1 or 2 digits is a decimal comma (20,7); followed by 3 digits it separates thousands.
+_NUMBER = re.compile(r"(?<![A-Za-z_\d.])(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+,\d{1,2}(?!\d)|\d+(?:\.\d+)?)(?!\d)")
+_DECIMAL_COMMA = re.compile(r"\d+,\d{1,2}")
 _MAX_COUNT = 31  # a bare whole number up to this is a count (days, weeks, assets) and never raises an alarm
 # A unit before or after a number makes it a value, never a count or a year.
-_UNIT_AFTER = re.compile(r"\s?(%|percent\b|[kMG]Wh?\b|EUR\b|€|h\b|hours?\b|hrs?\b)", re.I)
-_UNIT_BEFORE = re.compile(r"(EUR|€)\s?$", re.I)
+_UNIT_AFTER = re.compile(
+    r"\s?(%|per\s?cent|percent|pp\b|[kMG]W[hp]?\b|(?:kilo|mega|giga)watt|euros?\b|EUR|MEUR|€|USD|\$"
+    r"|hours?\b|hrs?\b|h\b)", re.I)
+_UNIT_BEFORE = re.compile(r"(EUR|€|USD|\$)\s?$", re.I)
 # Tools that echo what the model wrote; their output never makes a number known.
 _ECHO_TOOLS = {"make_chart", "propose_action"}
 
@@ -55,7 +59,8 @@ def _numbers(text):
     for m in _NUMBER.finditer(text):
         written = m.group(1)
         try:
-            value = Decimal(written.replace(",", ""))
+            value = Decimal(written.replace(",", ".") if _DECIMAL_COMMA.fullmatch(written)
+                            else written.replace(",", ""))
         except InvalidOperation:
             continue
         has_unit = bool(_UNIT_AFTER.match(text, m.end()) or _UNIT_BEFORE.search(text[:m.start()]))
@@ -82,12 +87,15 @@ def check_numbers(reply, tool_results, question):
 
 def load_system_prompt(path=SKILL_PATH):
     """The kpi-advisor skill without its frontmatter, or the built-in fallback."""
-    path = Path(path)
-    if not path.is_file():
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except (OSError, ValueError):  # missing, a folder, or not UTF-8
         return FALLBACK_PROMPT
-    text = path.read_text(encoding="utf-8")
     if text.startswith("---"):
-        text = text.split("---", 2)[2]
+        parts = text.split("---", 2)
+        if len(parts) < 3:  # frontmatter never closes
+            return FALLBACK_PROMPT
+        text = parts[2]
     return text.strip() or FALLBACK_PROMPT
 
 
