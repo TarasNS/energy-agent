@@ -63,6 +63,40 @@ test('escapes html in title, series name and x', () => {
   assert.ok(!out.includes('<i>'));
 });
 
+for (const kind of ['line', 'bar', 'area']) {
+  test(kind + ': non-numeric y keeps its text and gives no NaN', () => {
+    const out = renderChart(chart(kind, [
+      { name: 'Park A', points: [{ x: 'a', y: '10.00' }, { x: 'b', y: 'n/a' }, { x: 'c', y: '30.00' }] },
+    ]));
+    assert.ok(out.includes('n/a'));
+    assert.ok(out.includes('10.00') && out.includes('30.00'));
+    assert.ok(!/NaN|Infinity/.test(out));
+  });
+
+  test(kind + ': only non-numeric values does not throw or give NaN', () => {
+    const out = renderChart(chart(kind, [{ name: 'Park A', points: [{ x: 'a', y: 'n/a' }] }]));
+    assert.ok(out.includes('n/a'));
+    assert.ok(!/NaN|Infinity/.test(out));
+  });
+}
+
+test('table: duplicate x in one series keeps every row', () => {
+  const out = renderChart(chart('table', [
+    { name: 'Park A', points: [{ x: 'Jun 1', y: '1.00' }, { x: 'Jun 1', y: '2.00' }] },
+  ]));
+  assert.ok(out.includes('1.00') && out.includes('2.00'));
+  assert.strictEqual((out.match(/<tr>/g) || []).length, 3); // header + 2 rows
+});
+
+test('table: several series line up by x', () => {
+  const out = renderChart(chart('table', [
+    { name: 'A', points: [{ x: 'd1', y: '1.00' }, { x: 'd2', y: '2.00' }] },
+    { name: 'B', points: [{ x: 'd2', y: '3.00' }] },
+  ]));
+  assert.ok(/d2<\/td><td[^>]*>2\.00<\/td><td[^>]*>3\.00<\/td>/.test(out));
+  assert.ok(/d1<\/td><td[^>]*>1\.00<\/td><td[^>]*><\/td>/.test(out));
+});
+
 test('unknown kind throws', () => {
   assert.throws(() => renderChart(chart('pie', data)), /Unknown chart kind/);
 });

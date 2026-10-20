@@ -21,6 +21,22 @@ function f(n) {
   return String(Math.round(n * 10) / 10); // pixel coordinates only
 }
 
+function isNum(v) {
+  return Number.isFinite(Number(v)) && String(v).trim() !== '';
+}
+
+// Splits points into runs of plottable values; a non-numeric y (for example "n/a") is a gap.
+function runs(points) {
+  const out = [];
+  let cur = [];
+  points.forEach((p, j) => {
+    if (isNum(p.y)) cur.push({ p, j });
+    else if (cur.length) { out.push(cur); cur = []; }
+  });
+  if (cur.length) out.push(cur);
+  return out;
+}
+
 function hasPoints(chart) {
   return Array.isArray(chart.series) && chart.series.some((s) => s.points && s.points.length > 0);
 }
@@ -42,7 +58,7 @@ function scales(chart) {
   let n = 0;
   chart.series.forEach((s) => {
     n = Math.max(n, s.points.length);
-    s.points.forEach((p) => ys.push(Number(p.y)));
+    s.points.forEach((p) => { if (isNum(p.y)) ys.push(Number(p.y)); });
   });
   const lo = Math.min.apply(null, ys);
   const hi = Math.max.apply(null, ys);
@@ -51,7 +67,7 @@ function scales(chart) {
   const plotW = W - M.left - M.right;
   return {
     n,
-    yPos: (v) => M.top + plotH - ((Number(v) - lo) / span) * plotH,
+    yPos: (v) => (isNum(v) ? M.top + plotH - ((Number(v) - lo) / span) * plotH : M.top + plotH - ((0 - lo) / span) * plotH),
     xPos: (i) => M.left + (n <= 1 ? plotW / 2 : (i / (n - 1)) * plotW),
     slot: plotW / Math.max(n, 1),
     zero: M.top + plotH - ((0 - lo) / span) * plotH,
@@ -84,10 +100,12 @@ function line(chart) {
   let body = axis(chart, sc);
   chart.series.forEach((s, i) => {
     const c = PALETTE[i % PALETTE.length];
-    const pts = s.points.map((p, j) => f(sc.xPos(j)) + ',' + f(sc.yPos(p.y))).join(' ');
-    body += '<polyline fill="none" stroke="' + c + '" stroke-width="2" points="' + pts + '"/>';
-    s.points.forEach((p, j) => {
-      body += '<circle cx="' + f(sc.xPos(j)) + '" cy="' + f(sc.yPos(p.y)) + '" r="3" fill="' + c + '"/>';
+    runs(s.points).forEach((run) => {
+      const pts = run.map((r) => f(sc.xPos(r.j)) + ',' + f(sc.yPos(r.p.y))).join(' ');
+      body += '<polyline fill="none" stroke="' + c + '" stroke-width="2" points="' + pts + '"/>';
+      run.forEach((r) => {
+        body += '<circle cx="' + f(sc.xPos(r.j)) + '" cy="' + f(sc.yPos(r.p.y)) + '" r="3" fill="' + c + '"/>';
+      });
     });
     body += labels(s, i, sc, -8);
   });
@@ -100,10 +118,12 @@ function area(chart) {
   chart.series.forEach((s, i) => {
     if (!s.points.length) return;
     const c = PALETTE[i % PALETTE.length];
-    const top = s.points.map((p, j) => (j ? 'L' : 'M') + f(sc.xPos(j)) + ' ' + f(sc.yPos(p.y))).join(' ');
-    const last = s.points.length - 1;
-    body += '<path fill="' + c + '" fill-opacity="0.2" stroke="' + c + '" stroke-width="2" d="'
-      + top + ' L' + f(sc.xPos(last)) + ' ' + f(sc.zero) + ' L' + f(sc.xPos(0)) + ' ' + f(sc.zero) + ' Z"/>';
+    runs(s.points).forEach((run) => {
+      const top = run.map((r, k) => (k ? 'L' : 'M') + f(sc.xPos(r.j)) + ' ' + f(sc.yPos(r.p.y))).join(' ');
+      body += '<path fill="' + c + '" fill-opacity="0.2" stroke="' + c + '" stroke-width="2" d="'
+        + top + ' L' + f(sc.xPos(run[run.length - 1].j)) + ' ' + f(sc.zero)
+        + ' L' + f(sc.xPos(run[0].j)) + ' ' + f(sc.zero) + ' Z"/>';
+    });
     body += labels(s, i, sc, -8);
   });
   return frame(chart, body + legend(chart));
@@ -121,8 +141,10 @@ function bar(chart) {
       const x = cx - (bw * k) / 2 + bw * i;
       const y = sc.yPos(p.y);
       const neg = Number(p.y) < 0;
-      body += '<rect x="' + f(x) + '" y="' + f(Math.min(y, sc.zero)) + '" width="' + f(bw)
-        + '" height="' + f(Math.abs(sc.zero - y)) + '" fill="' + c + '"/>';
+      if (isNum(p.y)) {
+        body += '<rect x="' + f(x) + '" y="' + f(Math.min(y, sc.zero)) + '" width="' + f(bw)
+          + '" height="' + f(Math.abs(sc.zero - y)) + '" fill="' + c + '"/>';
+      }
       body += '<text x="' + f(x + bw / 2) + '" y="' + f(neg ? y + 12 : y - 4)
         + '" text-anchor="middle" fill="' + c + '">' + esc(p.y) + '</text>';
     });
@@ -133,16 +155,26 @@ function bar(chart) {
 function table(chart) {
   const th = 'style="text-align:left;padding:4px 8px;border-bottom:2px solid ' + GREEN + ';color:' + INK + '"';
   const td = 'style="padding:4px 8px;border-bottom:1px solid ' + GRID + ';color:' + INK + '"';
-  const xs = [];
-  chart.series.forEach((s) => s.points.forEach((p) => { if (!xs.includes(p.x)) xs.push(p.x); }));
+  // A row is an x plus its occurrence number within a series, so repeated x values keep their own rows.
+  const rows = [];
+  const cells = chart.series.map((s) => {
+    const seen = {};
+    const m = {};
+    s.points.forEach((p) => {
+      seen[p.x] = (seen[p.x] || 0) + 1;
+      const key = seen[p.x] + '|' + p.x;
+      m[key] = p.y;
+      if (!rows.some((r) => r.key === key)) rows.push({ key, x: p.x });
+    });
+    return m;
+  });
   let out = '<div data-chart-id="' + esc(chart.id) + '"><strong style="color:' + INK + '">' + esc(chart.title)
     + '</strong><table style="border-collapse:collapse;font-family:sans-serif"><thead><tr><th ' + th + '></th>'
     + chart.series.map((s) => '<th ' + th + '>' + esc(s.name) + '</th>').join('') + '</tr></thead><tbody>';
-  xs.forEach((x) => {
-    out += '<tr><td ' + td + '>' + esc(x) + '</td>';
-    chart.series.forEach((s) => {
-      const p = s.points.find((q) => q.x === x);
-      out += '<td ' + td + '>' + (p ? esc(p.y) : '') + '</td>';
+  rows.forEach((row) => {
+    out += '<tr><td ' + td + '>' + esc(row.x) + '</td>';
+    cells.forEach((m) => {
+      out += '<td ' + td + '>' + (row.key in m ? esc(m[row.key]) : '') + '</td>';
     });
     out += '</tr>';
   });
