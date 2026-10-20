@@ -1,0 +1,5 @@
+{
+  "default": {"provider": "anthropic", "model": "claude-haiku-5-5"},
+  "fast": {"provider": "anthropic", "model": "claude-haiku-5-5"},
+  "offline": {"provider": "offline"}
+}
