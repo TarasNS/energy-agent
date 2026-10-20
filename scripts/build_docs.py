@@ -290,11 +290,10 @@ def flow_svg():
     for t in FLOW:
         x, y = nx(t["rnd"]), ny(t)
         cls = f'fn d{t["dev"]}' + (" res" if t["kind"] == "reserve" else "")
-        chip = f'<text class="t2" x="{x + NW - 10}" y="{y + 18}" text-anchor="end">{t["size"]}</text>' if t["size"] else ""
         needs = ", ".join(f'#{n}' for n in t["needs"]) or "nothing"
         out.append(f'<g class="{cls}" data-id="{t["no"]}" tabindex="0" role="button" aria-label="Task {t["no"]}: {e(t["title"])}. Needs {needs}.">'
                    f'<title>#{t["no"]} {e(t["title"])}. Needs: {needs}.</title><rect x="{x}" y="{y}" width="{NW}" height="{NH}" rx="8"/>'
-                   f'<text class="t1" x="{x + 10}" y="{y + 19}">#{t["no"]} {e(t["title"])}</text>{chip}'
+                   f'<text class="t1" x="{x + 10}" y="{y + 19}">#{t["no"]} {e(t["title"])}</text>'
                    f'<text class="t2" x="{x + 10}" y="{y + 35}">{e(t["line2"])}</text></g>')
     out.append("</svg></div>")
     return "".join(out)
@@ -547,7 +546,7 @@ def index_page():
 <section class="sec alt" id="combine">
   <h2 class="reveal">How we put our parts together</h2>
   <p class="intro reveal">Nobody sends files by chat or e-mail, and there is no shared folder. GitHub is the one place where our parts meet. Every part arrives as a pull request, and the lead merges each one as soon as it is green. The flow below has 17 numbered tasks in four rounds, one row per person; an arrow points from a task to each task that needs it. Point at or tap a task to light up its chain.</p>
-  <div class="reveal">{flow_svg()}<p class="files">The number on a task is the same on its developer page and in its pull request name. S is small, M is medium. Dashed grey boxes are reserve time. Everyone builds with Claude Haiku 5.5 in Claude Code; Dev 5 builds the chat page in Lovable.</p></div>
+  <div class="reveal">{flow_svg()}<p class="files">The number on a task is the same on its developer page and in its pull request name. Dashed grey boxes are reserve time. Everyone builds with Claude Haiku 5.5 in Claude Code; Dev 5 builds the chat page in Lovable.</p></div>
   <div class="reveal">{route(
     step("Work on your own branch", "The brief prompt on your page makes branch <code>devN/&lt;task&gt;</code> from <code>main</code>. You never edit <code>main</code> directly."),
     step("Finish with the finish prompt", "Claude runs <code>make check</code> and <code>make test</code>, pushes your branch and opens a pull request into <code>main</code>. There is no automatic build: the local checks are the gate."),
