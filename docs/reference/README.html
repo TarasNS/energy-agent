@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>README — Energy 4.0 Harness</title>
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="role" style="--accent:var(--lead)">
+<header class="top">
+  <a class="mark" href="../index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="#1a5c00" stroke-width="1.8"/><g stroke="#1a5c00" stroke-width="1.6" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>energy 4.0 harness</a>
+  <details class="menu"><summary aria-label="Menu"><span></span></summary><nav aria-label="Pages"><a href="../index.html"><i style="background:var(--lead)"></i>Guide</a><a href="../lead.html"><i style="background:var(--lead)"></i>Lead</a><a href="../developer-1.html"><i style="background:var(--d1)"></i>Dev 1 · Skill &amp; chat page</a><a href="../developer-2.html"><i style="background:var(--d2)"></i>Dev 2 · Harness &amp; approval</a><a href="../developer-3.html"><i style="background:var(--d3)"></i>Dev 3 · Model &amp; contracts</a><a href="../developer-4.html"><i style="background:var(--d4)"></i>Dev 4 · Calculator &amp; evals</a><a href="../presentation.html"><i style="background:var(--lead)"></i>Presentation</a></nav></details>
+</header>
+<main class="page">
+<article class="mdbody"><p class="mdnote"><a href="../index.html">Back to the guide</a> · source <code>README.md</code> · <a href="README.md">raw Markdown</a></p><h1>Energy 4.0 Harness</h1>
+<p><b>Ask your portfolio. Get checked numbers. Approve the action.</b></p>
+<p>A chat assistant for a solar and battery portfolio. The model picks tools, deterministic code makes every number, the server checks each number in the answer, and a person approves any action. Everything is audited.</p>
+<blockquote><b>Status:</b> first proof of concept on synthetic data. <b>Team:</b> 4 developers + lead.</blockquote>
+<h2>Start here</h2>
+<ol><li>Read <a href="INTENT.html">INTENT.md</a> (five minutes): why, scope and what "done" means.</li><li>Read <a href="SPEC.html">SPEC.md</a>, the build contract.</li><li>Open <a href="../index.html">docs/index.html</a> in a browser.</li><li>Click your role and follow your page. Each task is one prompt you paste into Claude Code.</li></ol>
+<div class="tbl"><table><thead><tr><th>Role</th><th>Your page</th></tr></thead><tbody><tr><td>Lead</td><td><a href="../lead.html">docs/lead.html</a></td></tr><tr><td>Dev 1 · Skill &amp; chat page</td><td><a href="../developer-1.html">docs/developer-1.html</a></td></tr><tr><td>Dev 2 · Harness, approval &amp; audit</td><td><a href="../developer-2.html">docs/developer-2.html</a></td></tr><tr><td>Dev 3 · Model, contracts &amp; health</td><td><a href="../developer-3.html">docs/developer-3.html</a></td></tr><tr><td>Dev 4 · Calculator &amp; evals</td><td><a href="../developer-4.html">docs/developer-4.html</a></td></tr></tbody></table></div>
+<p>Reference, only when a task links to it: <a href="SPEC.html">SPEC.md</a>, <a href="ARCHITECTURE.html">ARCHITECTURE.md</a>, <a href="TEAM.html">TEAM.md</a>, <a href="EVALS.html">EVALS.md</a>, <a href="DEMO.html">DEMO.md</a>, <a href="KPI_REVIEW.html">KPI_REVIEW.md</a>, <a href="CLAUDE.html">CLAUDE.md</a>.</p>
+<h2>What the team builds</h2>
+<p>The repository starts with documents and checks only. <b>The team builds the harness together, from scratch</b>, following <a href="SPEC.html">SPEC.md</a>:</p>
+<ul><li>the synthetic portfolio and 13 KPI formulas (<code>mcp/kpi-solar</code>, <code>data/synthetic</code>)</li><li>nine read-only tools, the agent loop and the number check (<code>harness/</code>)</li><li>propose, approve once, audit (<code>mcp/actions</code>)</li><li>the chat page and server (<code>tools/kpi-lab</code>)</li><li>the model gateway with Claude Haiku 5.5 and offline replay (<code>model/</code>)</li></ul>
+<h2>Repository map</h2>
+<pre><code>energy-agent/
+├── INTENT.md, SPEC.md, ARCHITECTURE.md, TEAM.md, EVALS.md, DEMO.md, KPI_REVIEW.md
+├── docs/            the team guide, with every document above readable as a page
+├── scripts/         dev.py (all commands), checks, docs build
+└── .claude/         subagents, skills, hooks, brand voice rules</code></pre>
+<p>The folders the team creates are listed in <a href="SPEC.html">SPEC.md §1</a>. The finished version of an earlier build is kept on tag <code>reference-v1</code>; the team does not use it.</p>
+<h2>Requirements</h2>
+<p>Python 3.11+, Git, Node.js for the chart test, and an Anthropic API key in <code>.env</code>. Claude Code runs the setup for you: see the first prompt on your page.</p></article>
+</main>
+<footer class="dark"><h2>The documents, readable here</h2><ul class="refs"><li><a href="../reference/INTENT.html">INTENT.md</a></li><li><a href="../reference/SPEC.html">SPEC.md</a></li><li><a href="../reference/ARCHITECTURE.html">ARCHITECTURE.md</a></li><li><a href="../reference/TEAM.html">TEAM.md</a></li><li><a href="../reference/EVALS.html">EVALS.md</a></li><li><a href="../reference/DEMO.html">DEMO.md</a></li><li><a href="../reference/KPI_REVIEW.html">KPI_REVIEW.md</a></li><li><a href="../reference/CLAUDE.html">CLAUDE.md</a></li></ul><div class="fine"><span>Energy 4.0 Harness · first proof of concept</span><span>Writing rules: <a href="../reference/brand-voice-guidelines.html">.claude/brand-voice-guidelines.md</a></span></div></footer>
+<script src="../js/app.js"></script>
+</body>
+</html>

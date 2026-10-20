@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ARCHITECTURE — Energy 4.0 Harness</title>
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="role" style="--accent:var(--lead)">
+<header class="top">
+  <a class="mark" href="../index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5" fill="none" stroke="#1a5c00" stroke-width="1.8"/><g stroke="#1a5c00" stroke-width="1.6" stroke-linecap="round"><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"/></g></svg>energy 4.0 harness</a>
+  <details class="menu"><summary aria-label="Menu"><span></span></summary><nav aria-label="Pages"><a href="../index.html"><i style="background:var(--lead)"></i>Guide</a><a href="../lead.html"><i style="background:var(--lead)"></i>Lead</a><a href="../developer-1.html"><i style="background:var(--d1)"></i>Dev 1 · Skill &amp; chat page</a><a href="../developer-2.html"><i style="background:var(--d2)"></i>Dev 2 · Harness &amp; approval</a><a href="../developer-3.html"><i style="background:var(--d3)"></i>Dev 3 · Model &amp; contracts</a><a href="../developer-4.html"><i style="background:var(--d4)"></i>Dev 4 · Calculator &amp; evals</a><a href="../presentation.html"><i style="background:var(--lead)"></i>Presentation</a></nav></details>
+</header>
+<main class="page">
+<article class="mdbody"><p class="mdnote"><a href="../index.html">Back to the guide</a> · source <code>ARCHITECTURE.md</code> · <a href="ARCHITECTURE.md">raw Markdown</a></p><h1>ARCHITECTURE.md: how it is built</h1>
+<p><b>Role:</b> the <i>how</i>. Why is in <a href="INTENT.html">INTENT.md</a>. Exact interfaces are in <a href="SPEC.html">SPEC.md</a>. Who owns what is in <a href="TEAM.html">TEAM.md</a>. This is the target design: the code is built by the team.</p>
+<h2>1. The picture</h2>
+<pre><code>Chat page (tools/kpi-lab/index.html, charts.js)        render-only: shows what the server returns
+        │  POST /api/chat · POST /api/approve · GET /health
+Server (tools/kpi-lab/server.py)                       daily cap, CORS, issues approval tokens
+        │
+Agent loop (harness/agent.py)                          model picks tools · number check · 8 rounds max
+   ├── model: model/model_gateway.run_turn()           Claude Haiku 5.5 · only place a model SDK may be used
+   └── tools: harness/registry.py + energy_tools.py    nine tools
+          ├── data/synthetic/portfolio.py                synthetic portfolio (2 parks, 1 battery, June 2026)
+          ├── mcp/kpi-solar                            every KPI number (13 KPIs, four groups)
+          └── mcp/actions                              propose → approve (one-time token) → audit</code></pre>
+<h2>2. One question</h2>
+<ol><li>The page posts <code>{question}</code> to <code>/api/chat</code>.</li><li>The server takes a slot from the daily cap, then runs <code>harness.agent.run</code>.</li><li>The loop sends the model the system prompt, the question and the nine tool schemas.</li><li>The model returns text or tool calls. The registry runs each call and never raises: a bad call becomes an error result the model can read.</li><li>When the model answers in text, <code>check_numbers</code> compares every number in the text with the question and all tool results. An unknown number means the text is withheld (<code>verified: false</code>, with a note). Charts and proposals still return.</li><li>The server returns <code>{text, verified, note, charts, proposals, trace, stopped}</code>.</li></ol>
+<h2>3. Approval</h2>
+<ol><li>The model may call <code>propose_action(action, asset, reason)</code>. This records a proposal and returns its id. It runs nothing.</li><li>The page shows an <b>Approve</b> button per proposal. A person enters a name and presses it.</li><li><code>/api/approve</code> asks <code>mcp/actions</code> for a one-time token, then approves with it. The browser never sees the token.</li><li>A missing, wrong or reused token, or a proposal already approved, is refused and audited.</li><li>Execution is simulated. There is no path to a real system.</li></ol>
+<h2>4. Contracts</h2>
+<div class="tbl"><table><thead><tr><th>Contract</th><th>Where</th><th>Shape</th></tr></thead><tbody><tr><td>Tool results</td><td><code>harness/registry.py</code></td><td>JSON string. Money and energy values are decimal strings</td></tr><tr><td>Model turn</td><td><code>model/model_gateway</code></td><td><code>ModelTurn(text, tool_calls[])</code> from <code>run_turn(system, messages, tools)</code></td></tr><tr><td>Chat answer</td><td><code>/api/chat</code></td><td><code>{text, verified, note, charts, proposals, trace, stopped}</code></td></tr><tr><td>Audit line</td><td><code>artifacts/audit.jsonl</code></td><td><code>{ts, event, proposal_id, action, asset, approver}</code></td></tr><tr><td>Data schemas</td><td><code>schemas/*.schema.json</code></td><td>Checked by <code>make check</code></td></tr></tbody></table></div>
+<h2>5. Rules in code</h2>
+<div class="tbl"><table><thead><tr><th>Rule</th><th>Where it is enforced</th></tr></thead><tbody><tr><td>Numbers come from code</td><td><code>mcp/kpi-solar</code> calculates; <code>check_numbers</code> withholds anything else</td></tr><tr><td>Approval is never a tool</td><td>The registry builds nine tools; none approves. Approval lives only in the server's <code>/api/approve</code></td></tr><tr><td>Model-agnostic</td><td>Only <code>model/model_gateway/</code> may import a provider SDK. <code>make check</code> fails otherwise</td></tr><tr><td>No secrets in git</td><td><code>make check</code> scans for key patterns; <code>.env</code> is git-ignored</td></tr><tr><td>Do not shadow the <code>mcp</code> SDK</td><td>Never create <code>mcp/__init__.py</code></td></tr><tr><td>Synthetic by default</td><td>The dataset is seeded and labelled synthetic. No network is needed for tools</td></tr></tbody></table></div>
+<h2>6. Build order</h2>
+<p>The harness does not exist yet. The exact contracts are in <a href="SPEC.html">SPEC.md</a>.</p>
+<div class="tbl"><table><thead><tr><th>Step</th><th>What</th><th>Owner</th></tr></thead><tbody><tr><td>1</td><td>Shared schemas, model gateway, import guard and checks</td><td>Dev 3</td></tr><tr><td>1</td><td>Synthetic portfolio and the 13 KPI formulas (no other part needed)</td><td>Dev 4</td></tr><tr><td>2</td><td>Registry, nine tools, agent loop and number check (a scripted model stands in until the gateway lands)</td><td>Dev 2</td></tr><tr><td>2</td><td>Propose, approve once, audit</td><td>Dev 2</td></tr><tr><td>3</td><td>Server and chat page against the <code>/api/chat</code> contract</td><td>Dev 2, Dev 1</td></tr><tr><td>3</td><td>Skill file, golden cases, number-check tests</td><td>Dev 1, Dev 4</td></tr><tr><td>4</td><td>Offline replay, smoke test, demo rehearsal</td><td>Dev 3, Dev 2, Lead</td></tr><tr><td>5</td><td>Container and Azure release</td><td>Dev 3, Lead</td></tr></tbody></table></div>
+<h2>7. Deployment</h2>
+<p>The chat runs as one container on Azure App Service. Dev 3 writes the <code>Dockerfile</code> and <code>.dockerignore</code> in step 5.</p>
+<div class="tbl"><table><thead><tr><th>Part</th><th>Detail</th></tr></thead><tbody><tr><td>Image</td><td><code>python:3.11-slim</code>, only the runtime code. <code>.dockerignore</code> is an allowlist: <code>.env</code>, tests and docs never enter the image</td></tr><tr><td>Build</td><td><code>az acr build</code> in Azure Container Registry. No local Docker</td></tr><tr><td>Run</td><td>App Service pulls the image with its managed identity</td></tr><tr><td>Key</td><td><code>ANTHROPIC_API_KEY</code> is an App Service setting, never in the image or git</td></tr><tr><td>Settings</td><td><code>KPI_DAILY_CAP</code> (200), <code>KPI_ALLOWED_ORIGINS</code>, <code>KPI_LAB_HOST</code>, <code>KPI_LAB_PORT</code>, <code>KPI_CAP_FILE</code>, <code>AUDIT_LOG_PATH</code></td></tr><tr><td>Health</td><td><code>GET /health</code> returns 200 and the calls left today</td></tr></tbody></table></div>
+<p>Release steps are in the guide: <a href="../index.html#deploy">docs/index.html#deploy</a>. Azure resource names are not in the repo.</p></article>
+</main>
+<footer class="dark"><h2>The documents, readable here</h2><ul class="refs"><li><a href="../reference/INTENT.html">INTENT.md</a></li><li><a href="../reference/SPEC.html">SPEC.md</a></li><li><a href="../reference/ARCHITECTURE.html">ARCHITECTURE.md</a></li><li><a href="../reference/TEAM.html">TEAM.md</a></li><li><a href="../reference/EVALS.html">EVALS.md</a></li><li><a href="../reference/DEMO.html">DEMO.md</a></li><li><a href="../reference/KPI_REVIEW.html">KPI_REVIEW.md</a></li><li><a href="../reference/CLAUDE.html">CLAUDE.md</a></li></ul><div class="fine"><span>Energy 4.0 Harness · first proof of concept</span><span>Writing rules: <a href="../reference/brand-voice-guidelines.html">.claude/brand-voice-guidelines.md</a></span></div></footer>
+<script src="../js/app.js"></script>
+</body>
+</html>

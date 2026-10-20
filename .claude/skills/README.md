@@ -2,7 +2,7 @@
 
 **Owner:** Dev 1 · **Task:** [Dev 1 page](../../docs/developer-1.html)
 
-The POC has **one** skill: `kpi-advisor/SKILL.md`. It is the model's instruction file. Today the same text is a string in `harness/agent.py`; Dev 2 makes the agent read the file when it exists.
+The POC has **one** skill: `kpi-advisor/SKILL.md`. It is the model's instruction file. Dev 2's agent loop reads this file as the system prompt when it exists, and has a built-in fallback until it lands.
 
 ## The skill must
 1. **Say the data is synthetic** and every answer must say so.

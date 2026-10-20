@@ -92,6 +92,9 @@ def docs() -> int:
 
 
 def demo_smoke() -> int:
+    if not (ROOT / "scripts" / "demo-smoke.sh").exists():
+        print("NOT IMPLEMENTED: scripts/demo-smoke.sh does not exist yet (Dev 2).")
+        return 1
     bash = shutil.which("bash")
     if not bash:
         print("demo-smoke needs bash (Git Bash or WSL on Windows).")

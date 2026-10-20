@@ -2,7 +2,7 @@
 
 **Read this first.** Every person and every Claude Code session starts here. It says why we build this, what "done" means and what we will not do. If another file disagrees with this one, stop and tell the lead.
 
-**Scope:** a first proof of concept (POC) on synthetic data, built in two hours. Nothing here touches real company systems.
+**Scope:** a first proof of concept (POC) on synthetic data, built from scratch by the team together, following [SPEC.md](SPEC.md). Nothing here touches real company systems.
 
 ## 1. The problem
 
@@ -50,26 +50,23 @@ Also fixed: data tools are read-only, the demo runs on synthetic data, no key is
 
 ## 6. Where we are today
 
-| Part | State |
-|---|---|
-| 13 KPI formulas with tests | Done |
-| Synthetic portfolio (2 solar parks, 1 battery, June 2026) | Done |
-| Nine tools, agent loop, number check | Done |
-| Propose, approve once, audit | Done (tool calls are not yet in the audit log) |
-| Chat page with charts and approve button | Done |
-| Model gateway (Claude Haiku 5.5, daily cap) | Done |
-| Hosting on Azure | An earlier explain-only server ran there. The current chat server is not verified there |
-| Offline model replay | Not built |
-| Skill file for the model | Not built (prompt is inline in `harness/agent.py`) |
-| Evals and golden cases for the agent | Not built |
-| Real company data | **Not available.** See `KPI_REVIEW.md` |
+The repository holds the documents and the checks only. **No harness code exists yet: the team builds it together.** Build order and owners are in [SPEC.md](SPEC.md) and on each person's page.
+
+| Part | Owner | State |
+|---|---|---|
+| Shared contracts, model gateway, repo checks | Dev 3 | Not built |
+| Synthetic portfolio, 13 KPI formulas, golden cases | Dev 4 | Not built |
+| Nine tools, agent loop, number check, approval, audit, server | Dev 2 | Not built |
+| Skill file, chat page | Dev 1 | Not built |
+| Offline model replay, smoke test, demo | All | Not built |
+| Real company data | Lead | **Not available.** See `KPI_REVIEW.md` |
 
 ## 7. What "done" means for the POC
 
 The POC is done when all of these are true and shown with evidence:
 
 1. The three-minute demo ([DEMO.md](DEMO.md)) runs from the chat page on synthetic data.
-2. Each KPI answer matches the hand-worked value in `mcp/kpi-solar/tests`.
+2. Each KPI answer matches a hand-worked value (golden cases, [EVALS.md](EVALS.md)).
 3. A made-up number in a model answer is withheld (test exists).
 4. Approving without a valid token, or approving twice, is refused and audited (test exists).
 5. Every tool call and every approval is in the audit log.
