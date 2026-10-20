@@ -5,12 +5,12 @@ This file guides Claude Code (claude.ai/code) in this repository.
 Curated by Dev 3. Keep it short and true: only stable rules, real commands and architecture the repo actually implements. Propose changes via PR.
 
 ## Project
-Energy 4.0 Harness: a chat assistant for a solar and battery portfolio. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
+Energy 4.0 Harness: a chat assistant for a solar and battery portfolio, **built from scratch by the team from `SPEC.md`**. A small agent loop in `harness/` lets the model pick from nine read-only tools; code (`mcp/kpi-solar`) makes every number; the server checks each number in the answer; a person approves any action outside the loop; everything is audited. Synthetic data only.
 
-**Scope: first proof of concept (POC).** **Current state:** KPI formulas, nine tools, agent loop with number check, propose/approve/audit, chat page and model gateway work. Not built yet: offline model replay, skill file, audit of tool calls, golden cases. Update this line when that changes.
+**Scope: first proof of concept (POC).** **Current state:** documents and checks only. No harness code exists yet; the team builds it in the order in `ARCHITECTURE.md` §6. Do not look for or copy code from tag `reference-v1` or branch `reference/harness-v1` (only the lead may, to compare at the end). Update this line when parts land.
 
 ## Read before working
-`INTENT.md` (why, scope, done) → `ARCHITECTURE.md` (how) → `TEAM.md` (who) → your page in `docs/` (your tasks and prompts).
+`INTENT.md` (why, scope, done) → `SPEC.md` (exact contracts) → `ARCHITECTURE.md` (how) → `TEAM.md` (who) → your page in `docs/` (your tasks and prompts).
 If documents conflict: stop, report the conflict, do not resolve it yourself.
 
 ## Non-negotiable rules
@@ -29,11 +29,11 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 
 | Path | Owner |
 |---|---|
-| `.claude/skills/`, `.claude/hooks/`, `mcp/energy-data/`, `tools/kpi-lab/` (page, charts, config) | Dev 1 |
+| `.claude/skills/`, `.claude/hooks/`, `tools/kpi-lab/` (page, charts, config) | Dev 1 |
 | `harness/`, `mcp/actions/`, `tools/kpi-lab/server.py`, `scripts/demo-smoke.sh`, `.claude/agents/` | Dev 2 |
-| `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke), `model/`, `schemas/`, `docs/`, `.github/` | Dev 3 |
-| `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md`, `config/` | Dev 4 |
-| `INTENT.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py` | Lead |
+| `CLAUDE.md`, `Makefile`, `scripts/` (except demo-smoke), `requirements*.txt`, `pytest.ini`, `.env.example`, `Dockerfile`, `.dockerignore`, `model/`, `schemas/`, `docs/`, `.github/` | Dev 3 |
+| `mcp/kpi-solar/`, `evals/`, `tests/`, `data/synthetic/`, `EVALS.md`, `KPI_REVIEW.md` | Dev 4 |
+| `INTENT.md`, `SPEC.md`, `ARCHITECTURE.md`, `TEAM.md`, `README.md`, `DEMO.md`, `scripts/slides.py` | Lead |
 
 ## Commands
 | Command | Status |
@@ -41,9 +41,9 @@ Edit only paths your workstream owns ([TEAM.md](TEAM.md)). Shared contracts in `
 | `make setup` | Works: checks tools, creates `.venv`, installs requirements, checks the API key |
 | `make check` | Works: structure, JSON schemas, doc links, secret scan, model-agnostic import guard |
 | `make test` | Runs pytest |
-| `make run` | Starts the chat page and server (`tools/kpi-lab/server.py`) on http://127.0.0.1:8000 |
+| `make run` | Starts the chat server (`tools/kpi-lab/server.py`) on http://127.0.0.1:8000 once Dev 2 builds it |
 | `make docs` | Rebuilds `docs/` from `scripts/build_docs.py` (edit the script, not the HTML) |
-| `make demo-smoke` | Fails until Dev 2 makes it real |
+| `make demo-smoke` | Fails until Dev 2 writes `scripts/demo-smoke.sh` |
 | `make verify` | `check` + `test` + `demo-smoke` with a summary; a NOT IMPLEMENTED step counts as FAIL (by design) |
 
 No `make` (common on Windows)? Every row works as `python scripts/dev.py <command>` (setup, check, test, run, docs, verify, demo-smoke); `make` calls the same file.
@@ -51,7 +51,7 @@ No `make` (common on Windows)? Every row works as `python scripts/dev.py <comman
 Single test: `python -m pytest path/to/test_x.py::test_name`. `demo-smoke` needs bash (Git Bash or WSL on Windows).
 
 ## Architecture (big picture)
-`tools/kpi-lab` (chat page + local server) → `harness/agent.py` (loop, number check) → model via `model/model_gateway` and tools in `harness/energy_tools.py` → `mcp/kpi-solar` (numbers), `mcp/actions` (propose, approve, audit), `harness/dataset.py` (synthetic portfolio). Models explain; they are never the calculator of record or the permission system. Full detail: [ARCHITECTURE.md](ARCHITECTURE.md).
+Target design: `tools/kpi-lab` (chat page + local server) → `harness/agent.py` (loop, number check) → model via `model/model_gateway` and tools in `harness/energy_tools.py` → `mcp/kpi-solar` (numbers), `mcp/actions` (propose, approve, audit), `data/synthetic/portfolio.py` (synthetic portfolio). Models explain; they are never the calculator of record or the permission system. Full detail: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Code conventions
 - Python 3.11+. Pure functions in `mcp/<tool>/<pkg>/`, tests in `mcp/<tool>/tests/`.

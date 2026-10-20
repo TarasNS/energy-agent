@@ -1,10 +1,10 @@
 # KPI_REVIEW.md — validated KPIs for four groups
 
-**Branch:** `feature/nordic-solar-real-data` · **Status:** definitions validated against the formulas in code; **no source data is verified yet**, so no KPI is production-ready.
+**Status:** the definitions below are the reference for Dev 4 when building `mcp/kpi-solar` ([SPEC.md §3](SPEC.md)). **No source data is verified yet**, so no KPI is production-ready.
 
 **Verdict key:** KEEP = use as defined · MODIFY = use with the change shown · REMOVE = drop as a separate KPI.
 
-Formulas live in `mcp/kpi-solar/kpi_solar/metrics.py`. A missing input returns "unavailable", never a number.
+Formulas are built by Dev 4 in `mcp/kpi-solar/` (definitions in [SPEC.md §3](SPEC.md)). A missing input returns "unavailable", never a number.
 
 ## 1. Solar generation
 
@@ -57,4 +57,4 @@ Formulas live in `mcp/kpi-solar/kpi_solar/metrics.py`. A missing input returns "
 - **Keep:** actual vs expected, performance ratio, availability, capacity factor, PPA performance, realised price, downtime, energy losses, incident resolution, the three BESS KPIs.
 - **Modify:** availability (daylight definition), merchant exposure (sensitivity), and every KPI that needs a validated baseline before use.
 - **Remove:** asset performance as a separate KPI.
-- **Verified data available today:** none. All formulas are tested on hand-computed examples only.
+- **Verified data available today:** none. The formulas are tested on hand-computed examples on synthetic data only, once Dev 4 builds them.

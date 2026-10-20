@@ -22,7 +22,7 @@ SLIDES = [
         ("Everything audited", "Every proposal and approval is logged."),
     ]),
     dict(tone="light", kicker="Where we stand", title="Three minutes, then real data.", sub="", foot="", items=[
-        ("Today", "13 KPIs, nine tools and a chat with charts, on synthetic data."),
+        ("Today", "Built from scratch by four developers from one spec: 13 KPIs, nine tools and a chat with charts, on synthetic data."),
         ("Next", "One real data source, then a second workflow."),
         ("Decision", "Which data source do we validate first?"),
     ]),

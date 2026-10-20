@@ -18,13 +18,13 @@ ROOT = Path(__file__).resolve().parent.parent
 errors: list[str] = []
 
 REQUIRED = """README.md INTENT.md TEAM.md ARCHITECTURE.md
-EVALS.md DEMO.md CLAUDE.md Makefile .env.example .gitignore requirements-dev.txt pytest.ini
+SPEC.md EVALS.md DEMO.md CLAUDE.md Makefile .env.example .gitignore requirements-dev.txt pytest.ini
 index.html docs/index.html docs/lead.html .claude/brand-voice-guidelines.md
 docs/developer-1.html docs/developer-2.html docs/developer-3.html docs/developer-4.html docs/presentation.html
-docs/css/style.css docs/js/app.js scripts/build_docs.py model/README.md model/profiles.json requirements.txt
+docs/css/style.css docs/js/app.js scripts/build_docs.py model/README.md requirements.txt
 .claude/agents/researcher.md .claude/agents/verifier.md .claude/agents/simplifier.md
 .github/PULL_REQUEST_TEMPLATE.md
-scripts/setup.sh scripts/verify.sh scripts/demo-smoke.sh""".split()
+scripts/setup.sh scripts/verify.sh""".split()
 
 DEV_SECTIONS = ["setup", "loop", "tasks", "done"]
 
@@ -79,7 +79,9 @@ LINK_HTML = re.compile(r"""(?:href|src)=["']([^"']+)["']""")
 
 
 def check_links():
-    targets = [(p, LINK_MD) for p in files("*.md")] + [(p, LINK_HTML) for p in files("*.html")]
+    # docs/reference/*.md are raw copies of the root documents; their links are meant for the root.
+    md = [p for p in files("*.md") if "reference" not in p.relative_to(ROOT).parts[:2]]
+    targets = [(p, LINK_MD) for p in md] + [(p, LINK_HTML) for p in files("*.html")]
     for p, rx in targets:
         text = p.read_text(encoding="utf-8")
         # ignore links inside fenced code blocks in Markdown

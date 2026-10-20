@@ -6,15 +6,15 @@
 
 | Layer | Question it answers | Where | Status |
 |---|---|---|---|
-| Formula tests | Does each KPI function return the hand-worked value, and refuse bad input? | `mcp/kpi-solar/tests/` | Done (31 tests) |
-| Golden cases | Does each tool, with no model, return the hand-worked value for the demo data? | `evals/cases/golden.json`, `tests/test_golden.py` | Dev 4, task 1 |
-| Number check | Is a number the tools never returned always withheld? | `tests/test_number_check.py` | Dev 4, task 2 |
+| Formula tests | Does each KPI function return the hand-worked value, and refuse bad input? | `mcp/kpi-solar/tests/` | Dev 4, task 2 |
+| Golden cases | Does each tool, with no model, return the hand-worked value for the demo data? | `evals/cases/golden.json`, `tests/test_golden.py` | Dev 4, task 3 |
+| Number check | Is a number the tools never returned always withheld? | `tests/test_number_check.py` | Dev 4, task 4 |
 
 ## 2. Rules for a golden case
 
-1. One case per KPI (13 in `harness/energy_tools.py`).
+1. One case per KPI (the 13 in [SPEC.md §3](SPEC.md)).
 2. Fields: `id`, `question`, `tool`, `arguments`, `expected` (decimal string), `unit`, `note`.
-3. The expected value is worked out **by hand** from `harness/dataset.py`. The `note` shows the working. At least three are checked by hand before anyone trusts the code output.
+3. The expected value is worked out **by hand** from the fixture in `data/synthetic/`. The `note` shows the working. At least three are checked by hand before anyone trusts the code output.
 4. Compared exactly, as strings. No tolerance.
 5. A golden value changes only with the lead's approval.
 

@@ -40,7 +40,7 @@ run:
 	@$(PY) scripts/dev.py run
 
 demo-smoke:
-	@bash scripts/demo-smoke.sh
+	@$(PY) scripts/dev.py demo-smoke
 
 verify:
 	@$(PY) scripts/dev.py verify
