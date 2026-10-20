@@ -4,7 +4,7 @@
 
 A chat assistant for a solar and battery portfolio. The model picks tools, deterministic code makes every number, the server checks each number in the answer, and a person approves any action. Everything is audited.
 
-> **Status:** first proof of concept on synthetic data. **Team:** 4 developers + lead.
+> **Status:** first proof of concept on synthetic data. **Team:** five people, Dev 1 to Dev 5; Dev 5 is the lead.
 
 ## Start here
 
@@ -16,21 +16,22 @@ A chat assistant for a solar and battery portfolio. The model picks tools, deter
 | Role | Your page |
 |---|---|
 | Lead | [docs/lead.html](docs/lead.html) |
-| Dev 1 · Model, contracts & health | [docs/developer-1.html](docs/developer-1.html) |
+| Dev 1 · Model & server | [docs/developer-1.html](docs/developer-1.html) |
 | Dev 2 · Calculator & evals | [docs/developer-2.html](docs/developer-2.html) |
-| Dev 3 · Harness, approval & audit | [docs/developer-3.html](docs/developer-3.html) |
-| Dev 4 · Skill & chat page | [docs/developer-4.html](docs/developer-4.html) |
+| Dev 3 · Harness & audit | [docs/developer-3.html](docs/developer-3.html) |
+| Dev 4 · Approval & release | [docs/developer-4.html](docs/developer-4.html) |
+| Dev 5 · Chat page in Lovable (lead) | [docs/developer-5.html](docs/developer-5.html) |
 
 Reference, only when a task links to it: [SPEC.md](SPEC.md), [ARCHITECTURE.md](ARCHITECTURE.md), [TEAM.md](TEAM.md), [EVALS.md](EVALS.md), [DEMO.md](DEMO.md), [KPI_REVIEW.md](KPI_REVIEW.md), [CLAUDE.md](CLAUDE.md).
 
 ## What the team builds
 
-The repository starts with documents and checks only. **The team builds the harness together, from scratch**, following [SPEC.md](SPEC.md):
+Already merged: contracts, model gateway and replay, synthetic portfolio, 13 KPI formulas, skill, charts, nine tools and the agent loop. The rest is 17 numbered tasks in four rounds, following [SPEC.md](SPEC.md). The harness is made of:
 
 - the synthetic portfolio and 13 KPI formulas (`mcp/kpi-solar`, `data/synthetic`)
 - nine read-only tools, the agent loop and the number check (`harness/`)
 - propose, approve once, audit (`mcp/actions`)
-- the chat page and server (`tools/kpi-lab`)
+- the server (`tools/kpi-lab/server.py`) and the chat page, built in Lovable (repository `energy-agent-ui`)
 - the model gateway with Claude Haiku 5.5 and offline replay (`model/`)
 
 ## Repository map

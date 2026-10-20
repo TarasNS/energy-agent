@@ -5,9 +5,9 @@
 ## 1. The picture
 
 ```text
-Chat page (tools/kpi-lab/index.html, charts.js)        render-only: shows what the server returns
+Chat page (Lovable, repository energy-agent-ui)       render-only: shows what the server returns
         │  POST /api/chat · POST /api/approve · GET /health
-Server (tools/kpi-lab/server.py)                       daily cap, CORS, issues approval tokens
+Server (tools/kpi-lab/server.py)                       daily cap, allowed origins, approval through mcp/actions
         │
 Agent loop (harness/agent.py)                          model picks tools · number check · 8 rounds max
    ├── model: model/model_gateway.run_turn()           Claude Haiku 5.5 · only place a model SDK may be used
@@ -41,7 +41,7 @@ Agent loop (harness/agent.py)                          model picks tools · numb
 | Tool results | `harness/registry.py` | JSON string. Money and energy values are decimal strings |
 | Model turn | `model/model_gateway` | `ModelTurn(text, tool_calls[])` from `run_turn(system, messages, tools)` |
 | Chat answer | `/api/chat` | `{text, verified, note, charts, proposals, trace, stopped}` |
-| Audit line | `artifacts/audit.jsonl` | `{ts, event, proposal_id, action, asset, approver}` |
+| Audit line | `artifacts/audit.jsonl` | `{ts, event, proposal_id, action, asset, approver}`; a `tool_call` line has `{ts, event, tool, input, ok}` |
 | Data schemas | `schemas/*.schema.json` | Checked by `make check` |
 
 ## 5. Rules in code
@@ -57,22 +57,18 @@ Agent loop (harness/agent.py)                          model picks tools · numb
 
 ## 6. Build order
 
-The harness does not exist yet. The exact contracts are in [SPEC.md](SPEC.md).
+Already merged: contracts, model gateway and replay code, synthetic portfolio, 13 KPI formulas, skill, charts, nine tools, agent loop with the number check. The rest is 17 numbered tasks in four rounds; the flow diagram is on the guide's front page ([docs/index.html#combine](docs/index.html#combine)). Every task in round 1 needs nothing, so all five people start at once.
 
-| Step | What | Owner |
+| Round | Tasks | Waits for |
 |---|---|---|
-| 1 | Shared schemas, model gateway, import guard and checks | Dev 1 |
-| 1 | Synthetic portfolio and the 13 KPI formulas (no other part needed) | Dev 2 |
-| 2 | Registry, nine tools, agent loop and number check (a scripted model stands in until the gateway lands) | Dev 3 |
-| 2 | Propose, approve once, audit | Dev 3 |
-| 3 | Server and chat page against the `/api/chat` contract | Dev 3, Dev 4 |
-| 3 | Skill file, golden cases, number-check tests | Dev 4, Dev 2 |
-| 4 | Offline replay, smoke test, demo rehearsal | Dev 1, Dev 3, Lead |
-| 5 | Container and Azure release | Dev 1, Lead |
+| 1 | #1 server routes (Dev 1), #2 container files (Dev 4), #3 golden cases (Dev 2), #4 number-check tests (Dev 2), #5 demo recordings (Dev 3), #6 smoke script (Dev 3), #7 actions and approval (Dev 4), #8 chat page in Lovable (Dev 5) | nothing |
+| 2 | #9 server on the real loop (Dev 1), #10 audit every tool call (Dev 3), #11 page on the server (Dev 5) | #1, #7, #8 |
+| 3 | #12 golden through the server (Dev 2), #13 five-question run (Dev 1), #14 run the smoke test (Dev 3) | #9, #10, #6 |
+| 4 | #15 release to Azure (Dev 4), #16 fixes (Dev 4), #17 rehearse the demo (Dev 2) | #2, #11, #14 |
 
 ## 7. Deployment
 
-The chat runs as one container on Azure App Service. Dev 1 writes the `Dockerfile` and `.dockerignore` in step 5.
+The server runs as one container on Azure App Service. Dev 4 writes the `Dockerfile` and `.dockerignore` (task #2) and releases (task #15); the lead approves each change in Azure. The chat page is not in the container: it is built in Lovable and calls the server from the internet, so its address must be in `KPI_ALLOWED_ORIGINS`.
 
 | Part | Detail |
 |---|---|

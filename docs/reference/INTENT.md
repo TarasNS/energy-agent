@@ -2,7 +2,7 @@
 
 **Read this first.** Every person and every Claude Code session starts here. It says why we build this, what "done" means and what we will not do. If another file disagrees with this one, stop and tell the lead.
 
-**Scope:** a first proof of concept (POC) on synthetic data, built from scratch by the team together, following [SPEC.md](SPEC.md). Nothing here touches real company systems.
+**Scope:** a first proof of concept (POC) on synthetic data, built by the team together, following [SPEC.md](SPEC.md). Nothing here touches real company systems.
 
 ## 1. The problem
 
@@ -44,21 +44,25 @@ Example action: *enable negative-price curtailment on a park*. It is simulated; 
 |---|---|
 | **Numbers come from code** | Only `mcp/kpi-solar` calculates. The server rejects answers with a number the tools did not return. Money crosses boundaries as decimal strings. |
 | **Actions need a person** | The model can propose, never approve. Approval is a separate server call with a one-time token the browser never sees. |
-| **Everything is traceable** | Proposals, approvals and refusals are appended to `artifacts/audit.jsonl`. The model sits behind one gateway (`model/model_gateway`), so the vendor can change. |
+| **Everything is traceable** | Every tool call, proposal, approval and refusal is appended to `artifacts/audit.jsonl`. The model sits behind one gateway (`model/model_gateway`), so the vendor can change. |
 
 Also fixed: data tools are read-only, the demo runs on synthetic data, no key is ever in git, no real SCADA or ERP write exists, and only `model/model_gateway/` may import a model SDK.
 
 ## 6. Where we are today
 
-The repository holds the documents and the checks only. **No harness code exists yet: the team builds it together.** Build order and owners are in [SPEC.md](SPEC.md) and on each person's page.
+Part of the harness is merged. The rest is 17 numbered tasks in four rounds, shown on the guide's front page.
 
 | Part | Owner | State |
 |---|---|---|
-| Shared contracts, model gateway, repo checks | Dev 1 | Not built |
-| Synthetic portfolio, 13 KPI formulas, golden cases | Dev 2 | Not built |
-| Nine tools, agent loop, number check, approval, audit, server | Dev 3 | Not built |
-| Skill file, chat page | Dev 4 | Not built |
-| Offline model replay, smoke test, demo | All | Not built |
+| Shared contracts, model gateway, replay code | Dev 1 Anna | Done |
+| Synthetic portfolio, 13 KPI formulas | Dev 2 Huiling | Done |
+| Nine tools, agent loop, number check | Dev 3 Raul | Done |
+| Skill file, charts | Dev 4 Søren | Done |
+| Server, five-question run | Dev 1 Anna | To build (#1, #9, #13) |
+| Golden cases, number-check tests, rehearsal | Dev 2 Huiling | To build (#3, #4, #12, #17) |
+| Recordings, smoke test, audit of tool calls | Dev 3 Raul | To build (#5, #6, #10, #14) |
+| Actions and approval, container, Azure release, fixes from the smoke test | Dev 4 Søren | To build (#2, #7, #15, #16) |
+| Chat page in Lovable | Dev 5 Taras (lead) | To build (#8, #11) |
 | Real company data | Lead | **Not available.** See `KPI_REVIEW.md` |
 
 ## 7. What "done" means for the POC
@@ -70,7 +74,7 @@ The POC is done when all of these are true and shown with evidence:
 3. A made-up number in a model answer is withheld (test exists).
 4. Approving without a valid token, or approving twice, is refused and audited (test exists).
 5. Every tool call and every approval is in the audit log.
-6. The demo runs with no internet, using recorded model turns.
+6. The server and the smoke test run with no internet, using recorded model turns. The Lovable chat page needs internet.
 7. `make check` and `make test` are green on `main`.
 
 ## 8. Not in this POC
@@ -84,10 +88,10 @@ Real Nordic Solar data or adapters · live market prices · production SCADA or 
 | Which model? | Claude Haiku 5.5 through the gateway. Change it in `.env` or `model/profiles.json` only. |
 | Where does the number come from? | `mcp/kpi-solar`. Never from the model. |
 | What does an approved action do? | Writes an audit line. It is simulated. |
-| How do we ship? | Only `main`. One branch and one pull request per task, merged by the lead. No `dev` branch, no CI/CD. Checks run locally; Azure is released by hand. |
+| Who builds what? | Everyone builds with Claude Code on Claude Haiku 5.5, one file and its test per pull request. The lead builds the chat page in Lovable. |
+| How do we ship? | Only `main`. One branch and one pull request per task, merged by the lead as soon as it is green. No `dev` branch, no CI/CD. Checks run locally; Azure is released by hand. |
 
 ## 10. Open questions for the lead
 
 1. Which real data source do we validate first? Without one, no KPI is production-ready.
-2. Who owns `mcp/kpi-solar`? It is a new path that [TEAM.md](TEAM.md) assigns to Dev 2; confirm.
-3. Is the Azure server the demo host, or do we run locally?
+2. Is the Azure server the demo host, or do we run locally?
